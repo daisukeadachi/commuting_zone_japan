@@ -1,5 +1,6 @@
 # Commuting Zones in Japan
 
+- Initial version: 29 Apr, 2019. Last updated: 19 Sep, 2022.
 - This repository contains the CZ delineation, source codes and raw data based on [Adachi, Fukai, Kawaguchi, and Saito (2020)](https://daisukeadachi.github.io/assets/papers/commuting_zone_latest.pdf).
 
 # `output` folder
@@ -30,3 +31,9 @@
   1. Open the `commuting_zone_japan.Rproj` in the mother folder.
   2. Run `MASTER.R`
 - The output is in the `output/replicate_by_tree_heights` folder (replace the existing files).
+
+# `data` folder
+
+- This folder contains data needed to run the codes above. 
+  - CSV files are aggregated and annonymized commuting flow matrices that are produced and published by KAKENHI project [15H05692](https://kaken.nii.ac.jp/en/grant/KAKENHI-PROJECT-15H05692/).
+  - In sub-folder `mmm` are the municipality concordance files produced in [Municipality Map Maker](http://www.tkirimura.com/mmm/).
