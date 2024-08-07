@@ -1,7 +1,7 @@
 # Commuting Zones in Japan
 
 - Initial version: 29 Apr, 2019. Last updated: 19 Sep, 2022.
-- This repository contains the CZ delineation, source codes and raw data based on [Adachi, Fukai, Kawaguchi, and Saito (2020)](https://daisukeadachi.github.io/assets/papers/commuting_zone_latest.pdf).
+- This repository contains the CZ delineation, source codes and raw data based on [Adachi, Fukai, Kawaguchi, and Saito (2020)](https://daisukeadachi.github.io/assets/papers/commuting_zones_rietidp.pdf).
 
 # `output` folder
 
