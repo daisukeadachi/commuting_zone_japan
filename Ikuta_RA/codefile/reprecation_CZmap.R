@@ -5,7 +5,7 @@ library(sf)
 CZ_2005 <- readr::read_csv("data/2005_original_small-0.001.csv") %>% 
   dplyr::rename(JISCODE = i)
 
-muni_map <- sf::read_sf("data/mmm20051001/mmm20051001.shp", options = "ENCODING=CP932") %>% 
+CZ_map <- sf::read_sf("data/mmm20051001/mmm20051001.shp", options = "ENCODING=CP932") %>% 
   dplyr::left_join(CZ_2005, by = "JISCODE")                                                  
 
 temp <- muni_map %>% 
@@ -18,7 +18,7 @@ temp <- muni_map %>%
 muni_map %>% 
   dplyr::left_join(temp, by = "cluster") %>% 
   ggplot2::ggplot() +
-  ggplot2::geom_sf(aes(fill = rep)) +
+  ggplot2::geom_sf(aes(fill = rep), linewidth = 0.01, color = "white") +
   ggplot2::theme_bw() +
   # ggplot2::scale_fill_brewer(type = "qua") +
   ggplot2::theme(legend.position = "none") +

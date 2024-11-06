@@ -1,5 +1,6 @@
 library(tidyverse)
 library(sf)
+library(gridExtra)
 
 #reading data-----------------------------------------------------------------------------  
 
@@ -126,12 +127,29 @@ UEA_2005.sf <- muni_map %>%
   dplyr::mutate(JISCODE = dplyr::if_else(GNAME %in% c("川崎市", "福岡市"), JISCODE + 30, JISCODE)) %>% 
   dplyr::full_join(UEA_2005 , by = "JISCODE")
 
+#CZmap----------------------------------------------------------------
+
+CZ_2005 <- readr::read_csv("data/2005_original_small-0.001.csv") %>% 
+  dplyr::rename(JISCODE = i)
+
+CZ_map <- muni_map %>% 
+  dplyr::left_join(CZ_2005, by = "JISCODE")                                                  
+
+temp <- CZ_map %>% 
+  dplyr::tibble() %>% 
+  select(cluster, NAME) %>% 
+  dplyr::group_by(cluster) %>% 
+  dplyr::slice_head(n = 1) %>% 
+  dplyr::rename(rep = NAME)
+
+
+
 #creating map---------------------------------------------------------
 
 UEA_2005.sf %>% 
   ggplot2::ggplot() + 
-  ggplot2::geom_sf(aes(fill = 都市圏名)) +
-  ggplot2::theme_minimal() +
+  ggplot2::geom_sf(aes(fill = 都市圏名), linewidth = 0.01, color = "white") +
+  ggplot2::theme_bw() +
   ggplot2::theme(legend.position = "none") +
   ggplot2::coord_sf(datum = NA) +
   ggplot2::labs(title = "UEA(2005)")　-> UEAmap_2005
@@ -139,15 +157,49 @@ UEA_2005.sf %>%
 UEA_2005.sf %>% 
   ggplot2::ggplot() + 
   ggplot2::geom_sf(aes(fill = 都市圏名)) +
-  ggplot2::theme_minimal() +
+  ggplot2::theme_bw() +
   ggplot2::theme(legend.position = "none") +
   ggplot2::coord_sf(ylim = c(34, 37),
                     xlim = c(138, 141),
                     datum = NA) +
-  ggplot2::labs(title = "関東地方・UEA(2005)")　-> UEAmap_2005_Kanto
+  ggplot2::labs(title = "関東地方・UEA(2005)")+
+  theme(plot.title    = element_text(size = 10))　-> UEAmap_2005_Kanto
 
-ggsave(UEAmap_2005, filename = "output/UEAmap_2005.png", bg = "white")
-ggsave(UEAmap_2005_Kanto, filename = "output/UEAmap_2005_Kanto.png", bg = "white")
+CZ_map %>% 
+  dplyr::left_join(temp, by = "cluster") %>% 
+  ggplot2::ggplot() +
+  ggplot2::geom_sf(aes(fill = rep), linewidth = 0.01, color = "white") +
+  ggplot2::theme_bw() +
+  # ggplot2::scale_fill_brewer(type = "qua") +
+  ggplot2::theme(legend.position = "none") +
+  ggplot2::coord_sf(datum = NA) +
+  ggplot2::labs(title = "Commuting Zone(2005)") -> CZmap_2005
+
+CZ_map %>% 
+  dplyr::left_join(temp, by = "cluster") %>% 
+  ggplot2::ggplot() +
+  ggplot2::geom_sf(aes(fill = rep)) +
+  ggplot2::theme_bw() +
+  # ggplot2::scale_fill_brewer(type = "qua") +
+  ggplot2::theme(legend.position = "none") +
+  ggplot2::coord_sf(ylim = c(34, 37),
+                    xlim = c(138, 141),
+                    datum = NA) +
+  ggplot2::labs(title = "関東地方・Commuting Zone(2005)")+
+  theme(plot.title    = element_text(size = 10)) -> CZmap_2005_Kanto
+
+gridExtra::grid.arrange(UEAmap_2005, CZmap_2005, nrow = 1) %>% 
+  ggplot2::ggsave(filename = "output/UEA&CAmap_2005.png", bg = "white", width = 5, height = 3)
+gridExtra::grid.arrange(UEAmap_2005_Kanto, CZmap_2005_Kanto, nrow = 1) %>% 
+  ggplot2::ggsave(filename = "output/UEA&CAmap_2005_kanto.png", bg = "white", width = 5, height = 3)
+
+# ggsave(UEAmap_2005, filename = "output/UEAmap_2005.png", bg = "white")
+# ggsave(UEAmap_2005_Kanto, filename = "output/UEAmap_2005_Kanto.png", bg = "white")
+
+
+
+
+
 
 
 # UEA_2005.sf %>% 
