@@ -134,7 +134,7 @@ UEA_2005.sf %>%
   ggplot2::theme_minimal() +
   ggplot2::theme(legend.position = "none") +
   ggplot2::coord_sf(datum = NA) +
-  ggplot2::labs(title = "UEA")　-> UEAmap_2005
+  ggplot2::labs(title = "UEA(2005)")　-> UEAmap_2005
 
 UEA_2005.sf %>% 
   ggplot2::ggplot() + 
@@ -144,10 +144,10 @@ UEA_2005.sf %>%
   ggplot2::coord_sf(ylim = c(34, 37),
                     xlim = c(138, 141),
                     datum = NA) +
-  ggplot2::labs(title = "UEA")　-> UEAmap_2005_Kanto
+  ggplot2::labs(title = "関東地方・UEA(2005)")　-> UEAmap_2005_Kanto
 
-ggsave(UEAmap_2005, filename = "output/UEAmap_2005.png")
-ggsave(UEAmap_2005_Kanto, filename = "output/UEAmap_2005_Kanto.png")
+ggsave(UEAmap_2005, filename = "output/UEAmap_2005.png", bg = "white")
+ggsave(UEAmap_2005_Kanto, filename = "output/UEAmap_2005_Kanto.png", bg = "white")
 
 
 # UEA_2005.sf %>% 
