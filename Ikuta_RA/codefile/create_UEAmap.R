@@ -146,6 +146,9 @@ UEA_2005.sf %>%
                     datum = NA) +
   ggplot2::labs(title = "UEA")　-> UEAmap_2005_Kanto
 
+ggsave(UEAmap_2005, filename = "output/UEAmap_2005.png")
+ggsave(UEAmap_2005_Kanto, filename = "output/UEAmap_2005_Kanto.png")
+
 
 # UEA_2005.sf %>% 
 #   dplyr::mutate(UEA = base::as.factor(UEA)) %>% 

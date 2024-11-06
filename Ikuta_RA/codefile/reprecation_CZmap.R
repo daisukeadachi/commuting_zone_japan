@@ -37,5 +37,7 @@ muni_map %>%
                     datum = NA) +
   ggplot2::labs(title = "Commuting Zone") -> CZmap_2005_Kanto
 
+ggsave(CZmap_2005, filename = "output/CZmap_2005.png")
+ggsave(CZmap_2005_Kanto, filename = "output/CZmap_2005_Kanto.png")
 
 
