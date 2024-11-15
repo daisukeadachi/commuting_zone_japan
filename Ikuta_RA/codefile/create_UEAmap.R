@@ -193,15 +193,15 @@ CZ_map %>%
   theme(plot.title    = element_text(size = 10)) -> CZmap_2005_Kanto
 
 gridExtra::grid.arrange(UEAmap_2005, CZmap_2005, nrow = 1) %>% 
-  ggplot2::ggsave(filename = "output/map_image/UEA&CZmap_2005.png", bg = "white", width = 5, height = 3)
+  ggplot2::ggsave(filename = "output/map_image/2005_UEA&CZmap.png", bg = "white", width = 5, height = 3)
 gridExtra::grid.arrange(UEAmap_2005_Kanto, CZmap_2005_Kanto, nrow = 1) %>% 
-  ggplot2::ggsave(filename = "output/map_image/UEA&CZmap_2005_kanto.png", bg = "white", width = 5, height = 3)
+  ggplot2::ggsave(filename = "output/map_image/2005_UEA&CZmap_kanto.png", bg = "white", width = 5, height = 3)
 
-ggsave(UEAmap_2005, filename = "output/map_image/UEAmap_2005.png", bg = "white")
-ggsave(UEAmap_2005_Kanto, filename = "output/map_image/UEAmap_2005_Kanto.png", bg = "white")
+ggsave(UEAmap_2005, filename = "output/map_image/2005_UEAmap.png", bg = "white")
+ggsave(UEAmap_2005_Kanto, filename = "output/map_image/2005_UEAmap_Kanto.png", bg = "white")
 
-ggplot2::ggsave(CZmap_2005, filename = "output/map_image/CZmap_2005.png", bg = "white")
-ggplot2::ggsave(CZmap_2005_Kanto, filename = "output/map_image/CZmap_2005_Kanto.png", bg = "white")
+ggplot2::ggsave(CZmap_2005, filename = "output/map_image/2005_CZmap.png", bg = "white")
+ggplot2::ggsave(CZmap_2005_Kanto, filename = "output/map_image/2005_CZmap_Kanto.png", bg = "white")
 
 
 # #動的マップ作成---------------------------------------------------------------
