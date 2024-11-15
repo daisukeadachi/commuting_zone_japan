@@ -198,20 +198,25 @@ gridExtra::grid.arrange(UEAmap_2005_Kanto, CZmap_2005_Kanto, nrow = 1) %>%
 
 
 
-
-
-
-
-# UEA_2005.sf %>% 
-#   dplyr::mutate(UEA = base::as.factor(UEA)) %>% 
-#   dplyr::select(UEA) %>% 
-#   plot()
+# #動的マップ作成---------------------------------------------------------------
 # 
-# library(mapview)
-# UEA_2005.sf %>% 
-#   dplyr::mutate(UEA = str_replace_all(as.character(UEA), c(
-#     "1" = "A",
-#     "2" = "B",
-#     "3" = "C"
-#    ))) %>% 
-#   mapview(zcol = "UEA")
+# CZ_2005wrep <- CZ_2005 %>%
+#   dplyr::left_join(temp, by = "cluster")
+# 
+# UEAandCZ_2005 <-   muni_map %>%
+#   dplyr::left_join(CZ_2005wrep, by = "JISCODE") %>%
+#   dplyr::mutate(JISCODE = dplyr::if_else(stringr::str_sub(GNAME, -1, -1) == "市", base::trunc(JISCODE * 0.01) * 100 , JISCODE)) %>%
+#   dplyr::mutate(JISCODE = dplyr::if_else((stringr::str_sub(CNAME, -1, -1) == "区" & PNAME == "東京都"), base::trunc(JISCODE * 0.01) * 100 , JISCODE)) %>%
+#   dplyr::mutate(JISCODE = dplyr::if_else(GNAME %in% c("川崎市", "福岡市"), JISCODE + 30, JISCODE)) %>%
+#   dplyr::full_join(UEA_2005 , by = "JISCODE") %>%
+#   dplyr::rename(CZ = rep,
+#                 UEA_NAME = 都市圏名)
+# 
+# library(leaflet)
+# library(leafpop)
+# 
+# UEAandCZ_2005 %>%
+#   mapview(zcol = c("CZ", "UEA_NAME"),
+#           popup = popupTable(UEAandCZ_2005,
+#                              zcol = c("UEA_NAME", "NAME")),
+#           legend = FALSE)
