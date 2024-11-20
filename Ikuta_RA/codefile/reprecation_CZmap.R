@@ -1,5 +1,11 @@
 library(tidyverse)
 library(sf)
+library(RColorBrewer)
+
+lineMatrix = base::rbind(c(138, 45), c(138, 40), c(130, 37))
+OkinawaLine <- st_linestring(lineMatrix) %>% 
+  sf::st_sfc() %>% 
+  sf::st_set_crs(4612)
 
 
 CZ_2005 <- readr::read_csv("output/2005_original.csv")
@@ -14,22 +20,23 @@ CZ_2005.sf <- CZ_2005.sf %>%
                      dplyr::slice_head(n = 1) %>%
                      dplyr::rename(fill = NAME),
                    by = "cluster") %>% 
-  sf::st_set_crs(4612)
+  sf::st_transform(4612)
 
 CZ_Okinawa <- CZ_2005.sf %>% 
-  dplyr::filter(JISCODE %in% (47000:47999)) %>% 
-  sf::st_set_geometry(st_geometry(CZ_2005.sf %>% dplyr::filter(JISCODE %in% (47000:47999))) + c(5, 15)) %>% 
+  dplyr::filter(JISCODE %in% (47000:47999)) 
+  sf::st_set_geometry(st_geometry(CZ_2005.sf %>% dplyr::filter(JISCODE %in% (47000:47999))) + c(17, )) %>% 
   sf::st_set_crs(4612)
 # CZ_Okinawa <- CZ_Okinawa %>% 
 #   sf::st_set_geometry((st_geometry(CZ_Okinawa) - st_centroid(CZ_Okinawa %>% st_geometry())) * 2 +  st_centroid(CZ_Okinawa %>% st_geometry())) %>% 
 
-
-
+# custom_palette <- colorRampPalette(brewer.pal(8, "Set2"))(base::max(CZ_2005$cluster) + 1)
+  
 CZ_2005.sf %>%
-  dplyr::filter(JISCODE != 13421, !(JISCODE %in% (47000:47999))) %>% 
-  dplyr::bind_rows(CZ_Okinawa) %>% 
+  # dplyr::filter(JISCODE != 13421, !(JISCODE %in% (47000:47999))) %>% 
+  # dplyr::bind_rows(CZ_Okinawa) %>% 
   ggplot2::ggplot() +
   ggplot2::geom_sf(aes(fill = fill), linewidth = 0.01, color = "gray") +
+  # ggplot2::scale_fill_manual(values = custom_palette) +
   ggplot2::theme_bw() +
   ggplot2::theme(legend.position = "none") +
   ggplot2::geom_sf(data = OkinawaLine) +

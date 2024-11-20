@@ -125,7 +125,9 @@ UEA_2005.sf <- muni_map %>%
   dplyr::mutate(JISCODE = dplyr::if_else(stringr::str_sub(GNAME, -1, -1) == "市", base::trunc(JISCODE * 0.01) * 100 , JISCODE)) %>% 
   dplyr::mutate(JISCODE = dplyr::if_else((stringr::str_sub(CNAME, -1, -1) == "区" & PNAME == "東京都"), base::trunc(JISCODE * 0.01) * 100 , JISCODE)) %>% 
   dplyr::mutate(JISCODE = dplyr::if_else(GNAME %in% c("川崎市", "福岡市"), JISCODE + 30, JISCODE)) %>% 
-  dplyr::full_join(UEA_2005 , by = "JISCODE")
+  dplyr::full_join(UEA_2005 , by = "JISCODE") %>% 
+  sf::st_transform(4612)
+
 
 #CZmap----------------------------------------------------------------
 
@@ -133,7 +135,8 @@ CZ_2005 <- readr::read_csv("output/2005_original.csv") %>%
   dplyr::rename(JISCODE = i)
 
 CZ_map <- muni_map %>% 
-  dplyr::left_join(CZ_2005, by = "JISCODE")                                                  
+  dplyr::left_join(CZ_2005, by = "JISCODE") %>% 
+  sf::st_transform(4612)
 
 temp <- CZ_map %>% 
   dplyr::tibble() %>% 
@@ -146,14 +149,33 @@ temp <- CZ_map %>%
 
 #creating map---------------------------------------------------------
 
+lineMatrix = base::rbind(c(138, 45), c(138, 40), c(130, 37))
+OkinawaLine <- sf::st_linestring(lineMatrix) %>% 
+  sf::st_sfc() %>% 
+  sf::st_set_crs(4612)
+
+
+CZ_Okinawa <- CZ_map %>% 
+  dplyr::filter(JISCODE %in% (47000:47999)) %>% 
+  sf::st_set_geometry(sf::st_geometry(CZ_map %>% dplyr::filter(JISCODE %in% (47000:47999))) + c(5, 15)) %>% 
+  sf::st_set_crs(4612)
+
+UEA_Okinawa <- UEA_2005.sf %>% 
+  dplyr::filter(JISCODE %in% (47000:47999)) %>% 
+  sf::st_set_geometry(sf::st_geometry(CZ_map %>% dplyr::filter(JISCODE %in% (47000:47999))) + c(5, 15)) %>% 
+  sf::st_set_crs(4612)
+
+
 UEA_2005.sf %>% 
+  dplyr::filter(JISCODE != 13421, !(JISCODE %in% (47000:47999))) %>% 
+  dplyr::bind_rows(UEA_Okinawa) %>% 
   ggplot2::ggplot() + 
   ggplot2::geom_sf(aes(fill = 都市圏名), linewidth = 0.01, color = "grey") +
   ggplot2::theme_bw() +
   ggplot2::theme(legend.position = "none") +
-  ggplot2::coord_sf(#ylim = c(24, 45.5),
-                    #xlim = c(122.9, 149),
-                    datum = NA) +
+  ggplot2::coord_sf(datum = NA) +
+  ggplot2::geom_sf(data = OkinawaLine) +
+  ggplot2::coord_sf(datum = NA) +
   ggplot2::labs(title = "都市雇用圏(UEA).2005")　-> UEAmap_2005
 
 UEA_2005.sf %>% 
@@ -168,15 +190,17 @@ UEA_2005.sf %>%
   theme(plot.title    = element_text(size = 10))　-> UEAmap_2005_Kanto
 
 CZ_map %>% 
+  dplyr::filter(JISCODE != 13421, !(JISCODE %in% (47000:47999))) %>% 
+  dplyr::bind_rows(CZ_Okinawa) %>% 
   dplyr::left_join(temp, by = "cluster") %>% 
   ggplot2::ggplot() +
   ggplot2::geom_sf(aes(fill = rep), linewidth = 0.01, color = "grey") +
   ggplot2::theme_bw() +
   # ggplot2::scale_fill_brewer(type = "qua") +
   ggplot2::theme(legend.position = "none") +
-  ggplot2::coord_sf(#ylim = c(24, 45.5),
-                    #xlim = c(122.9, 149),
-                    datum = NA) +
+  ggplot2::coord_sf(datum = NA) +
+  ggplot2::geom_sf(data = OkinawaLine) +
+  ggplot2::coord_sf(datum = NA) +
   ggplot2::labs(title = "Commuting Zone(2005)") -> CZmap_2005
 
 CZ_map %>% 

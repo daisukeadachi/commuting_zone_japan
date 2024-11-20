@@ -29,7 +29,7 @@ for (i in year) {
   cz_okinawa <- cz_map %>% 
     dplyr::filter(JISCODE %in% (47000:47999)) %>% 
     sf::st_set_geometry(sf::st_geometry(cz_map %>% dplyr::filter(JISCODE %in% (47000:47999))) + c(5, 15)) %>% 
-    sf::st_transform(4612)
+    sf::st_set_crs(4612)
   
   
   table_name <- base::paste0("Commuting Zone(", i, ")")
