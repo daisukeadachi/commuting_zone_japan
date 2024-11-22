@@ -163,14 +163,14 @@ CZ_Okinawa <- CZ_map %>%
   dplyr::filter(JISCODE %in% (47000:47999)) %>% 
   sf::st_set_geometry(sf::st_geometry(CZ_map %>% dplyr::filter(JISCODE %in% (47000:47999))) + c(5, 15)) %>% 
   sf::st_set_crs(4612)
+UEA_Okinawa <- UEA_2005.sf %>% 
+  dplyr::filter(JISCODE %in% (47000:47999)) %>% 
+  sf::st_set_geometry(sf::st_geometry(UEA_2005.sf %>% dplyr::filter(JISCODE %in% (47000:47999))) + c(5, 15)) %>% 
+  sf::st_set_crs(4612)
+
 CZ_map <- CZ_map %>% 
   dplyr::filter(JISCODE != 13421, !(JISCODE %in% (47000:47999))) %>% 
   dplyr::bind_rows(CZ_Okinawa) 
-
-UEA_Okinawa <- UEA_2005.sf %>% 
-  dplyr::filter(JISCODE %in% (47000:47999)) %>% 
-  sf::st_set_geometry(sf::st_geometry(CZ_map %>% dplyr::filter(JISCODE %in% (47000:47999))) + c(5, 15)) %>% 
-  sf::st_set_crs(4612)
 UEA_2005.sf <- UEA_2005.sf %>% 
   dplyr::filter(JISCODE != 13421, !(JISCODE %in% (47000:47999))) %>% 
   dplyr::bind_rows(UEA_Okinawa)
@@ -275,7 +275,6 @@ CZ_map %>%
   ggplot2::labs(title = "Commuting Zone(2005)") -> CZmap_2005
 
 CZ_map %>% 
-  dplyr::left_join(temp, by = "cluster") %>% 
   ggplot2::ggplot() +
   ggplot2::geom_sf(aes(fill = color)) +
   ggplot2::scale_fill_manual(values = colors) +

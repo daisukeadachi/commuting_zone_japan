@@ -71,7 +71,9 @@ CZ_2005.sf %>%
   ggplot2::theme(legend.position = "none") +
   ggplot2::geom_sf(data = OkinawaLine) +
   ggplot2::coord_sf(datum = NA) +
-  ggplot2::labs(title = "CZ_alt") -> CZmap_2005
+  ggplot2::labs(title = "CZ_alt",
+                caption = "note:Ogasawara Village, Tokyo Prefecture is elminated from the map for the visiblity. 
+                (There no other municiparities included in the same CZ as Ogasawara Village)") -> CZmap_2005
 
 # CZ_2005.sf %>%
 #   ggplot2::ggplot() +
