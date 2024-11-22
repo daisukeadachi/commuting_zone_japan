@@ -1,6 +1,9 @@
 library(tidyverse)
 library(sf)
 library(gridExtra)
+library(spdep)
+library(RColorBrewer)
+
 
 #reading data-----------------------------------------------------------------------------  
 
@@ -129,7 +132,7 @@ UEA_2005.sf <- muni_map %>%
   sf::st_transform(4612)
 
 
-#CZmap----------------------------------------------------------------
+#CZmap--------------------------------------------------------------------------
 
 CZ_2005 <- readr::read_csv("output/2005_original.csv") %>% 
   dplyr::rename(JISCODE = i)
@@ -138,49 +141,120 @@ CZ_map <- muni_map %>%
   dplyr::left_join(CZ_2005, by = "JISCODE") %>% 
   sf::st_transform(4612)
 
-temp <- CZ_map %>% 
-  dplyr::tibble() %>% 
-  select(cluster, NAME) %>% 
-  dplyr::group_by(cluster) %>% 
-  dplyr::slice_head(n = 1) %>% 
-  dplyr::rename(rep = NAME)
+# temp <- CZ_map %>% 
+#   dplyr::tibble() %>% 
+#   select(cluster, NAME) %>% 
+#   dplyr::group_by(cluster) %>% 
+#   dplyr::slice_head(n = 1) %>% 
+#   dplyr::rename(rep = NAME)
 
 
 
-#creating map---------------------------------------------------------
+# prepare map data -------------------------------------------------------------
 
+# 沖縄県を右上に描くので、区別するための線を用意。
 lineMatrix = base::rbind(c(138, 45), c(138, 40), c(130, 37))
 OkinawaLine <- sf::st_linestring(lineMatrix) %>% 
   sf::st_sfc() %>% 
   sf::st_set_crs(4612)
 
-
+# 沖縄県を右上にずらす。
 CZ_Okinawa <- CZ_map %>% 
   dplyr::filter(JISCODE %in% (47000:47999)) %>% 
   sf::st_set_geometry(sf::st_geometry(CZ_map %>% dplyr::filter(JISCODE %in% (47000:47999))) + c(5, 15)) %>% 
   sf::st_set_crs(4612)
+CZ_map <- CZ_map %>% 
+  dplyr::filter(JISCODE != 13421, !(JISCODE %in% (47000:47999))) %>% 
+  dplyr::bind_rows(CZ_Okinawa) 
 
 UEA_Okinawa <- UEA_2005.sf %>% 
   dplyr::filter(JISCODE %in% (47000:47999)) %>% 
   sf::st_set_geometry(sf::st_geometry(CZ_map %>% dplyr::filter(JISCODE %in% (47000:47999))) + c(5, 15)) %>% 
   sf::st_set_crs(4612)
+UEA_2005.sf <- UEA_2005.sf %>% 
+  dplyr::filter(JISCODE != 13421, !(JISCODE %in% (47000:47999))) %>% 
+  dplyr::bind_rows(UEA_Okinawa)
 
+
+# assign color to CZ/UEA -------------------------------------------------------
+
+sf_use_s2(FALSE) # s2ジオメトリエンジンを無効化(ポリゴンの統合や隣接行列の計算のため)
+colors <- RColorBrewer::brewer.pal(8, "Set2")
+
+#CZ
+CZ_color <- CZ_map %>%
+  dplyr::group_by(cluster) %>%
+  dplyr::select(cluster) %>%
+  dplyr::summarise() %>%
+  sf::st_make_valid()
+
+# 隣接関係の計算
+neighbors <- spdep::poly2nb(CZ_color)
+neighbor_matrix <- spdep::nb2mat(neighbors, style = "B", zero.policy = TRUE)
+
+# 色の割り当て
+color_assignment <- rep(NA, length(neighbors))
+
+for (i in 1:length(neighbors)) {
+  available_colors <- setdiff(colors, color_assignment[neighbors[[i]]])
+  color_assignment[i] <- available_colors[1]
+}
+CZ_color$color <- color_assignment
+CZ_color <- CZ_color %>%
+  dplyr::tibble() %>%
+  select(-geometry)
+
+CZ_map <- CZ_map %>% 
+  dplyr::left_join(CZ_color, by = "cluster")
+
+base::rm(color_assignment, i, neighbors, neighbor_matrix, CZ_color)
+
+#UEA
+UEA_color <- UEA_2005.sf %>%
+  tidyr::drop_na(UEA) %>% 
+  dplyr::group_by(UEA) %>%
+  dplyr::select(UEA) %>%
+  dplyr::summarise() %>%
+  sf::st_make_valid()
+
+neighbors <- spdep::poly2nb(UEA_color)
+neighbor_matrix <- spdep::nb2mat(neighbors, style = "B", zero.policy = TRUE)
+
+color_assignment <- rep(NA, length(neighbors))
+
+for (i in 1:length(neighbors)) {
+  available_colors <- setdiff(colors, color_assignment[neighbors[[i]]])
+  color_assignment[i] <- available_colors[1]
+}
+UEA_color$color <- color_assignment
+UEA_color_ <- UEA_color %>%
+  dplyr::tibble() %>%
+  select(-geometry)
+
+UEA_2005.sf <- UEA_2005.sf %>% 
+  dplyr::left_join(UEA_color_, by = "UEA")
+
+base::rm(color_assignment, i, neighbors, neighbor_matrix, UEA_color)
+
+sf_use_s2(TRUE) # s2ジオメトリエンジンを有効化(地図プロットのため)
+
+# plot map ---------------------------------------------------------------------
 
 UEA_2005.sf %>% 
-  dplyr::filter(JISCODE != 13421, !(JISCODE %in% (47000:47999))) %>% 
-  dplyr::bind_rows(UEA_Okinawa) %>% 
+  sf::st_set_crs(4612) %>% 
   ggplot2::ggplot() + 
-  ggplot2::geom_sf(aes(fill = 都市圏名), linewidth = 0.01, color = "grey") +
+  ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "grey") +
+  ggplot2::scale_fill_manual(values = colors) +
   ggplot2::theme_bw() +
   ggplot2::theme(legend.position = "none") +
-  ggplot2::coord_sf(datum = NA) +
   ggplot2::geom_sf(data = OkinawaLine) +
   ggplot2::coord_sf(datum = NA) +
   ggplot2::labs(title = "都市雇用圏(UEA).2005")　-> UEAmap_2005
 
 UEA_2005.sf %>% 
   ggplot2::ggplot() + 
-  ggplot2::geom_sf(aes(fill = 都市圏名)) +
+  ggplot2::geom_sf(aes(fill = color)) +
+  ggplot2::scale_fill_manual(values = colors) +
   ggplot2::theme_bw() +
   ggplot2::theme(legend.position = "none") +
   ggplot2::coord_sf(ylim = c(34.5, 37.1),
@@ -190,13 +264,10 @@ UEA_2005.sf %>%
   theme(plot.title    = element_text(size = 10))　-> UEAmap_2005_Kanto
 
 CZ_map %>% 
-  dplyr::filter(JISCODE != 13421, !(JISCODE %in% (47000:47999))) %>% 
-  dplyr::bind_rows(CZ_Okinawa) %>% 
-  dplyr::left_join(temp, by = "cluster") %>% 
   ggplot2::ggplot() +
-  ggplot2::geom_sf(aes(fill = rep), linewidth = 0.01, color = "grey") +
+  ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "white") +
+  ggplot2::scale_fill_manual(values = colors) +
   ggplot2::theme_bw() +
-  # ggplot2::scale_fill_brewer(type = "qua") +
   ggplot2::theme(legend.position = "none") +
   ggplot2::coord_sf(datum = NA) +
   ggplot2::geom_sf(data = OkinawaLine) +
@@ -206,9 +277,9 @@ CZ_map %>%
 CZ_map %>% 
   dplyr::left_join(temp, by = "cluster") %>% 
   ggplot2::ggplot() +
-  ggplot2::geom_sf(aes(fill = rep)) +
+  ggplot2::geom_sf(aes(fill = color)) +
+  ggplot2::scale_fill_manual(values = colors) +
   ggplot2::theme_bw() +
-  # ggplot2::scale_fill_brewer(type = "qua") +
   ggplot2::theme(legend.position = "none") +
   ggplot2::coord_sf(ylim = c(34.5, 37.1),
                     xlim = c(138, 141),
