@@ -59,8 +59,8 @@ for (i in year) {
   
   fileName <- base::paste0("output/map_image/TimeSeriesCZ/", i, "_CZmap_harmonized.png")
   fileNameKanto <- base::paste0("output/map_image/TimeSeriesCZ/", i, "_CZmap_harmonized_Kanto.png")
-  ggplot2::ggsave(map, filename = fileName, bg = "white")
-  ggplot2::ggsave(map_kanto, filename = fileNameKanto, bg = "white")
+  # ggplot2::ggsave(map, filename = fileName, bg = "white")
+  # ggplot2::ggsave(map_kanto, filename = fileNameKanto, bg = "white")
   map_name <- base::paste0("CZ_", i)
   base::assign(map_name, map)
   map_nameKanto <- base::paste0("CZ_", i, "_Kanto")
