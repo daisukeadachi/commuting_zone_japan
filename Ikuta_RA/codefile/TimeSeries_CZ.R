@@ -69,12 +69,12 @@ for (i in year) {
 }
 
 
-gridExtra::grid.arrange(CZ_1980, CZ_1985, CZ_1990, CZ_1995, CZ_2000, CZ_2005, CZ_2010, CZ_2015, nrow = 3) %>% 
-  ggplot2::ggsave(filename = "output/map_image/TimeSeriesCZ/1980to2015_CZmap_harmonized.png", bg = "white")
-
-gridExtra::grid.arrange(CZ_1980_Kanto, CZ_1985_Kanto, CZ_1990_Kanto, CZ_1995_Kanto, 
-                        CZ_2000_Kanto, CZ_2005_Kanto, CZ_2010_Kanto, CZ_2015_Kanto, nrow = 3) %>% 
-  ggplot2::ggsave(filename = "output/map_image/TimeSeriesCZ/1980to2015_CZmap_harmonized_kanto.png", bg = "white")
+# gridExtra::grid.arrange(CZ_1980, CZ_1985, CZ_1990, CZ_1995, CZ_2000, CZ_2005, CZ_2010, CZ_2015, nrow = 3) %>% 
+#   ggplot2::ggsave(filename = "output/map_image/TimeSeriesCZ/1980to2015_CZmap_harmonized.png", bg = "white")
+# 
+# gridExtra::grid.arrange(CZ_1980_Kanto, CZ_1985_Kanto, CZ_1990_Kanto, CZ_1995_Kanto, 
+#                         CZ_2000_Kanto, CZ_2005_Kanto, CZ_2010_Kanto, CZ_2015_Kanto, nrow = 3) %>% 
+#   ggplot2::ggsave(filename = "output/map_image/TimeSeriesCZ/1980to2015_CZmap_harmonized_kanto.png", bg = "white")
 
 base::rm(map_nameKanto, map_name, fileNameKanto, fileName, cz_map, map, table_name_kanto, table_name,
          cz_data, i, temp_fill, mapdata, map_kanto, cz_okinawa,
@@ -102,7 +102,7 @@ for (i in year) {
   cz_okinawa <- cz_map %>% 
     dplyr::filter(JISCODE %in% (47000:47999)) %>% 
     sf::st_set_geometry(sf::st_geometry(cz_map %>% dplyr::filter(JISCODE %in% (47000:47999))) + c(5, 15)) %>% 
-    sf::st_transform(4612)
+    sf::st_set_crs(4612)
   
   tableName <- base::paste0("Commuting Zone(", i, ")")
   tableNameKanto <- base::paste0("関東・Commuting Zone(", i, ")")
@@ -131,25 +131,25 @@ for (i in year) {
   
   fileName <- base::paste0("output/map_image/TimeSeriesCZ/", i, "_CZmap_original.png")
   fileNameKanto <- base::paste0("output/map_image/TimeSeriesCZ/", i, "_CZmap_original_Kanto.png")
-  ggplot2::ggsave(map, filename = fileName, bg = "white")
-  ggplot2::ggsave(map_kanto, filename = fileNameKanto, bg = "white")
+  # ggplot2::ggsave(map, filename = fileName, bg = "white")
+  # ggplot2::ggsave(map_kanto, filename = fileNameKanto, bg = "white")
   map_name <- base::paste0("CZ_", i)
   base::assign(map_name, map)
   map_nameKanto <- base::paste0("CZ_", i, "_Kanto")
   base::assign(map_nameKanto, map_kanto)
 }
 
-gridExtra::grid.arrange(CZ_1980, CZ_1985, CZ_1990, CZ_1995, CZ_2000, CZ_2005, CZ_2010, CZ_2015, nrow = 3) %>%
-  ggplot2::ggsave(filename = "output/map_image/TimeSeriesCZ/1980to2015_CZmap_original.png", bg = "white")
-
-gridExtra::grid.arrange(CZ_1980_Kanto, CZ_1985_Kanto, CZ_1990_Kanto, CZ_1995_Kanto, 
-                        CZ_2000_Kanto, CZ_2005_Kanto, CZ_2010_Kanto, CZ_2015_Kanto, nrow = 3) %>% 
-  ggplot2::ggsave(filename = "output/map_image/TimeSeriesCZ/1980to2015_CZmap_original_kanto.png", bg = "white")
+# gridExtra::grid.arrange(CZ_1980, CZ_1985, CZ_1990, CZ_1995, CZ_2000, CZ_2005, CZ_2010, CZ_2015, nrow = 3) %>%
+#   ggplot2::ggsave(filename = "output/map_image/TimeSeriesCZ/1980to2015_CZmap_original.png", bg = "white")
+# 
+# gridExtra::grid.arrange(CZ_1980_Kanto, CZ_1985_Kanto, CZ_1990_Kanto, CZ_1995_Kanto, 
+#                         CZ_2000_Kanto, CZ_2005_Kanto, CZ_2010_Kanto, CZ_2015_Kanto, nrow = 3) %>% 
+#   ggplot2::ggsave(filename = "output/map_image/TimeSeriesCZ/1980to2015_CZmap_original_kanto.png", bg = "white")
 
 base::rm(map_nameKanto, map_name, fileNameKanto, fileName, cz_map, map, tableName, tableNameKanto,
          czPath, mapPath, i, temp_fill, map_kanto, cz_okinawa,
          CZ_1980, CZ_1985, CZ_1990, CZ_1995, CZ_2000, CZ_2005, CZ_2010, CZ_2015,
-         CZ_1980_Kanto, CZ_1985_Kanto, CZ_1990_Kanto, CZ_1995_Kanto, 
+         CZ_1980_Kanto, CZ_1985_Kanto, CZ_1990_Kanto, CZ_1995_Kanto,
          CZ_2000_Kanto, CZ_2005_Kanto, CZ_2010_Kanto, CZ_2015_Kanto,
          year, lineMatrix, OkinawaLine)
 
