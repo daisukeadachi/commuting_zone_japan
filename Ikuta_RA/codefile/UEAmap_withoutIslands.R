@@ -4,6 +4,7 @@ library(gridExtra)
 library(spdep)
 library(RColorBrewer)
 
+timestamp()
 
 # UEA data --------------------------------------------------------------------- 
 
@@ -16,7 +17,7 @@ McEA_2005 <- readr::read_csv("data/McEA2005.csv", locale = locale(encoding = "cp
                 suburb_name3 = 14) # 列名に何故かスペースを使っていたのでrename
 
 McEA_2005C <- readr::read_csv("data/McEA2005C.csv", locale = locale(encoding = "cp932")) %>% 
-#中心市町村(Center)のリスト
+  #中心市町村(Center)のリスト
   dplyr::rename(MEA_name = 3,
                 Center_name = 6,
                 DID_Population = 7,
@@ -120,16 +121,6 @@ base::rm(McEA_center, McEA_sub1, McEA_sub2, McEA_sub3,
          MEA_center,  MEA_sub1,  MEA_sub2,  MEA_sub3,
          McEA_2005, McEA_2005C, MEA_2005, MEA_2005C)
 
-muni_map <- sf::read_sf("mapdata/mmm20051001/mmm20051001.shp", options = "ENCODING=CP932") %>% 
-  tidyr::replace_na(replace = list(GNAME = ""))
-
-
-UEA_2005.sf <- muni_map %>% 
-  dplyr::mutate(JISCODE = dplyr::if_else(stringr::str_sub(GNAME, -1, -1) == "市", base::trunc(JISCODE * 0.01) * 100 , JISCODE)) %>% 
-  dplyr::mutate(JISCODE = dplyr::if_else((stringr::str_sub(CNAME, -1, -1) == "区" & PNAME == "東京都"), base::trunc(JISCODE * 0.01) * 100 , JISCODE)) %>% 
-  dplyr::mutate(JISCODE = dplyr::if_else(GNAME %in% c("川崎市", "福岡市"), JISCODE + 30, JISCODE)) %>% 
-  dplyr::full_join(UEA_2005 , by = "JISCODE") %>% 
-  sf::st_transform(4612)
 
 
 # CZ data ----------------------------------------------------------------------
@@ -137,48 +128,57 @@ UEA_2005.sf <- muni_map %>%
 CZ_2005 <- readr::read_csv("output/2005_original.csv") %>% 
   dplyr::rename(JISCODE = i)
 
-CZ_map <- muni_map %>% 
-  dplyr::left_join(CZ_2005, by = "JISCODE") %>% 
-  sf::st_transform(4612)
-
-# temp <- CZ_map %>% 
-#   dplyr::tibble() %>% 
-#   select(cluster, NAME) %>% 
-#   dplyr::group_by(cluster) %>% 
-#   dplyr::slice_head(n = 1) %>% 
-#   dplyr::rename(rep = NAME)
 
 
 
 # prepare map data -------------------------------------------------------------
+# 北海道･本州･四国･九州以外の離島は地図に出さない
 
-# 沖縄県を右上に描くので、区別するための線を用意。
-lineMatrix = base::rbind(c(138, 45), c(138, 40), c(130, 37))
-OkinawaLine <- sf::st_linestring(lineMatrix) %>% 
-  sf::st_sfc() %>% 
-  sf::st_set_crs(4612)
+muni_map <- sf::read_sf("mapdata/mmm20051001/mmm20051001.shp", options = "ENCODING=CP932") %>% 
+  dplyr::select(-NO, -DATE) %>% 
+  sf::st_transform(4612)
 
-# 沖縄県を右上にずらす。
-CZ_Okinawa <- CZ_map %>% 
-  dplyr::filter(JISCODE %in% (47000:47999)) %>% 
-  sf::st_set_geometry(sf::st_geometry(CZ_map %>% dplyr::filter(JISCODE %in% (47000:47999))) + c(5, 15)) %>% 
-  sf::st_set_crs(4612)
-UEA_Okinawa <- UEA_2005.sf %>% 
-  dplyr::filter(JISCODE %in% (47000:47999)) %>% 
-  sf::st_set_geometry(sf::st_geometry(UEA_2005.sf %>% dplyr::filter(JISCODE %in% (47000:47999))) + c(5, 15)) %>% 
-  sf::st_set_crs(4612)
-
-CZ_map <- CZ_map %>% 
-  dplyr::filter(JISCODE != 13421, !(JISCODE %in% (47000:47999))) %>% 
-  dplyr::bind_rows(CZ_Okinawa) 
-UEA_2005.sf <- UEA_2005.sf %>% 
-  dplyr::filter(JISCODE != 13421, !(JISCODE %in% (47000:47999))) %>% 
-  dplyr::bind_rows(UEA_Okinawa)
-
-
-# assign color to CZ/UEA -------------------------------------------------------
 
 sf_use_s2(FALSE) # s2ジオメトリエンジンを無効化(ポリゴンの統合や隣接行列の計算のため)
+
+
+muni_neighbors <- spdep::poly2nb(muni_map) %>% 
+  spdep::nb2mat(style = "B", zero.policy = TRUE) %>% 
+  base::rowSums()
+muni_map$neighbors <- muni_neighbors
+
+island_munis <- c(1518, 1519, 28226, 28205, 28224, 28685, 37321, 37323, 37322,
+                  37364, 34206, 34430, 46213, 43212, 43527, 43523, 43207, 43530,
+                  43531 ,43532 , 43533, 43209, 46403, 46404, 46207)
+
+muni_map <- muni_map %>% 
+  dplyr::filter(neighbors != 0 ,
+                !(JISCODE %in% (46501:47999)),
+                !(JISCODE %in% island_munis)) 
+
+sf_use_s2(TRUE) 
+
+# 北海道を動かす
+Hokkaido <- muni_map %>% 
+  dplyr::filter(JISCODE %in% (1000:1999)) %>% 
+  sf::st_set_geometry(st_geometry(muni_map %>% dplyr::filter(JISCODE %in% (1000:1999))) - c(9, 4)) %>% #将来的？:c(17, ?)で日本列島の南側に移せる(北海道を移すスペースを確保できる)
+  sf::st_set_crs(4612)
+
+muni_map <- muni_map %>% 
+  dplyr::filter(!(JISCODE %in% (1000:1999))) %>% 
+  dplyr::bind_rows(Hokkaido)
+
+
+CZ_map <- muni_map %>% 
+  dplyr::left_join(CZ_2005, by = "JISCODE")
+
+UEA_2005.sf <- muni_map %>% 
+  dplyr::left_join(UEA_2005 , by = "JISCODE") 
+
+  sf_use_s2(FALSE) 
+  
+# assign color to CZ/UEA -------------------------------------------------------
+
 colors <- RColorBrewer::brewer.pal(8, "Set2")
 
 #CZ
@@ -240,6 +240,12 @@ sf_use_s2(TRUE)
 
 # plot map ---------------------------------------------------------------------
 
+lineMatrix = base::rbind(c(137.5, 40), c(137.5, 38), c(134, 37), c(130, 37))
+HokkaidoLine <- st_linestring(lineMatrix) %>% 
+  sf::st_sfc() %>% 
+  sf::st_set_crs(4612)
+
+
 UEA_2005.sf %>% 
   sf::st_set_crs(4612) %>% 
   ggplot2::ggplot() + 
@@ -247,7 +253,7 @@ UEA_2005.sf %>%
   ggplot2::scale_fill_manual(values = colors) +
   ggplot2::theme_bw() +
   ggplot2::theme(legend.position = "none") +
-  ggplot2::geom_sf(data = OkinawaLine) +
+  ggplot2::geom_sf(data = HokkaidoLine) +
   ggplot2::coord_sf(datum = NA) +
   ggplot2::labs(title = "都市雇用圏(UEA).2005")　-> UEAmap_2005
 
@@ -269,8 +275,7 @@ CZ_map %>%
   ggplot2::scale_fill_manual(values = colors) +
   ggplot2::theme_bw() +
   ggplot2::theme(legend.position = "none") +
-  ggplot2::coord_sf(datum = NA) +
-  ggplot2::geom_sf(data = OkinawaLine) +
+  ggplot2::geom_sf(data = HokkaidoLine) +
   ggplot2::coord_sf(datum = NA) +
   ggplot2::labs(title = "Commuting Zone(2005)") -> CZmap_2005
 
@@ -287,16 +292,18 @@ CZ_map %>%
   theme(plot.title    = element_text(size = 10)) -> CZmap_2005_Kanto
 
 gridExtra::grid.arrange(UEAmap_2005, CZmap_2005, nrow = 1) %>% 
-  ggplot2::ggsave(filename = "output/map_image/2005_UEA&CZmap.png", bg = "white", width = 5, height = 3)
+  ggplot2::ggsave(filename = "output/map_image/without_islands/2005_UEA&CZmap.png", bg = "white", width = 5, height = 3)
 gridExtra::grid.arrange(UEAmap_2005_Kanto, CZmap_2005_Kanto, nrow = 1) %>% 
-  ggplot2::ggsave(filename = "output/map_image/2005_UEA&CZmap_kanto.png", bg = "white", width = 5, height = 3)
+  ggplot2::ggsave(filename = "output/map_image/without_islands/2005_UEA&CZmap_kanto.png", bg = "white", width = 5, height = 3)
 
-ggsave(UEAmap_2005, filename = "output/map_image/2005_UEAmap.png", bg = "white")
-ggsave(UEAmap_2005_Kanto, filename = "output/map_image/2005_UEAmap_Kanto.png", bg = "white")
+ggsave(UEAmap_2005, filename = "output/map_image/without_islands/2005_UEAmap.png", bg = "white")
+ggsave(UEAmap_2005_Kanto, filename = "output/map_image/without_islands/2005_UEAmap_Kanto.png", bg = "white")
 
-ggplot2::ggsave(CZmap_2005, filename = "output/map_image/2005_CZmap.png", bg = "white")
-ggplot2::ggsave(CZmap_2005_Kanto, filename = "output/map_image/2005_CZmap_Kanto.png", bg = "white")
+ggplot2::ggsave(CZmap_2005, filename = "output/map_image/without_islands/2005_CZmap.png", bg = "white")
+ggplot2::ggsave(CZmap_2005_Kanto, filename = "output/map_image/without_islands/2005_CZmap_Kanto.png", bg = "white")
 
+
+timestamp()
 
 # #動的マップ作成---------------------------------------------------------------
 # 
@@ -320,3 +327,9 @@ ggplot2::ggsave(CZmap_2005_Kanto, filename = "output/map_image/2005_CZmap_Kanto.
 #           popup = popupTable(UEAandCZ_2005,
 #                              zcol = c("UEA_NAME", "NAME")),
 #           legend = FALSE)
+
+# muni_map %>%
+#   filter(neighbors != 0,
+#          !(JISCODE %in% (46501:47999))) %>%
+#   mapview::mapview()
+
