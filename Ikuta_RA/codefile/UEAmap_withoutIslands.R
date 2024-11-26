@@ -132,36 +132,35 @@ CZ_2005 <- readr::read_csv("output/2005_original.csv") %>%
 
 
 # prepare map data -------------------------------------------------------------
-# 北海道･本州･四国･九州以外の離島は地図に出さない
 
 muni_map <- sf::read_sf("mapdata/mmm20051001/mmm20051001.shp", options = "ENCODING=CP932") %>% 
   dplyr::select(-NO, -DATE) %>% 
   sf::st_transform(4612)
 
-
-sf_use_s2(FALSE) # s2ジオメトリエンジンを無効化(ポリゴンの統合や隣接行列の計算のため)
-
-
-muni_neighbors <- spdep::poly2nb(muni_map) %>% 
-  spdep::nb2mat(style = "B", zero.policy = TRUE) %>% 
-  base::rowSums()
-muni_map$neighbors <- muni_neighbors
-
-island_munis <- c(1518, 1519, 28226, 28205, 28224, 28685, 37321, 37323, 37322,
-                  37364, 34206, 34430, 46213, 43212, 43527, 43523, 43207, 43530,
-                  43531 ,43532 , 43533, 43209, 46403, 46404, 46207)
-
-muni_map <- muni_map %>% 
-  dplyr::filter(neighbors != 0 ,
-                !(JISCODE %in% (46501:47999)),
-                !(JISCODE %in% island_munis)) 
-
-sf_use_s2(TRUE) 
+# # 北海道･本州･四国･九州以外の離島は地図に出さない
+# sf_use_s2(FALSE) # s2ジオメトリエンジンを無効化(ポリゴンの統合や隣接行列の計算のため)
+# 
+# 
+# muni_neighbors <- spdep::poly2nb(muni_map) %>% 
+#   spdep::nb2mat(style = "B", zero.policy = TRUE) %>% 
+#   base::rowSums()
+# muni_map$neighbors <- muni_neighbors
+# 
+# island_munis <- c(1518, 1519, 28226, 28205, 28224, 28685, 37321, 37323, 37322,
+#                   37364, 34206, 34430, 46213, 43212, 43527, 43523, 43207, 43530,
+#                   43531 ,43532 , 43533, 43209, 46403, 46404, 46207)
+# 
+# muni_map <- muni_map %>% 
+#   dplyr::filter(neighbors != 0 ,
+#                 !(JISCODE %in% (46501:47999)),
+#                 !(JISCODE %in% island_munis)) 
+# 
+# sf_use_s2(TRUE) 
 
 # 北海道を動かす
 Hokkaido <- muni_map %>% 
   dplyr::filter(JISCODE %in% (1000:1999)) %>% 
-  sf::st_set_geometry(st_geometry(muni_map %>% dplyr::filter(JISCODE %in% (1000:1999))) - c(9, 4)) %>% #将来的？:c(17, ?)で日本列島の南側に移せる(北海道を移すスペースを確保できる)
+  sf::st_set_geometry(st_geometry(muni_map %>% dplyr::filter(JISCODE %in% (1000:1999))) - c(10, 4)) %>% 
   sf::st_set_crs(4612)
 
 muni_map <- muni_map %>% 
@@ -240,7 +239,7 @@ sf_use_s2(TRUE)
 
 # plot map ---------------------------------------------------------------------
 
-lineMatrix = base::rbind(c(137.5, 40), c(137.5, 38), c(134, 37), c(130, 37))
+lineMatrix = base::rbind(c(139.5, 41), c(137.5, 40), c(137.5, 38), c(134, 37), c(130, 37))
 HokkaidoLine <- st_linestring(lineMatrix) %>% 
   sf::st_sfc() %>% 
   sf::st_set_crs(4612)
@@ -254,8 +253,11 @@ UEA_2005.sf %>%
   ggplot2::theme_bw() +
   ggplot2::theme(legend.position = "none") +
   ggplot2::geom_sf(data = HokkaidoLine) +
-  ggplot2::coord_sf(datum = NA) +
-  ggplot2::labs(title = "都市雇用圏(UEA).2005")　-> UEAmap_2005
+  ggplot2::coord_sf(ylim = c(31.2, 42),
+                    xlim = c(129.3, 142.3),
+                    datum = NA) +
+  ggplot2::labs(title = "都市雇用圏(UEA).2005")+
+  theme(plot.title    = element_text(size = 8))　-> UEAmap_2005
 
 UEA_2005.sf %>% 
   ggplot2::ggplot() + 
@@ -267,7 +269,7 @@ UEA_2005.sf %>%
                     xlim = c(138, 141),
                     datum = NA) +
   ggplot2::labs(title = "関東地方・UEA(2005)")+
-  theme(plot.title    = element_text(size = 10))　-> UEAmap_2005_Kanto
+  theme(plot.title    = element_text(size = 8))　-> UEAmap_2005_Kanto
 
 CZ_map %>% 
   ggplot2::ggplot() +
@@ -276,8 +278,11 @@ CZ_map %>%
   ggplot2::theme_bw() +
   ggplot2::theme(legend.position = "none") +
   ggplot2::geom_sf(data = HokkaidoLine) +
-  ggplot2::coord_sf(datum = NA) +
-  ggplot2::labs(title = "Commuting Zone(2005)") -> CZmap_2005
+  ggplot2::coord_sf(ylim = c(31.2, 42),
+                    xlim = c(129.3, 142.3),
+                    datum = NA) +
+  ggplot2::labs(title = "Commuting Zone(2005)")+
+  theme(plot.title    = element_text(size = 8)) -> CZmap_2005
 
 CZ_map %>% 
   ggplot2::ggplot() +
@@ -289,18 +294,17 @@ CZ_map %>%
                     xlim = c(138, 141),
                     datum = NA) +
   ggplot2::labs(title = "関東地方・Commuting Zone(2005)")+
-  theme(plot.title    = element_text(size = 10)) -> CZmap_2005_Kanto
+  theme(plot.title    = element_text(size = 8)) -> CZmap_2005_Kanto
 
 gridExtra::grid.arrange(UEAmap_2005, CZmap_2005, nrow = 1) %>% 
-  ggplot2::ggsave(filename = "output/map_image/without_islands/2005_UEA&CZmap.png", bg = "white", width = 5, height = 3)
+  ggplot2::ggsave(filename = "output/map_image/fetured/2005_UEA&CZmap.png", bg = "white", width = 5, height = 3)
 gridExtra::grid.arrange(UEAmap_2005_Kanto, CZmap_2005_Kanto, nrow = 1) %>% 
-  ggplot2::ggsave(filename = "output/map_image/without_islands/2005_UEA&CZmap_kanto.png", bg = "white", width = 5, height = 3)
+  ggplot2::ggsave(filename = "output/map_image/fetured/2005_UEA&CZmap_kanto.png", bg = "white", width = 5, height = 3)
 
-ggsave(UEAmap_2005, filename = "output/map_image/without_islands/2005_UEAmap.png", bg = "white")
-ggsave(UEAmap_2005_Kanto, filename = "output/map_image/without_islands/2005_UEAmap_Kanto.png", bg = "white")
-
-ggplot2::ggsave(CZmap_2005, filename = "output/map_image/without_islands/2005_CZmap.png", bg = "white")
-ggplot2::ggsave(CZmap_2005_Kanto, filename = "output/map_image/without_islands/2005_CZmap_Kanto.png", bg = "white")
+ggsave(UEAmap_2005, filename = "output/map_image/fetured/2005_UEAmap.png", bg = "white")
+ggsave(UEAmap_2005_Kanto, filename = "output/map_image/fetured/2005_UEAmap_Kanto.png", bg = "white")
+ggplot2::ggsave(CZmap_2005, filename = "output/map_image/fetured/2005_CZmap.png", bg = "white")
+ggplot2::ggsave(CZmap_2005_Kanto, filename = "output/map_image/fetured/2005_CZmap_Kanto.png", bg = "white")
 
 
 timestamp()
