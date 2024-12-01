@@ -65,6 +65,7 @@ for (y in year) {
   
   table_name <- base::paste0("Commuting Zone(", y, ")")
   table_name_kanto <- base::paste0("関東・Commuting Zone(", y, ")")
+  table_name_kinki <- base::paste0("近畿・Commuting Zone(", y, ")")
   cz_map %>%   
     ggplot2::ggplot() +
     ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "white") +
@@ -87,15 +88,30 @@ for (y in year) {
                       datum = NA) +
     ggplot2::labs(title = table_name_kanto)+
     ggplot2::theme(plot.title    = element_text(size = 5)) -> map_kanto
+  cz_map %>% 
+    ggplot2::ggplot() +
+    ggplot2::geom_sf(aes(fill = color), linewidth = 0.05, color = "white") +
+    ggplot2::scale_fill_manual(values = colors) +
+    ggplot2::theme_bw() +
+    ggplot2::theme(legend.position = "none") +
+    ggplot2::coord_sf(ylim = c(33.8, 36.4),
+                      xlim = c(134.7, 134.7+3),
+                      datum = NA) +
+    ggplot2::labs(title = table_name_kinki)+
+    ggplot2::theme(plot.title    = element_text(size = 5)) -> map_kinki
   
-  fileName <- base::paste0("output/map_image/TimeSeriesCZ/", y, "_CZmap_harmonized.png")
-  fileNameKanto <- base::paste0("output/map_image/TimeSeriesCZ/", y, "_CZmap_harmonized_Kanto.png")
+  fileName <- base::paste0("output/map_image/TimeSeriesCZ/harmonized/", y, "_CZmap_harmonized.png")
+  fileNameKanto <- base::paste0("output/map_image/TimeSeriesCZ/harmonized/Kanto/", y, "_CZmap_harmonized_Kanto.png")
+  fileNameKinki <- base::paste0("output/map_image/TimeSeriesCZ/harmonized/Kinki/", y, "_CZmap_harmonized_Kinki.png")
   ggplot2::ggsave(map, filename = fileName, bg = "white")
   ggplot2::ggsave(map_kanto, filename = fileNameKanto, bg = "white")
+  ggplot2::ggsave(map_kinki, filename = fileNameKinki, bg = "white")
   map_name <- base::paste0("CZ_", y)
   base::assign(map_name, map)
   map_nameKanto <- base::paste0("CZ_", y, "_Kanto")
   base::assign(map_nameKanto, map_kanto)
+  map_nameKinki <- base::paste0("CZ_", y, "_Kinki")
+  base::assign(map_nameKinki, map_kinki)
   
 }
 
@@ -107,11 +123,17 @@ gridExtra::grid.arrange(CZ_1980_Kanto, CZ_1985_Kanto, CZ_1990_Kanto, CZ_1995_Kan
                         CZ_2000_Kanto, CZ_2005_Kanto, CZ_2010_Kanto, CZ_2015_Kanto, nrow = 3) %>%
   ggplot2::ggsave(filename = "output/map_image/TimeSeriesCZ/1980to2015_CZmap_harmonized_kanto.png", bg = "white")
 
+gridExtra::grid.arrange(CZ_1980_Kinki, CZ_1985_Kinki, CZ_1990_Kinki, CZ_1995_Kinki,
+                        CZ_2000_Kinki, CZ_2005_Kinki, CZ_2010_Kinki, CZ_2015_Kinki, nrow = 3) %>%
+  ggplot2::ggsave(filename = "output/map_image/TimeSeriesCZ/harmonized/multiple/1980to2015_CZmap_harmonized_Kinki.png", bg = "white")
+
 base::rm(map_nameKanto, map_name, fileNameKanto, fileName, cz_map, map, table_name_kanto, table_name,
          cz_data, y, temp_fill, mapdata, map_kanto, cz_okinawa,
          CZ_1980, CZ_1985, CZ_1990, CZ_1995, CZ_2000, CZ_2005, CZ_2010, CZ_2015,
          CZ_1980_Kanto, CZ_1985_Kanto, CZ_1990_Kanto, CZ_1995_Kanto, 
-         CZ_2000_Kanto, CZ_2005_Kanto, CZ_2010_Kanto, CZ_2015_Kanto)
+         CZ_2000_Kanto, CZ_2005_Kanto, CZ_2010_Kanto, CZ_2015_Kanto,
+         CZ_1980_Kinki, CZ_1985_Kinki, CZ_1990_Kinki, CZ_1995_Kinki,
+         CZ_2000_Kinki, CZ_2005_Kinki, CZ_2010_Kinki, CZ_2015_Kinki)
 
 #original-----------------------------------------------------------------------
 
@@ -163,6 +185,7 @@ for (y in year) {
   
   tableName <- base::paste0("Commuting Zone(", y, ")")
   tableNameKanto <- base::paste0("関東・Commuting Zone(", y, ")")
+  table_name_kinki <- base::paste0("近畿・Commuting Zone(", y, ")")
   cz_map %>%  
     ggplot2::ggplot() +
     ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "white") +
@@ -185,23 +208,45 @@ for (y in year) {
                       datum = NA) +
     ggplot2::labs(title = tableNameKanto)+
     theme(plot.title    = element_text(size = 5)) -> map_kanto
+  cz_map %>% 
+    ggplot2::ggplot() +
+    ggplot2::geom_sf(aes(fill = color), linewidth = 0.05, color = "white") +
+    ggplot2::scale_fill_manual(values = colors) +
+    ggplot2::theme_bw() +
+    ggplot2::theme(legend.position = "none") +
+    ggplot2::coord_sf(ylim = c(33.8, 36.4),
+                      xlim = c(134.7, 134.7+3),
+                      datum = NA) +
+    ggplot2::labs(title = table_name_kinki)+
+    ggplot2::theme(plot.title    = element_text(size = 5)) -> map_kinki
   
-  fileName <- base::paste0("output/map_image/TimeSeriesCZ/", y, "_CZmap_original.png")
-  fileNameKanto <- base::paste0("output/map_image/TimeSeriesCZ/", y, "_CZmap_original_Kanto.png")
+  
+  fileName <- base::paste0("output/map_image/TimeSeriesCZ/Original/", y, "_CZmap_original.png")
+  fileNameKanto <- base::paste0("output/map_image/TimeSeriesCZ/Original/Kanto/", y, "_CZmap_original_Kanto.png")
+  fileNameKinki <- base::paste0("output/map_image/TimeSeriesCZ/Original/Kinki/", y, "_CZmap_harmonized_Kinki.png")
   ggplot2::ggsave(map, filename = fileName, bg = "white")
   ggplot2::ggsave(map_kanto, filename = fileNameKanto, bg = "white")
+  ggplot2::ggsave(map_kinki, filename = fileNameKinki, bg = "white")
   map_name <- base::paste0("CZ_", y)
   base::assign(map_name, map)
   map_nameKanto <- base::paste0("CZ_", y, "_Kanto")
   base::assign(map_nameKanto, map_kanto)
+  map_nameKinki <- base::paste0("CZ_", y, "_Kinki")
+  base::assign(map_nameKinki, map_kinki)
+  
 }
 
 gridExtra::grid.arrange(CZ_1980, CZ_1985, CZ_1990, CZ_1995, CZ_2000, CZ_2005, CZ_2010, CZ_2015, nrow = 3) %>%
-  ggplot2::ggsave(filename = "output/map_image/TimeSeriesCZ/1980to2015_CZmap_original.png", bg = "white")
+  ggplot2::ggsave(filename = "output/map_image/TimeSeriesCZ/original/multiple/1980to2015_CZmap_original.png", bg = "white")
 
 gridExtra::grid.arrange(CZ_1980_Kanto, CZ_1985_Kanto, CZ_1990_Kanto, CZ_1995_Kanto,
                         CZ_2000_Kanto, CZ_2005_Kanto, CZ_2010_Kanto, CZ_2015_Kanto, nrow = 3) %>%
-  ggplot2::ggsave(filename = "output/map_image/TimeSeriesCZ/1980to2015_CZmap_original_kanto.png", bg = "white")
+  ggplot2::ggsave(filename = "output/map_image/TimeSeriesCZ/original/multiple/1980to2015_CZmap_original_kanto.png", bg = "white")
+
+gridExtra::grid.arrange(CZ_1980_Kinki, CZ_1985_Kinki, CZ_1990_Kinki, CZ_1995_Kinki,
+                        CZ_2000_Kinki, CZ_2005_Kinki, CZ_2010_Kinki, CZ_2015_Kinki, nrow = 3) %>%
+  ggplot2::ggsave(filename = "output/map_image/TimeSeriesCZ/original/multiple/1980to2015_CZmap_harmonized_Kinki.png", bg = "white")
+
 
 base::rm(map_nameKanto, map_name, fileNameKanto, fileName, cz_map, map, tableName, tableNameKanto,
          czPath, mapPath, y, map_kanto, cz_okinawa,

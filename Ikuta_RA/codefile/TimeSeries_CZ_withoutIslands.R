@@ -13,30 +13,30 @@ HokkaidoLine <- st_linestring(lineMatrix) %>%
   sf::st_set_crs(4612)
 
 colors <- RColorBrewer::brewer.pal(8, "Set2")
-
+"%not.in%" <- Negate("%in%")
 
 #harmonized (2015)--------------------------------------------------------------
-mapdata <- sf::read_sf("mapdata/mmm20051001/mmm20051001.shp", options = "ENCODING=CP932") %>% 
+mapdata <- sf::read_sf("mapdata/mmm20151001/mmm20151001.shp", options = "ENCODING=CP932") %>% 
   dplyr::select(-NO, -DATE) %>% 
+  dplyr::filter(JISCODE %not.in% c(1695, 1696, 1698)) %>%
   sf::st_transform(4612)
-
 
 sf_use_s2(FALSE) 
 
-## elminate islands
-# muni_neighbors <- spdep::poly2nb(mapdata) %>% 
-#   spdep::nb2mat(style = "B", zero.policy = TRUE) %>% 
-#   base::rowSums()
-# mapdata$neighbors <- muni_neighbors
-# 
-# island_munis <- c(1518, 1519, 28226, 28205, 28224, 28685, 37321, 37323, 37322,
-#                   37364, 34206, 34430, 46213, 43212, 43527, 43523, 43207, 43530,
-#                   43531 ,43532 , 43533, 43209, 46403, 46404, 46207)
-# 
-# mapdata <- mapdata %>% 
-#   dplyr::filter(neighbors != 0 ,
-#                 !(JISCODE %in% (46501:47999)),
-#                 !(JISCODE %in% island_munis)) 
+# elminate islands
+muni_neighbors <- spdep::poly2nb(mapdata) %>%
+  spdep::nb2mat(style = "B", zero.policy = TRUE) %>%
+  base::rowSums()
+mapdata$neighbors <- muni_neighbors
+
+island_munis <- c(1518, 1519, 28226, 28205, 28224, 28685, 37322, 37324, 
+                  37364, 34206, 34430, 46213, 43212, 43215,
+                  43531 , 46403, 46404, 46222)
+
+mapdata <- mapdata %>%
+  dplyr::filter(neighbors != 0 ,
+                JISCODE %not.in% (46501:47999),  # 南西諸島
+                JISCODE %not.in% island_munis)
 
 sf_use_s2(TRUE) 
 
@@ -47,9 +47,8 @@ Hokkaido <- mapdata %>%
   sf::st_set_crs(4612)
 
 mapdata <- mapdata %>% 
-  dplyr::filter(!(JISCODE %in% (1000:1999))) %>% 
-  dplyr::bind_rows(Hokkaido)
-
+  dplyr::filter(JISCODE %not.in% (1000:1999)) %>% 
+  dplyr::bind_rows(Hokkaido) 
 
 
 
@@ -114,8 +113,8 @@ for (y in year) {
     ggplot2::labs(title = table_name_kanto)+
     ggplot2::theme(plot.title    = element_text(size = 5)) -> map_kanto
   
-  fileName <- base::paste0("output/map_image/featured/TimeSeriesCZ/individual/", y, "_CZmap_harmonized.png")
-  fileNameKanto <- base::paste0("output/map_image/featured/TimeSeriesCZ/individual/", y, "_CZmap_harmonized_Kanto.png")
+  fileName <- base::paste0("output/map_image/TimeSeriesCZ/individual/", y, "_CZmap_harmonized.png")
+  fileNameKanto <- base::paste0("output/map_image/TimeSeriesCZ/individual/", y, "_CZmap_harmonized_Kanto.png")
   ggplot2::ggsave(map, filename = fileName, bg = "white")
   # ggplot2::ggsave(map_kanto, filename = fileNameKanto, bg = "white")
   map_name <- base::paste0("CZ_", y)
@@ -127,7 +126,7 @@ for (y in year) {
 
 
 gridExtra::grid.arrange(CZ_1980, CZ_1985, CZ_1990, CZ_1995, CZ_2000, CZ_2005, CZ_2010, CZ_2015, nrow = 3) %>%
-  ggplot2::ggsave(filename = "output/map_image/featured/TimeSeriesCZ/grid/1980to2015_CZmap_harmonized.png", bg = "white")
+  ggplot2::ggsave(filename = "output/map_image/TimeSeriesCZ/grid/1980to2015_CZmap_harmonized.png", bg = "white")
 
 # gridExtra::grid.arrange(CZ_1980_Kanto, CZ_1985_Kanto, CZ_1990_Kanto, CZ_1995_Kanto,
 #                         CZ_2000_Kanto, CZ_2005_Kanto, CZ_2010_Kanto, CZ_2015_Kanto, nrow = 3) %>%
@@ -145,14 +144,31 @@ for (y in year) {
   mapPath <- base::paste0("mapdata/mmm", y, "1001/mmm", y, "1001.shp")
   mapdata <- sf::read_sf(mapPath, options = "ENCODING=CP932") %>% 
     dplyr::select(-NO, -DATE) %>% 
+    dplyr::filter(JISCODE %not.in% c(1695, 1696, 1698)) %>% 
     sf::st_transform(4612)
+  
+  sf_use_s2(FALSE) 
+  
+  # elminate islands
+  muni_neighbors <- spdep::poly2nb(mapdata) %>%
+    spdep::nb2mat(style = "B", zero.policy = TRUE) %>%
+    base::rowSums()
+  mapdata$neighbors <- muni_neighbors
+  
+  mapdata <- mapdata %>%
+    dplyr::filter(neighbors != 0 ,
+                  JISCODE %not.in% (46501:47999),  # 南西諸島
+                  JISCODE %not.in% island_munis)
+  
+  sf_use_s2(TRUE) 
+  
   Hokkaido <- mapdata %>% 
     dplyr::filter(JISCODE %in% (1000:1999)) %>% 
     sf::st_set_geometry(st_geometry(mapdata %>% dplyr::filter(JISCODE %in% (1000:1999))) - c(10, 4)) %>% #将来的？:c(17, ?)で日本列島の南側に移せる(北海道を移すスペースを確保できる)
     sf::st_set_crs(4612)
   
   mapdata <- mapdata %>% 
-    dplyr::filter(!(JISCODE %in% (1000:1999))) %>% 
+    dplyr::filter(JISCODE %not.in% (1000:1999)) %>% 
     dplyr::bind_rows(Hokkaido)
   
   czPath <- base::paste0("output/", y, "_original.csv")
