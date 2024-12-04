@@ -44,7 +44,8 @@ for (i in (1:length(path_list.McEA))){
   #### data cleaning ####
   McEA <- readr::read_csv(path_list.McEA[i], locale = locale(encoding = "cp932"), show_col_types = FALSE) %>% 
     rename_with(\(x) stringr::str_replace(x, pattern = " ", replacement = "_")) %>% 
-    rename(UEA = 1)
+    rename(UEA = 1) 
+  
   
   McEA.C <- readr::read_csv(path_list.McEA.C[i], locale = locale(encoding = "cp932"), show_col_types = FALSE) %>% 
     rename_with(\(x) stringr::str_replace(x, pattern = " ", replacement = "_")) %>% 
@@ -89,7 +90,8 @@ for (i in (1:length(path_list.McEA))){
   
   McEA_center <- McEA.C %>% 
     dplyr::select(UEA, 都市圏名, center) %>% 
-    dplyr::rename(JISCODE = center)
+    dplyr::rename(JISCODE = center) %>% 
+    dplyr::mutate(order_suburb = "0")
   
   if (ncol(MEA) == 20){
     MEA_sub4 <- MEA %>% 
@@ -122,14 +124,17 @@ for (i in (1:length(path_list.McEA))){
   
   MEA_center <- MEA.C %>% 
     dplyr::select(UEA, 都市圏名, center) %>% 
-    dplyr::rename(JISCODE = center)
+    dplyr::rename(JISCODE = center) %>% 
+    dplyr::mutate(order_suburb = "0")
   
   if (ncol(McEA) == 20){
     UEA <- dplyr::bind_rows(McEA_center, McEA_sub1, McEA_sub2, McEA_sub3, McEA_sub4,
-                            MEA_center,  MEA_sub1,  MEA_sub2,  MEA_sub3,  MEA_sub4) 
+                            MEA_center,  MEA_sub1,  MEA_sub2,  MEA_sub3,  MEA_sub4) %>% 
+      tidyr::drop_na(JISCODE)
   } else {
     UEA <- dplyr::bind_rows(McEA_center, McEA_sub1, McEA_sub2, McEA_sub3,
-                            MEA_center,  MEA_sub1,  MEA_sub2,  MEA_sub3) 
+                            MEA_center,  MEA_sub1,  MEA_sub2,  MEA_sub3) %>% 
+      tidyr::drop_na(JISCODE)
   }
   # assign(assign_list[i], UEA)
   
@@ -168,6 +173,8 @@ for (i in (1:length(path_list.McEA))){
   neighbor_matrix <- spdep::nb2mat(neighbors, style = "B", zero.policy = TRUE)
   
   color_assignment <- rep(NA, length(neighbors))
+  color_assignment[which(UEA_color$UEA == 13100)] <- colors[8]
+  roop <- (1:length(neighbors))[-which(UEA_color$UEA == 13100)]
   
   for (j in 1:length(neighbors)) {
     available_colors <- setdiff(colors, color_assignment[neighbors[[j]]])
@@ -246,7 +253,7 @@ for (i in (1:length(path_list.McEA))){
   
   UEA.sf.whole %>% 
     ggplot2::ggplot() + 
-    ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "grey") +
+    ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "white") +
     ggplot2::scale_fill_manual(values = colors) +
     ggplot2::theme_bw() +
     ggplot2::theme(legend.position = "none") +
@@ -257,7 +264,7 @@ for (i in (1:length(path_list.McEA))){
   
   CZ.sf.whole %>% 
     ggplot2::ggplot() + 
-    ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "grey") +
+    ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "white") +
     ggplot2::scale_fill_manual(values = colors) +
     ggplot2::theme_bw() +
     ggplot2::theme(legend.position = "none") +
@@ -273,7 +280,7 @@ for (i in (1:length(path_list.McEA))){
   
   UEA.sf.enlarged %>% 
     ggplot2::ggplot() + 
-    ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "grey") +
+    ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "white") +
     ggplot2::scale_fill_manual(values = colors) +
     ggplot2::theme_bw() +
     ggplot2::theme(legend.position = "none") +
@@ -286,7 +293,7 @@ for (i in (1:length(path_list.McEA))){
   
   CZ.sf.enlarged %>% 
     ggplot2::ggplot() + 
-    ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "grey") +
+    ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "white") +
     ggplot2::scale_fill_manual(values = colors) +
     ggplot2::theme_bw() +
     ggplot2::theme(legend.position = "none") +
