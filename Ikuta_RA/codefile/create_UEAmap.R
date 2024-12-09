@@ -25,7 +25,7 @@ McEA_2005C <- readr::read_csv("https://www.csis.u-tokyo.ac.jp/UEA/McEA2005C.csv"
 
 ##MEA(大規模都市圏)
 
-MEA_2005 <- readr::read_csv("https://www.csis.u-tokyo.ac.jp/UEA/McEA2005.csv", locale = locale(encoding = "cp932")) %>% 
+MEA_2005 <- readr::read_csv("https://www.csis.u-tokyo.ac.jp/UEA/MEA2005.csv", locale = locale(encoding = "cp932")) %>% 
   dplyr::rename(UEA_Name = 3,
                 suburb_name = 6,
                 suburb_name2 = 10,
@@ -183,7 +183,6 @@ CZ_color <- CZ_map %>%
 
 # 隣接関係の計算
 neighbors <- spdep::poly2nb(CZ_color)
-neighbor_matrix <- spdep::nb2mat(neighbors, style = "B", zero.policy = TRUE)
 
 # 色の割り当て
 color_assignment <- rep(NA, length(neighbors))

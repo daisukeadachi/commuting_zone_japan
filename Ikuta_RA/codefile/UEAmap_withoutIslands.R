@@ -11,13 +11,13 @@ timestamp()
 
 ##McEA(中小規模の都市圏)
 
-McEA_2005 <- readr::read_csv("data/McEA2005.csv", locale = locale(encoding = "cp932")) %>% 
+McEA_2005 <- readr::read_csv("https://www.csis.u-tokyo.ac.jp/UEA/McEA2005.csv", locale = locale(encoding = "cp932")) %>% 
   dplyr::rename(UEA_Name = 3,
                 suburb_name = 6,
                 suburb_name2 = 10,
                 suburb_name3 = 14) # 列名に何故かスペースを使っていたのでrename
 
-McEA_2005C <- readr::read_csv("data/McEA2005C.csv", locale = locale(encoding = "cp932")) %>% 
+McEA_2005C <- readr::read_csv("https://www.csis.u-tokyo.ac.jp/UEA/McEA2005C.csv", locale = locale(encoding = "cp932")) %>% 
   #中心市町村(Center)のリスト
   dplyr::rename(MEA_name = 3,
                 Center_name = 6,
@@ -27,14 +27,14 @@ McEA_2005C <- readr::read_csv("data/McEA2005C.csv", locale = locale(encoding = "
 
 ##MEA(大規模都市圏)
 
-MEA_2005 <- readr::read_csv("data/MEA2005.csv", locale = locale(encoding = "cp932")) %>% 
+MEA_2005 <- readr::read_csv("https://www.csis.u-tokyo.ac.jp/UEA/MEA2005.csv", locale = locale(encoding = "cp932")) %>% 
   dplyr::rename(UEA_Name = 3,
                 suburb_name = 6,
                 suburb_name2 = 10,
                 suburb_name3 = 14) # 列名にスペース?を使っていたのでrename
 
 
-MEA_2005C <- readr::read_csv("data/MEA2005C.csv", locale = locale(encoding = "cp932")) %>% 
+MEA_2005C <- readr::read_csv("https://www.csis.u-tokyo.ac.jp/UEA/MEA2005C.csv", locale = locale(encoding = "cp932")) %>% 
   dplyr::rename(MEA_name = 3,
                 Center_name = 6,
                 DID_Population = 7,
@@ -191,8 +191,6 @@ CZ_color <- CZ_map %>%
 
 # 隣接関係の計算
 neighbors <- spdep::poly2nb(CZ_color)
-neighbor_matrix <- spdep::nb2mat(neighbors, style = "B", zero.policy = TRUE)
-
 # 色の割り当て
 color_assignment <- rep(NA, length(neighbors))
 
@@ -241,7 +239,7 @@ sf_use_s2(TRUE)
 
 # plot map ---------------------------------------------------------------------
 
-lineMatrix = base::rbind(c(139.5, 41), c(137.5, 40), c(137.5, 38), c(134, 37), c(130, 37))
+lineMatrix = base::rbind(c(137.5, 45), c(137.5, 40), c(134, 37), c(120, 37))
 HokkaidoLine <- st_linestring(lineMatrix) %>% 
   sf::st_sfc() %>% 
   sf::st_set_crs(4612)
@@ -261,17 +259,17 @@ UEA_2005.sf %>%
   ggplot2::labs(title = "都市雇用圏(UEA).2005")+
   theme(plot.title    = element_text(size = 8))　-> UEAmap_2005
 
-UEA_2005.sf %>% 
-  ggplot2::ggplot() + 
-  ggplot2::geom_sf(aes(fill = color)) +
-  ggplot2::scale_fill_manual(values = colors) +
-  ggplot2::theme_bw() +
-  ggplot2::theme(legend.position = "none") +
-  ggplot2::coord_sf(ylim = c(34.5, 37.1),
-                    xlim = c(138, 141),
-                    datum = NA) +
-  ggplot2::labs(title = "関東地方・UEA(2005)")+
-  theme(plot.title    = element_text(size = 8))　-> UEAmap_2005_Kanto
+# UEA_2005.sf %>% 
+#   ggplot2::ggplot() + 
+#   ggplot2::geom_sf(aes(fill = color)) +
+#   ggplot2::scale_fill_manual(values = colors) +
+#   ggplot2::theme_bw() +
+#   ggplot2::theme(legend.position = "none") +
+#   ggplot2::coord_sf(ylim = c(34.5, 37.1),
+#                     xlim = c(138, 141),
+#                     datum = NA) +
+#   ggplot2::labs(title = "関東地方・UEA(2005)")+
+#   theme(plot.title    = element_text(size = 8))　-> UEAmap_2005_Kanto
 
 CZ_map %>% 
   ggplot2::ggplot() +
@@ -286,53 +284,28 @@ CZ_map %>%
   ggplot2::labs(title = "Commuting Zone(2005)")+
   theme(plot.title    = element_text(size = 8)) -> CZmap_2005
 
-CZ_map %>% 
-  ggplot2::ggplot() +
-  ggplot2::geom_sf(aes(fill = color)) +
-  ggplot2::scale_fill_manual(values = colors) +
-  ggplot2::theme_bw() +
-  ggplot2::theme(legend.position = "none") +
-  ggplot2::coord_sf(ylim = c(34.5, 37.1),
-                    xlim = c(138, 141),
-                    datum = NA) +
-  ggplot2::labs(title = "関東地方・Commuting Zone(2005)")+
-  theme(plot.title    = element_text(size = 8)) -> CZmap_2005_Kanto
+# CZ_map %>% 
+#   ggplot2::ggplot() +
+#   ggplot2::geom_sf(aes(fill = color)) +
+#   ggplot2::scale_fill_manual(values = colors) +
+#   ggplot2::theme_bw() +
+#   ggplot2::theme(legend.position = "none") +
+#   ggplot2::coord_sf(ylim = c(34.5, 37.1),
+#                     xlim = c(138, 141),
+#                     datum = NA) +
+#   ggplot2::labs(title = "関東地方・Commuting Zone(2005)")+
+#   theme(plot.title    = element_text(size = 8)) -> CZmap_2005_Kanto
 
 gridExtra::grid.arrange(UEAmap_2005, CZmap_2005, nrow = 1) %>% 
   ggplot2::ggsave(filename = "output/map_image/fetured/2005_UEA&CZmap.png", bg = "white", width = 5, height = 3)
-gridExtra::grid.arrange(UEAmap_2005_Kanto, CZmap_2005_Kanto, nrow = 1) %>% 
-  ggplot2::ggsave(filename = "output/map_image/fetured/2005_UEA&CZmap_kanto.png", bg = "white", width = 5, height = 3)
+# gridExtra::grid.arrange(UEAmap_2005_Kanto, CZmap_2005_Kanto, nrow = 1) %>% 
+#   ggplot2::ggsave(filename = "output/map_image/fetured/2005_UEA&CZmap_kanto.png", bg = "white", width = 5, height = 3)
 
 ggsave(UEAmap_2005, filename = "output/map_image/fetured/2005_UEAmap.png", bg = "white")
-ggsave(UEAmap_2005_Kanto, filename = "output/map_image/fetured/2005_UEAmap_Kanto.png", bg = "white")
+# ggsave(UEAmap_2005_Kanto, filename = "output/map_image/fetured/2005_UEAmap_Kanto.png", bg = "white")
 ggplot2::ggsave(CZmap_2005, filename = "output/map_image/fetured/2005_CZmap.png", bg = "white")
-ggplot2::ggsave(CZmap_2005_Kanto, filename = "output/map_image/fetured/2005_CZmap_Kanto.png", bg = "white")
+# ggplot2::ggsave(CZmap_2005_Kanto, filename = "output/map_image/fetured/2005_CZmap_Kanto.png", bg = "white")
 
 
 timestamp()
-
-# #動的マップ作成---------------------------------------------------------------
-# 
-# CZ_2005wrep <- CZ_2005 %>%
-#   dplyr::left_join(temp, by = "cluster")
-#
-# UEAandCZ_2005 <-   muni_map %>%
-#   dplyr::left_join(CZ_2005wrep, by = "JISCODE") %>%
-#   dplyr::mutate(JISCODE = dplyr::if_else(stringr::str_sub(GNAME, -1, -1) == "市", base::trunc(JISCODE * 0.01) * 100 , JISCODE)) %>%
-#   dplyr::mutate(JISCODE = dplyr::if_else((stringr::str_sub(CNAME, -1, -1) == "区" & PNAME == "東京都"), base::trunc(JISCODE * 0.01) * 100 , JISCODE)) %>%
-#   dplyr::mutate(JISCODE = dplyr::if_else(GNAME %in% c("川崎市", "福岡市"), JISCODE + 30, JISCODE)) %>%
-#   dplyr::full_join(UEA_2005 , by = "JISCODE") %>%
-#   dplyr::rename(CZ = rep,
-#                 UEA_NAME = 都市圏名)
-#
-library(leaflet)
-library(leafpop)
-library(mapview)
-
-# 
-# mapdata %>%
-#   filter(neighbors != 0,
-#          !(JISCODE %in% (46501:47999))) %>%
-#   select(NAME, JISCODE) %>%
-#   mapview::mapview(legend = FALSE)
 

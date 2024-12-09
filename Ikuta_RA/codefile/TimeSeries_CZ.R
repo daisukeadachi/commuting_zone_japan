@@ -100,7 +100,7 @@ for (y in year) {
     ggplot2::labs(title = table_name_kinki)+
     ggplot2::theme(plot.title    = element_text(size = 5)) -> map_kinki
   
-  fileName <- base::paste0("output/map_image/TimeSeriesCZ/harmonized/", y, "_CZmap_harmonized.png")
+  fileName <- base::paste0("output/map_image/TimeSeriesCZ/harmonized/whole/", y, "_CZmap_harmonized.png")
   fileNameKanto <- base::paste0("output/map_image/TimeSeriesCZ/harmonized/Kanto/", y, "_CZmap_harmonized_Kanto.png")
   fileNameKinki <- base::paste0("output/map_image/TimeSeriesCZ/harmonized/Kinki/", y, "_CZmap_harmonized_Kinki.png")
   ggplot2::ggsave(map, filename = fileName, bg = "white")
@@ -117,11 +117,11 @@ for (y in year) {
 
 
 gridExtra::grid.arrange(CZ_1980, CZ_1985, CZ_1990, CZ_1995, CZ_2000, CZ_2005, CZ_2010, CZ_2015, nrow = 3) %>%
-  ggplot2::ggsave(filename = "output/map_image/TimeSeriesCZ/1980to2015_CZmap_harmonized.png", bg = "white")
+  ggplot2::ggsave(filename = "output/map_image/TimeSeriesCZ/harmonized/multiple/1980to2015_CZmap_harmonized.png", bg = "white")
 
 gridExtra::grid.arrange(CZ_1980_Kanto, CZ_1985_Kanto, CZ_1990_Kanto, CZ_1995_Kanto,
                         CZ_2000_Kanto, CZ_2005_Kanto, CZ_2010_Kanto, CZ_2015_Kanto, nrow = 3) %>%
-  ggplot2::ggsave(filename = "output/map_image/TimeSeriesCZ/1980to2015_CZmap_harmonized_kanto.png", bg = "white")
+  ggplot2::ggsave(filename = "output/map_image/TimeSeriesCZ/harmonized/multiple/1980to2015_CZmap_harmonized_kanto.png", bg = "white")
 
 gridExtra::grid.arrange(CZ_1980_Kinki, CZ_1985_Kinki, CZ_1990_Kinki, CZ_1995_Kinki,
                         CZ_2000_Kinki, CZ_2005_Kinki, CZ_2010_Kinki, CZ_2015_Kinki, nrow = 3) %>%
@@ -221,7 +221,7 @@ for (y in year) {
     ggplot2::theme(plot.title    = element_text(size = 5)) -> map_kinki
   
   
-  fileName <- base::paste0("output/map_image/TimeSeriesCZ/Original/", y, "_CZmap_original.png")
+  fileName <- base::paste0("output/map_image/TimeSeriesCZ/Original/whole/", y, "_CZmap_original.png")
   fileNameKanto <- base::paste0("output/map_image/TimeSeriesCZ/Original/Kanto/", y, "_CZmap_original_Kanto.png")
   fileNameKinki <- base::paste0("output/map_image/TimeSeriesCZ/Original/Kinki/", y, "_CZmap_harmonized_Kinki.png")
   ggplot2::ggsave(map, filename = fileName, bg = "white")

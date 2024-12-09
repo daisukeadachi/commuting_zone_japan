@@ -173,10 +173,10 @@ for (i in (1:length(path_list.McEA))){
   neighbor_matrix <- spdep::nb2mat(neighbors, style = "B", zero.policy = TRUE)
   
   color_assignment <- rep(NA, length(neighbors))
-  color_assignment[which(UEA_color$UEA == 13100)] <- colors[8]
+  color_assignment[which(UEA_color$UEA == 13100)] <- colors[1]
   roop <- (1:length(neighbors))[-which(UEA_color$UEA == 13100)]
   
-  for (j in 1:length(neighbors)) {
+  for (j in roop) {
     available_colors <- setdiff(colors, color_assignment[neighbors[[j]]])
     color_assignment[j] <- available_colors[1]
   }
@@ -198,8 +198,9 @@ for (i in (1:length(path_list.McEA))){
   neighbors <- spdep::poly2nb(CZ_color)
   neighbor_matrix <- spdep::nb2mat(neighbors, style = "B", zero.policy = TRUE)
   
-  color_assignment <- rep(NA, length(neighbors))
   
+  color_assignment <- rep(NA, length(neighbors))
+
   for (j in 1:length(neighbors)) {
     available_colors <- setdiff(colors, color_assignment[neighbors[[j]]])
     color_assignment[j] <- available_colors[1]
@@ -366,4 +367,8 @@ gridExtra::grid.arrange(UEA1980_enlarged, UEA1990_enlarged, UEA1995_enlarged, UE
 gridExtra::grid.arrange(UEA1980_kanto, UEA1990_kanto, UEA1995_kanto, UEA2000_kanto,
                         UEA2005_kanto, UEA2010_kanto, UEA2015_kanto, nrow = 3) %>%
   ggplot2::ggsave(filename = "output/map_image/TimeSeries_UEA/Original/multiple/1980to2015_UEAmap_kanto.png", bg = "white")
+
+
+library(beepr)
+beepr::beep()
 
