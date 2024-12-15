@@ -82,31 +82,33 @@ HokkaidoLine <- st_linestring(lineMatrix) %>%
 
 sf_use_s2(TRUE)
 
-CZ_2005.sf %>%
-  ggplot2::ggplot() +
-  ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "white") +
-  ggplot2::scale_fill_manual(values = colors) +
-  ggplot2::geom_sf(data = Railroad, color = "black", linewidth = 0.1) +
-  ggplot2::theme_bw() +
-  ggplot2::theme(legend.position = "none", size = 0.1, color = "grey") +
-  # ggplot2::geom_sf(data = HokkaidoLine) +
-  ggplot2::coord_sf(ylim = c(31.2, 45.5),
-                    xlim = c(129.3, 145.8),
-                    datum = NA) +
-  ggplot2::labs(title = "CZ_alt",
-                caption = "note:Ogasawara Village, Tokyo Prefecture is elminated from the map for the visiblity. 
-                (There no other municiparities included in the same CZ as Ogasawara Village)") -> CZmap_2005
-
 # CZ_2005.sf %>%
 #   ggplot2::ggplot() +
-#   ggplot2::geom_sf(aes(fill = fill)) +
+#   ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "white") +
+#   ggplot2::scale_fill_manual(values = colors) +
+#   ggplot2::geom_sf(data = Railroad, color = "black", linewidth = 0.1, alpha = .8) +
 #   ggplot2::theme_bw() +
 #   ggplot2::theme(legend.position = "none") +
-#   ggplot2::coord_sf(ylim = c(34, 37),
-#                     xlim = c(138, 141),
+#   # ggplot2::geom_sf(data = HokkaidoLine) +
+#   ggplot2::coord_sf(ylim = c(31.2, 45.5),
+#                     xlim = c(129.3, 145.8),
 #                     datum = NA) +
-#   ggplot2::labs(title = "関東地方・Commuting Zone(2005)")+
-#   ggplot2::theme(plot.title    = element_text(size = 10)) -> CZmap_2005_Kanto
+#   ggplot2::labs(title = "CZ_alt",
+#                 caption = "note:Ogasawara Village, Tokyo Prefecture is elminated from the map for the visiblity.
+#                 (There no other municiparities included in the same CZ as Ogasawara Village)") -> CZmap_2005
+
+CZ_2005.sf %>%
+  ggplot2::ggplot() +
+  ggplot2::geom_sf(aes(fill = color), color = "white") +
+  ggplot2::scale_fill_manual(values = colors) +
+  ggplot2::geom_sf(data = Railroad, color = "black", linewidth = .2, alpha = .8) +
+  ggplot2::theme_bw() +
+  ggplot2::theme(legend.position = "none") +
+  ggplot2::coord_sf(ylim = c(34.6, 37.1),
+                    xlim = c(138, 141),
+                    datum = NA) +
+  ggplot2::labs(title = "関東地方・Commuting Zone(2005)")+
+  ggplot2::theme(plot.title    = element_text(size = 10)) -> CZmap_2005_Kanto
 
 ggplot2::ggsave(filename = "cover/map/temp.png", bg = "white")
 

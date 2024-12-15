@@ -13,7 +13,7 @@ lineMatrix = base::rbind(c(138, 45), c(138, 40), c(130, 37))
 OkinawaLine <- st_linestring(lineMatrix) %>%
   sf::st_sfc() %>%
   sf::st_set_crs(4612)
-lineMatrix = base::rbind(c(139.5, 41), c(137.5, 40), c(137.5, 38), c(134, 37), c(130, 37))
+lineMatrix = base::rbind(c(137.5, 45), c(137.5, 40), c(134, 37), c(120, 37))
 HokkaidoLine <- st_linestring(lineMatrix) %>% 
   sf::st_sfc() %>% 
   sf::st_set_crs(4612)
@@ -338,7 +338,7 @@ for (i in (1:length(path_list.McEA))){
     ggplot2::labs(title = paste("関東地方 CZ", year[i]))+
     theme(plot.title    = element_text(size = 5))　-> CZmap.Kanto
   
-  gridExtra::grid.arrange(UEAmap.enlaged, CZmap.enlaged, nrow = 1) %>% 
+  gridExtra::grid.arrange(UEAmap.Kanto, CZmap.Kanto, nrow = 1) %>% 
     ggplot2::ggsave(filename = paste0("output/map_image/TimeSeries_UEAandCZ/Original/Kanto/", year[i], "_UEAandCZmap.png"), 
                     bg = "white", width = 5, height = 3)
   
