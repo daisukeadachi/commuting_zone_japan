@@ -4,8 +4,9 @@ library(RColorBrewer)
 library(spdep)
 "%not.in%" <- Negate("%in%")
 print("データは****2005年****のものです。正しくファイルが指定されているか確認してください。")
-### Data cleaning ##############################################################
+#北海道は動かしません
 
+### Data cleaning ##############################################################
 
 muni_map <- sf::read_sf("mapdata/mmm20051001/mmm20051001.shp", options = "ENCODING=CP932") %>% 
   dplyr::select(-NO, -DATE) %>% 
@@ -23,18 +24,18 @@ Railroad <- sf::read_sf("data/N05-23_GML/N05-23_RailroadSection2.shp") %>%
                 start <= 2005) %>% 
   sf::st_transform(4612)
 
-Hokkaido <- muni_map %>%
-  dplyr::filter(JISCODE %in% (1000:1999)) %>%
-  sf::st_set_geometry(st_geometry(.) - c(10, 4)) %>%
-  sf::st_set_crs(4612)
-muni_map <- muni_map %>%
-  # dplyr::filter(!(JISCODE %in% (1000:1999))) %>%
-  dplyr::bind_rows(Hokkaido)
-Hokkaido.rail <- Railroad %>% 
-  dplyr::filter(st_coordinates(Railroad)[,2] <= 41.6) %>% 
-  # sf::st_set_geometry(st_geometry(.) - c(10, 4)) %>%
-  sf::st_set_crs(4612)
-Railroad <- dplyr::bind_rows(Railroad, Hokkaido.rail)
+# Hokkaido <- muni_map %>%
+#   dplyr::filter(JISCODE %in% (1000:1999)) %>%
+#   sf::st_set_geometry(st_geometry(.) - c(10, 4)) %>%
+#   sf::st_set_crs(4612)
+# muni_map <- muni_map %>%
+#   # dplyr::filter(!(JISCODE %in% (1000:1999))) %>%
+#   dplyr::bind_rows(Hokkaido)
+# Hokkaido.rail <- Railroad %>% 
+#   dplyr::filter(st_coordinates(Railroad)[,2] <= 41.6) %>% 
+#   # sf::st_set_geometry(st_geometry(.) - c(10, 4)) %>%
+#   sf::st_set_crs(4612)
+# Railroad <- dplyr::bind_rows(Railroad, Hokkaido.rail)
 
 CZ_2005 <- readr::read_csv("output/2005_original.csv")
 CZ_2005.sf <- muni_map %>% 
@@ -88,9 +89,9 @@ CZ_2005.sf %>%
   ggplot2::geom_sf(data = Railroad, color = "black", linewidth = 0.1) +
   ggplot2::theme_bw() +
   ggplot2::theme(legend.position = "none", size = 0.1, color = "grey") +
-  ggplot2::geom_sf(data = HokkaidoLine) +
-  ggplot2::coord_sf(ylim = c(31.2, 42),
-                    xlim = c(129.3, 142.3),
+  # ggplot2::geom_sf(data = HokkaidoLine) +
+  ggplot2::coord_sf(ylim = c(31.2, 45.5),
+                    xlim = c(129.3, 145.8),
                     datum = NA) +
   ggplot2::labs(title = "CZ_alt",
                 caption = "note:Ogasawara Village, Tokyo Prefecture is elminated from the map for the visiblity. 
