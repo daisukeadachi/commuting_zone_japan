@@ -391,7 +391,8 @@ for (i in (1:length(path_list.McEA))){
     ggplot2::coord_sf(ylim = c(31.2, 45.5),
                       xlim = c(129.3, 145.8),
                       datum = NA) +
-    ggplot2::labs(title = paste("CZ", year[i])) -> CZmap_rail
+    ggplot2::labs(title = paste("CZ", year[i])) +
+    theme(plot.title    = element_text(size = 5))-> CZmap_rail
   
   fileName.CZ <- paste0("output/map_image/Railroad/Original/Whole/CZ/", year[i], "_CZmap_Kanto.png")
   ggsave(CZmap_rail, filename = fileName.CZ, bg = "white")
@@ -409,7 +410,8 @@ for (i in (1:length(path_list.McEA))){
     ggplot2::coord_sf(ylim = c(31.2, 45.5),
                       xlim = c(129.3, 145.8),
                       datum = NA) +
-    ggplot2::labs(title = paste("UEA", year[i])) -> UEAmap_rail
+    ggplot2::labs(title = paste("UEA", year[i])) +
+    theme(plot.title    = element_text(size = 5)) -> UEAmap_rail
   
   fileName.UEA <- paste0("output/map_image/Railroad/Original/Whole/UEA/", year[i], "_UEAmap_Kanto.png")
   ggsave(CZmap_rail, filename = fileName.UEA, bg = "white")
@@ -418,7 +420,8 @@ for (i in (1:length(path_list.McEA))){
   gridExtra::grid.arrange(CZmap_rail, UEAmap_rail, nrow = 1) %>%
     ggplot2::ggsave(filename = paste0("output/map_image/Railroad/Original/Whole/double/", year[i], "_UEAandCZmap.png"),
                     bg = "white", width = 5, height = 3)
-  if (i == 1) {
+  # 1985年だけUEAがかけてるのでCZだけ作る
+  if (i == 5) {
     muni.sf <- sf::read_sf("mapdata/mmm19851001/mmm19851001.shp", options = "ENCODING=CP932") %>% 
       dplyr::filter(JISCODE != 13421,
                     JISCODE %not.in% c(1695, 1696, 1698)) %>% # 北方領土･小笠原諸島は解釈が難しいので、地図には出さない
@@ -460,9 +463,9 @@ for (i in (1:length(path_list.McEA))){
       dplyr::filter(JISCODE %not.in% (25000:47999),
                     JISCODE %not.in% (1000:5999)) %>%
       ggplot2::ggplot() +
-      ggplot2::geom_sf(aes(fill = color)) +
+      ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "white") +
       ggplot2::scale_fill_manual(values = colors) +
-      ggplot2::geom_sf(data = Rail, color = "black", linewidth = .2, alpha = .8) +
+      ggplot2::geom_sf(data = Rail, color = "black", linewidth = 0.1, alpha = .5) +
       ggplot2::theme_bw() +
       ggplot2::theme(legend.position = "none") +
       ggplot2::coord_sf(ylim = c(34.6, 37.1),
@@ -477,37 +480,27 @@ for (i in (1:length(path_list.McEA))){
       ggplot2::ggplot() +
       ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "white") +
       ggplot2::scale_fill_manual(values = colors) +
-      ggplot2::geom_sf(data = Rail, color = "black", linewidth = 0.1, alpha = .8) +
+      ggplot2::geom_sf(data = Rail, color = "black", linewidth = 0.1, alpha = .5) +
       ggplot2::theme_bw() +
       ggplot2::theme(legend.position = "none") +
       # ggplot2::geom_sf(data = HokkaidoLine) +
       ggplot2::coord_sf(ylim = c(31.2, 45.5),
                         xlim = c(129.3, 145.8),
                         datum = NA) +
-      ggplot2::labs(title = "CZ 1985") -> CZmap_rail
+      ggplot2::labs(title = "CZ 1985") +
+      theme(plot.title    = element_text(size = 5))-> CZmap_rail
     
     ggsave(CZmap_rail, filename = "output/map_image/Railroad/Original/Whole/CZ/1985_CZmap_Kanto.png", bg = "white")
     CZ_map <- append(CZ_map, list(CZmap_rail))
   }
-  
-  
-  # fileName.whole <- paste0("output/map_image/TimeSeries_UEA/Original/Whole/", year[i], "_UEAmap.png")
-  # fileName.enlaged <- paste0("output/map_image/TimeSeries_UEA/Original/Enlaged_MainLands/", year[i], "_UEAmap.png")
-  
-  # ggsave(UEAmap.whole, filename = fileName.whole, bg = "white")
-  # ggsave(UEAmap.enlaged, filename = fileName.enlaged, bg = "white")
-
-  # assign(paste0(assign_list[i], "_whole"), UEAmap.whole)
-  # assign(paste0(assign_list[i], "_enlarged"), UEAmap.enlaged)
 }
 
-# gridExtra::grid.arrange(UEA1980_whole, UEA1990_whole, UEA1995_whole, UEA2000_whole,
-#                         UEA2005_whole, UEA2010_whole, UEA2015_whole, nrow = 3) %>%
-#   ggplot2::ggsave(filename = "output/map_image/TimeSeries_UEA/Original/multiple/1980to2015_UEAmap_Whole.png", bg = "white")
-# 
-# gridExtra::grid.arrange(UEA1980_enlarged, UEA1990_enlarged, UEA1995_enlarged, UEA2000_enlarged,
-#                         UEA2005_enlarged, UEA2010_enlarged, UEA2015_enlarged, nrow = 3) %>%
-#   ggplot2::ggsave(filename = "output/map_image/TimeSeries_UEA/Original/multiple/1980to2015_UEAmap_enlarged.png", bg = "white")
+
+UEA_map <- UEA_map[c(setdiff(seq_len(length(UEA_map)), seq(1, 4)), seq(1, 4))]
+UEA_map.kanto <- UEA_map.kanto[c(setdiff(seq_len(length(UEA_map.kanto)), seq(1, 4)), seq(1, 4))]
+CZ_map.kanto <- CZ_map.kanto[c(setdiff(seq_len(length(CZ_map.kanto)), seq(1, 4)), seq(1, 4))]
+CZ_map <- CZ_map[c(setdiff(seq_len(length(CZ_map)), seq(1, 4)), seq(1, 4))]
+
 
 gridExtra::grid.arrange(grobs = UEA_map.kanto, nrow = 3) %>%
   ggplot2::ggsave(filename = "output/map_image/Railroad/Original/multiple/1980to2015_UEAmap_kanto.png", bg = "white")
