@@ -13,7 +13,7 @@ muni_map <- sf::read_sf("mapdata/mmm20051001/mmm20051001.shp", options = "ENCODI
   dplyr::filter(JISCODE %not.in% c(1695, 1696, 1698, 13421)) %>%
   sf::st_transform(4612)
 
-Railroad <- sf::read_sf("data/N05-23_GML/N05-23_RailroadSection2.shp") %>%   # 211行目までが北海道
+Railroad <- sf::read_sf("data/N06-23_GML/N06-23_HighwaySection.shp") %>%   # 211行目までが北海道
   filter(str_detect(N05_002, "新幹線", negate = TRUE)) %>% 
   dplyr::rename(ID = N05_006) %>% 
   dplyr::mutate(constructed = as.integer(N05_004),
@@ -25,7 +25,6 @@ Railroad <- sf::read_sf("data/N05-23_GML/N05-23_RailroadSection2.shp") %>%   # 2
   dplyr::summarise() %>% 
   sf::st_transform(4612)
 
-SHR <- sf::read_sf("data/N05-23_GML/N05-23_RailroadSection2.shp") %>% 
   filter(str_detect(N05_002, "新幹線")) %>% 
   dplyr::rename(ID = N05_006) %>% 
   dplyr::mutate(constructed = as.integer(N05_004),
@@ -112,11 +111,10 @@ sf_use_s2(TRUE)
 
 CZ_2005.sf %>%
   ggplot2::ggplot() +
-  ggplot2::geom_sf(fill = "transparent",color = "grey", linewidth = .2) +
-  ggplot2::geom_sf(data = SHR, color = "#333333", linewidth = .5, linetype = "dashed") +
-  ggplot2::geom_sf(data = Railroad, color = "black", linewidth = .3) +
-  ggplot2::geom_sf(aes(fill = color), linewidth = 0, alpha = .6) +
+  ggplot2::geom_sf(aes(fill = color), color = "white", linewidth = .05) +
   ggplot2::scale_fill_manual(values = colors) +
+  ggplot2::geom_sf(data = SHR, color = "#333333", linewidth = .5, alpha = .8, linetype = "dashed") +
+  ggplot2::geom_sf(data = Railroad, color = "black", linewidth = .3, alpha = .8) +
   ggplot2::theme_bw() +
   ggplot2::theme(legend.position = "none") +
   ggplot2::coord_sf(ylim = c(34.6, 37.1),
@@ -127,10 +125,7 @@ CZ_2005.sf %>%
 
 ggplot2::ggsave(filename = "cover/map/temp.png", bg = "white")
 
-# CZ_2005.sf %>%
-#   ggplot2::ggplot() +
-#   ggplot2::geom_sf(fill = "transparent", linewidth = .05) -> temp
-  
+
 
 beep()
 

@@ -26,12 +26,12 @@ path_list.McEA.C <- paste0("data/UEA/center/McEA/", list.files("data/UEA/center/
 path_list.MEA <- paste0("data/UEA/suburb/MEA/", list.files("data/UEA/suburb/MEA"))
 path_list.MEA.C <- paste0("data/UEA/center/MEA/", list.files("data/UEA/center/MEA"))
 
-assign_list <- paste0("UEA", list.files("data/UEA/suburb/McEA") %>% 
-                        stringr::str_replace(pattern = "A8", replacement = "A198") %>% 
-                        stringr::str_replace(pattern = "A9", replacement = "A199") %>% 
-                        stringr::str_sub(start = 5, end = -5) %>% 
-                        stringr::str_remove(pattern = "_Rev07")
-)
+# assign_list <- paste0("UEA", list.files("data/UEA/suburb/McEA") %>% 
+#                         stringr::str_replace(pattern = "A8", replacement = "A198") %>% 
+#                         stringr::str_replace(pattern = "A9", replacement = "A199") %>% 
+#                         stringr::str_sub(start = 5, end = -5) %>% 
+#                         stringr::str_remove(pattern = "_Rev07")
+# )
 
 year <- list.files("data/UEA/suburb/McEA") %>% 
   stringr::str_replace(pattern = "A8", replacement = "A198") %>% 
@@ -39,7 +39,19 @@ year <- list.files("data/UEA/suburb/McEA") %>%
   stringr::str_sub(start = 5, end = -5) %>% 
   stringr::str_remove(pattern = "_Rev07")
 
-Rail.row <- sf::read_sf("data/N05-23_GML/N05-23_RailroadSection2.shp") %>% 
+Rail.row <- sf::read_sf("data/N05-23_GML/N05-23_RailroadSection2.shp")
+
+SHR.row <- Rail.row %>% 
+  dplyr::filter(stringr::str_detect(N05_002, "新幹線")) %>% 
+  dplyr::rename(ID = N05_006) %>% 
+  dplyr::mutate(constructed = as.integer(N05_004),
+                start = as.integer(N05_005b),
+                end = as.integer(N05_005e)) %>% 
+  dplyr::select(ID, constructed, start, end) %>% 
+  sf::st_transform(4612)
+
+Rail.row <- Rail.row %>% 
+  dplyr::filter(stringr::str_detect(N05_002, "新幹線", negate = TRUE)) %>% 
   dplyr::rename(ID = N05_006) %>% 
   dplyr::mutate(constructed = as.integer(N05_004),
                 start = as.integer(N05_005b),
@@ -186,8 +198,6 @@ for (i in (1:length(path_list.McEA))){
     sf::st_make_valid()
   
   neighbors <- spdep::poly2nb(UEA_color)
-  neighbor_matrix <- spdep::nb2mat(neighbors, style = "B", zero.policy = TRUE)
-  
   color_assignment <- rep(NA, length(neighbors))
   color_assignment[which(UEA_color$UEA == 13100)] <- colors[1]
   roop <- (1:length(neighbors))[-which(UEA_color$UEA == 13100)]
@@ -212,8 +222,6 @@ for (i in (1:length(path_list.McEA))){
     sf::st_make_valid()
   
   neighbors <- spdep::poly2nb(CZ_color)
-  neighbor_matrix <- spdep::nb2mat(neighbors, style = "B", zero.policy = TRUE)
-  
   
   color_assignment <- rep(NA, length(neighbors))
   
@@ -278,6 +286,11 @@ for (i in (1:length(path_list.McEA))){
     dplyr::filter(end >= Yr,
                   start <= Yr)
   
+  SHR <- SHR.row %>% 
+    dplyr::filter(end >= Yr,
+                  start <= Yr)
+  
+  
   ### Whole ####################################################################
   # UEA.sf.whole %>% 
   #   ggplot2::ggplot() + 
@@ -341,12 +354,14 @@ for (i in (1:length(path_list.McEA))){
     dplyr::filter(JISCODE %not.in% (25000:47999),
                   JISCODE %not.in% (1000:5999)) %>%
     ggplot2::ggplot() +
-    ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "white") +
+    ggplot2::geom_sf(fill = "transparent",color = "grey", linewidth = .02) +
+    ggplot2::geom_sf(data = SHR, color = "#333333", linewidth = .1, linetype = "dashed") +
+    ggplot2::geom_sf(data = Railroad, color = "black", linewidth = .1) +
+    ggplot2::geom_sf(aes(fill = color), linewidth = 0, alpha = .6) +
     ggplot2::scale_fill_manual(values = colors) +
-    ggplot2::geom_sf(data = Rail, color = "black", linewidth = .1, alpha = .5) +
     ggplot2::theme_bw() +
     ggplot2::theme(legend.position = "none") +
-    ggplot2::coord_sf(ylim = c(34.5, 37.1),
+    ggplot2::coord_sf(ylim = c(34.6, 37.1),
                       xlim = c(138, 141),
                       datum = NA) +
     ggplot2::labs(title = paste("関東地方 UEA", year[i]))+
@@ -360,9 +375,11 @@ for (i in (1:length(path_list.McEA))){
     dplyr::filter(JISCODE %not.in% (25000:47999),
                   JISCODE %not.in% (1000:5999)) %>%
     ggplot2::ggplot() +
-    ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "white") +
+    ggplot2::geom_sf(fill = "transparent",color = "grey", linewidth = .02) +
+    ggplot2::geom_sf(data = SHR, color = "#333333", linewidth = .1, linetype = "dashed") +
+    ggplot2::geom_sf(data = Railroad, color = "black", linewidth = .1) +
+    ggplot2::geom_sf(aes(fill = color), linewidth = 0, alpha = .6) +
     ggplot2::scale_fill_manual(values = colors) +
-    ggplot2::geom_sf(data = Rail, color = "black", linewidth = .1, alpha = .5) +
     ggplot2::theme_bw() +
     ggplot2::theme(legend.position = "none") +
     ggplot2::coord_sf(ylim = c(34.6, 37.1),
@@ -382,9 +399,11 @@ for (i in (1:length(path_list.McEA))){
   ### no move ##################################################################
   CZ.sf %>%
     ggplot2::ggplot() +
-    ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "white") +
+    ggplot2::geom_sf(fill = "transparent",color = "grey", linewidth = .01) +
+    ggplot2::geom_sf(data = SHR, color = "#333333", linewidth = .2, linetype = "dashed") +
+    ggplot2::geom_sf(data = Railroad, color = "black", linewidth = .1) +
+    ggplot2::geom_sf(aes(fill = color), linewidth = 0, alpha = .6) +
     ggplot2::scale_fill_manual(values = colors) +
-    ggplot2::geom_sf(data = Rail, color = "black", linewidth = 0.1, alpha = .5) +
     ggplot2::theme_bw() +
     ggplot2::theme(legend.position = "none") +
     # ggplot2::geom_sf(data = HokkaidoLine) +
@@ -401,9 +420,11 @@ for (i in (1:length(path_list.McEA))){
   
   UEA.sf %>%
     ggplot2::ggplot() +
-    ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "white") +
+    ggplot2::geom_sf(fill = "transparent",color = "grey", linewidth = .01) +
+    ggplot2::geom_sf(data = SHR, color = "#333333", linewidth = .2, linetype = "dashed") +
+    ggplot2::geom_sf(data = Railroad, color = "black", linewidth = .1) +
+    ggplot2::geom_sf(aes(fill = color), linewidth = 0, alpha = .6) +
     ggplot2::scale_fill_manual(values = colors) +
-    ggplot2::geom_sf(data = Rail, color = "black", linewidth = 0.1, alpha = .5) +
     ggplot2::theme_bw() +
     ggplot2::theme(legend.position = "none") +
     # ggplot2::geom_sf(data = HokkaidoLine) +
@@ -441,7 +462,6 @@ for (i in (1:length(path_list.McEA))){
       sf::st_make_valid()
     
     neighbors <- spdep::poly2nb(CZ_color)
-    neighbor_matrix <- spdep::nb2mat(neighbors, style = "B", zero.policy = TRUE)
     color_assignment <- rep(NA, length(neighbors))
     
     for (j in 1:length(neighbors)) {
@@ -459,13 +479,19 @@ for (i in (1:length(path_list.McEA))){
     Rail <- Rail.row %>% 
       dplyr::filter(end >= 1985,
                     start <= 1985)
+    SHR <- SHR.row %>% 
+      dplyr::filter(end >= 1985,
+                    start <= 1985)
+    
     CZ.sf %>%
       dplyr::filter(JISCODE %not.in% (25000:47999),
                     JISCODE %not.in% (1000:5999)) %>%
       ggplot2::ggplot() +
-      ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "white") +
+      ggplot2::geom_sf(fill = "transparent",color = "grey", linewidth = .02) +
+      ggplot2::geom_sf(data = SHR, color = "#333333", linewidth = .1, linetype = "dashed") +
+      ggplot2::geom_sf(data = Railroad, color = "black", linewidth = .1) +
+      ggplot2::geom_sf(aes(fill = color), linewidth = 0, alpha = .6) +
       ggplot2::scale_fill_manual(values = colors) +
-      ggplot2::geom_sf(data = Rail, color = "black", linewidth = 0.1, alpha = .5) +
       ggplot2::theme_bw() +
       ggplot2::theme(legend.position = "none") +
       ggplot2::coord_sf(ylim = c(34.6, 37.1),
@@ -478,9 +504,11 @@ for (i in (1:length(path_list.McEA))){
     
     CZ.sf %>%
       ggplot2::ggplot() +
-      ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "white") +
+      ggplot2::geom_sf(fill = "transparent",color = "grey", linewidth = .02) +
+      ggplot2::geom_sf(data = SHR, color = "#333333", linewidth = .1, linetype = "dashed") +
+      ggplot2::geom_sf(data = Railroad, color = "black", linewidth = .1) +
+      ggplot2::geom_sf(aes(fill = color), linewidth = 0, alpha = .6) +
       ggplot2::scale_fill_manual(values = colors) +
-      ggplot2::geom_sf(data = Rail, color = "black", linewidth = 0.1, alpha = .5) +
       ggplot2::theme_bw() +
       ggplot2::theme(legend.position = "none") +
       # ggplot2::geom_sf(data = HokkaidoLine) +
@@ -511,6 +539,5 @@ gridExtra::grid.arrange(grobs = UEA_map, nrow = 3) %>%
 gridExtra::grid.arrange(grobs = CZ_map, nrow = 3) %>%
   ggplot2::ggsave(filename = "output/map_image/Railroad/Original/multiple/1980to2015_CZmap.png", bg = "white")
 
-library(beepr)
 beepr::beep()
 
