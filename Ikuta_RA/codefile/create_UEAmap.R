@@ -3,6 +3,7 @@ library(sf)
 library(gridExtra)
 library(spdep)
 library(RColorBrewer)
+library(patchwork)
 
 
 # UEA data --------------------------------------------------------------------- 
@@ -241,7 +242,8 @@ UEA_2005.sf %>%
   ggplot2::theme(legend.position = "none") +
   ggplot2::geom_sf(data = OkinawaLine) +
   ggplot2::coord_sf(datum = NA) +
-  ggplot2::labs(title = "都市雇用圏(UEA).2005")　-> UEAmap_2005
+  ggplot2::labs(title = "都市雇用圏(UEA).2005") +
+  ggplot2::theme(plot.title = element_text(size = 5)) -> UEAmap_2005
 
 UEA_2005.sf %>% 
   ggplot2::ggplot() + 
@@ -276,7 +278,8 @@ CZ_map %>%
   ggplot2::coord_sf(datum = NA) +
   ggplot2::geom_sf(data = OkinawaLine) +
   ggplot2::coord_sf(datum = NA) +
-  ggplot2::labs(title = "Commuting Zone(2005)") -> CZmap_2005
+  ggplot2::labs(title = "Commuting Zone(2005)") +
+  ggplot2::theme(plot.title = element_text(size = 5)) -> CZmap_2005
 
 CZ_map %>% 
   ggplot2::ggplot() +
@@ -303,9 +306,12 @@ CZ_map %>%
   theme(plot.title    = element_text(size = 10))　-> CZmap_2005_Kinki
 
 
-gridExtra::grid.arrange(UEAmap_2005, CZmap_2005, nrow = 1) %>% 
-  ggplot2::ggsave(filename = "output/map_image/CZandUEA/2005_UEA&CZmap.png", bg = "white", width = 5, height = 3)
-gridExtra::grid.arrange(UEAmap_2005_Kanto, CZmap_2005_Kanto, nrow = 1) %>% 
+
+gridExtra::grid.arrange(UEAmap_2005, CZmap_2005, nrow = 1) +
+  ggplot2::labs(title = "CZandUEA",
+                caption = "this is a map filled by UEA and CZ.")%>%
+  ggplot2::ggsave(filename = "cover/mapC.png", bg = "white", width = 5, height = 3)
+gridExtra::grid.arrange(UEAmap_2005_Kanto, CZmap_2005_Kanto, nrow = 1) %>%
   ggplot2::ggsave(filename = "output/map_image/CZandUEA/Kanto/2005_UEA&CZmap_kanto.png", bg = "white", width = 5, height = 3)
 
 ggsave(UEAmap_2005, filename = "output/map_image/CZandUEA/2005_UEAmap.png", bg = "white")
@@ -315,4 +321,15 @@ ggsave(UEAmap_2005_Kinki, filename = "output/map_image/CZandUEA/Kinki/2005_UEAma
 ggplot2::ggsave(CZmap_2005, filename = "output/map_image/CZandUEA/2005_CZmap.png", bg = "white")
 ggplot2::ggsave(CZmap_2005_Kanto, filename = "output/map_image/CZandUEA/Kanto/2005_CZmap_Kanto.png", bg = "white")
 ggplot2::ggsave(CZmap_2005_Kinki, filename = "output/map_image/CZandUEA/Kinki/2005_CZmap_Kinki.png", bg = "white")
+
+## `patchwork`お試し
+# CZmap_2005 + UEAmap_2005 +
+#   patchwork::plot_annotation(
+#     title = "titile",
+#     caption = "表示範囲:[北緯31.2～42,東経129.3～142.3](測地系:JGD2000)\nこの地図は主に北海道･本州･四国･九州についてCZとUEAで塗り分けた地図である。\n地図の簡略化のため、小笠原諸島(東京都小笠原村)及び北方領土の一部(北海道色丹郡色丹村･国後郡泊村･留夜別村･択捉郡留別村･紗那郡紗那村･蘂取郡蘂取村)を省いている。\n地図の視認性向上のため、北海道の市町村については左上の枠内に表示している(北海道の市町村に対してすべて、緯度を-4,経度を-10して処理した。)。\nUEAの地図においてグレーで塗られた市町村は、どのUEAにも含まれない市町村である。",
+#     theme = theme(plot.title = element_text(size = 8),
+#                   plot.caption = element_text(hjust = 0, size = 3))
+#   )  -> mapD
+# ggplot2::ggsave(mapD, filename = "cover/mapD.png")
+
 
