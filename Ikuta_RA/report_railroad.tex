@@ -1,0 +1,53 @@
+\documentclass{ltjsarticle}
+% \usepackage{url}
+\usepackage{graphicx}
+\title{CZ･UEAと陸上交通網}
+\author{生田直輝}
+\begin{document}
+\maketitle
+
+\begin{itemize}
+  \item CZ･UEAと陸上交通網の関連を可視化するため、それぞれのコロプレス図に鉄道･高速道路を重ね合わせた。作成した各図については以下の通り
+  \begin{itemize}
+    \item Original(市町村境界を\underbar{基準化していない}もの。)
+    \begin{itemize}
+      \item 鉄道(Railroad)
+      \begin{description}
+        \item[\ref{allCZandRail}] データあるすべての年のCZと鉄道の地図を並べたもの
+        \item[\ref{KanCZandRail}] データあるすべての年のCZと鉄道の地図を並べたもの
+        \item[\ref{allUEAandRail}] データあるすべての年のUEAと鉄道の地図を並べたもの
+        \item[] 
+      \end{description}
+      \item 高速道路(Expway)
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+
+\begin{figure}[pbth]
+  \centering
+  \includegraphics[width=150mm]{output/map_image/Railroad/Original/multiple/1980to2015_CZmap.png}
+  \caption{\label{allCZandRail}全国のCZと鉄道}
+\end{figure}
+
+\begin{figure}[pbth]
+  \centering
+  \includegraphics[width=150mm]{output/map_image/Railroad/Original/multiple/1980to2015_UEAmap.png}
+  \caption{\label{allUEAandRail}全国のUEAと鉄道}
+\end{figure}
+
+\begin{figure}[pbth]
+  \centering
+  \includegraphics[width=150mm]{output/map_image/Railroad/Original/multiple/1980to2015_CZmap_kanto.png}
+  \caption{\label{KanCZandRail}関東のCZと鉄道}
+\end{figure}
+
+\begin{figure}[pbth]
+  \centering
+  \includegraphics[width=150mm]{output/map_image/Railroad/Original/multiple/1980to2015_UEAmap_kanto.png}
+  \caption{\label{KanUEAandRail}関東のUEAと鉄道}
+\end{figure}
+
+
+
+\end{document}
