@@ -397,13 +397,6 @@ for (i in (1:length(path_list.McEA))){
   
   # 1985年だけUEAがかけてるのでCZだけ作る
   if (i == 5) {
-    muni.sf <- sf::read_sf("mapdata/mmm19851001/mmm19851001.shp", options = "ENCODING=CP932") %>% 
-      dplyr::filter(JISCODE != 13421,
-                    JISCODE %not.in% c(1695, 1696, 1698)) %>% # 北方領土･小笠原諸島は解釈が難しいので、地図には出さない
-      dplyr::select(-NO, -DATE) %>% 
-      sf::st_transform(4612)
-    
-    
     CZ.sf <- muni.sf %>% 
       dplyr::left_join(readr::read_csv("output/1985_harmonized.csv"), by = c("JISCODE" = "i"))
     
