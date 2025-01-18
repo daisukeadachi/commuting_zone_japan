@@ -1,23 +1,20 @@
 library(tidyverse)
 library(sf)
 library(gridExtra)
+library(patchwork)
 library(spdep)
 library(RColorBrewer)
 "%not.in%" <- Negate("%in%")
 
-
-
 # year <- c(1980, 1985, 1990, 1995, 2000, 2005, 2010, 2015)
-# 
-lineMatrix = base::rbind(c(138, 45), c(138, 40), c(130, 37))
-OkinawaLine <- st_linestring(lineMatrix) %>%
+OkinawaLine <- list(base::rbind(c(138, 45), c(138, 40), c(130, 37))) %>% 
+  st_multilinestring() %>%
   sf::st_sfc() %>%
   sf::st_set_crs(4612)
-lineMatrix = base::rbind(c(137.5, 45), c(137.5, 40), c(134, 37), c(120, 37))
-HokkaidoLine <- st_linestring(lineMatrix) %>% 
+HokkaidoLine <- list(base::rbind(c(137.5, 45), c(137.5, 40), c(134, 37), c(120, 37))) %>% 
+  st_multilinestring() %>% 
   sf::st_sfc() %>% 
   sf::st_set_crs(4612)
-rm(lineMatrix)
 colors <- RColorBrewer::brewer.pal(8, "Set2")
 
 
@@ -140,6 +137,8 @@ for (i in (1:length(path_list.McEA))){
   
   #### map making ####
   
+  ## map data ##################################################################
+  
   mapPath <- paste0("mapdata/mmm", year[i], "1001/mmm", year[i], "1001.shp")
   czPath <- paste0("output/", year[i], "_original.csv")
   
@@ -160,8 +159,11 @@ for (i in (1:length(path_list.McEA))){
   CZ.sf <- muni.sf %>% 
     dplyr::left_join(readr::read_csv(czPath), by = c("JISCODE" = "i"))
   
+  ## color assignment ##########################################################
+  
   sf_use_s2(FALSE) 
   
+  ## UEA ##
   UEA_color <- UEA.sf %>%
     tidyr::drop_na(UEA) %>% 
     dplyr::group_by(UEA) %>%
@@ -189,6 +191,7 @@ for (i in (1:length(path_list.McEA))){
   
   rm(j, neighbors, neighbor_matrix, color_assignment, available_colors, UEA_color)
   
+  ## CZ ##
   CZ_color <- CZ.sf %>%
     dplyr::group_by(cluster) %>%
     dplyr::select(cluster) %>%
@@ -213,6 +216,8 @@ for (i in (1:length(path_list.McEA))){
   CZ.sf <- dplyr::left_join(CZ.sf, CZ_color, by = "cluster")
   
   rm(j, neighbors, neighbor_matrix, color_assignment, available_colors, CZ_color)
+  
+  ## movement ##################################################################
   
   movement_okinwa <- UEA.sf %>%
     dplyr::filter(JISCODE %in% (47000:47999)) %>% 
@@ -252,32 +257,110 @@ for (i in (1:length(path_list.McEA))){
 
   rm(movement_okinwa, movement_Hokkaido)
   
+  ## ggplot zone(for multiple) #################################################
   UEA.sf.whole %>% 
     ggplot2::ggplot() + 
     ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "white") +
     ggplot2::scale_fill_manual(values = colors) +
     ggplot2::theme_bw() +
     ggplot2::theme(legend.position = "none") +
-    ggplot2::geom_sf(data = OkinawaLine) +
+    ggplot2::geom_sf(data = OkinawaLine, linewidth = .3) +
     ggplot2::coord_sf(datum = NA) +
-    ggplot2::labs(title = paste("UEA", year[i])) +
-    ggplot2::theme(plot.title = element_text(size = 5)) -> UEAmap.whole
-  
+    ggplot2::labs(caption = year[i]) +
+    ggplot2::theme(plot.caption = element_text(size = 5)) -> UEAmap.whole
   CZ.sf.whole %>% 
     ggplot2::ggplot() + 
     ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "white") +
     ggplot2::scale_fill_manual(values = colors) +
     ggplot2::theme_bw() +
     ggplot2::theme(legend.position = "none") +
-    ggplot2::geom_sf(data = OkinawaLine) +
+    ggplot2::geom_sf(data = OkinawaLine, linewidth = .3) +
     ggplot2::coord_sf(datum = NA) +
-    ggplot2::labs(title = paste("CZ", year[i])) +
-    ggplot2::theme(plot.title = element_text(size = 5)) -> CZmap.whole
+    ggplot2::labs(caption = year[i]) +
+    ggplot2::theme(plot.caption = element_text(size = 5)) -> CZmap.whole
+  UEA.sf.enlarged %>% 
+    ggplot2::ggplot() + 
+    ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "white") +
+    ggplot2::scale_fill_manual(values = colors) +
+    ggplot2::theme_bw() +
+    ggplot2::theme(legend.position = "none") +
+    ggplot2::geom_sf(data = HokkaidoLine, linewidth = .3) +
+    ggplot2::coord_sf(ylim = c(31.2, 42),
+                      xlim = c(129.3, 142.3),
+                      datum = NA) +
+    ggplot2::labs(caption = year[i])+
+    ggplot2::theme(plot.caption = element_text(size = 5)) -> UEAmap.enlaged
+  CZ.sf.enlarged %>% 
+    ggplot2::ggplot() + 
+    ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "white") +
+    ggplot2::scale_fill_manual(values = colors) +
+    ggplot2::theme_bw() +
+    ggplot2::theme(legend.position = "none") +
+    ggplot2::geom_sf(data = HokkaidoLine, linewidth = .3) +
+    ggplot2::coord_sf(ylim = c(31.2, 42),
+                      xlim = c(129.3, 142.3),
+                      datum = NA) +
+    ggplot2::labs(caption = year[i])+
+    ggplot2::theme(plot.caption = element_text(size = 5)) -> CZmap.enlaged
+  UEA.sf %>% 
+    dplyr::filter(JISCODE %not.in% (25000:47999),
+                  JISCODE %not.in% (1000:5999)) %>% 
+    ggplot2::ggplot() + 
+    ggplot2::geom_sf(aes(fill = color)) +
+    ggplot2::scale_fill_manual(values = colors) +
+    ggplot2::theme_bw() +
+    ggplot2::theme(legend.position = "none") +
+    ggplot2::coord_sf(ylim = c(34.5, 37.1),
+                      xlim = c(138, 141),
+                      datum = NA) +
+    ggplot2::labs(caption = year[i])+
+    theme(plot.caption    = element_text(size = 5))　-> UEAmap.Kanto
+  CZ.sf %>% 
+    dplyr::filter(JISCODE %not.in% (25000:47999),
+                  JISCODE %not.in% (1000:5999)) %>% 
+    ggplot2::ggplot() + 
+    ggplot2::geom_sf(aes(fill = color)) +
+    ggplot2::scale_fill_manual(values = colors) +
+    ggplot2::theme_bw() +
+    ggplot2::theme(legend.position = "none") +
+    ggplot2::coord_sf(ylim = c(34.5, 37.1),
+                      xlim = c(138, 141),
+                      datum = NA) +
+    ggplot2::labs(caption = year[i])+
+    theme(plot.caption    = element_text(size = 5))　-> CZmap.Kanto
+  assign(paste0(assign_list[i], "_whole"), UEAmap.whole)
+  assign(paste0(assign_list[i], "_enlarged"), UEAmap.enlaged)
+  assign(paste0(assign_list[i], "_kanto"), UEAmap.Kanto)
+  rm(UEAmap.whole, UEAmap.enlaged, UEAmap.Kanto, CZmap.whole, CZmap.enlaged, CZmap.Kanto)
   
-  gridExtra::grid.arrange(UEAmap.whole, CZmap.whole, nrow = 1) %>% 
-    ggplot2::ggsave(filename = paste0("output/map_image/TimeSeries_UEAandCZ/Original/Whole/", year[i], "_UEAandCZmap.png"), 
-                    bg = "white", width = 5, height = 3)
-  
+  ## ggplot zone(for double) #################################################
+  UEA.sf.whole %>% 
+    ggplot2::ggplot() + 
+    ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "white") +
+    ggplot2::scale_fill_manual(values = colors) +
+    ggplot2::theme_bw() +
+    ggplot2::theme(legend.position = "none") +
+    ggplot2::geom_sf(data = OkinawaLine, linewidth = .5) +
+    ggplot2::coord_sf(datum = NA) +
+    ggplot2::labs(caption = "UEA") +
+    ggplot2::theme(plot.caption = element_text(size = 5)) -> UEAmap
+  CZ.sf.whole %>% 
+    ggplot2::ggplot() + 
+    ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "white") +
+    ggplot2::scale_fill_manual(values = colors) +
+    ggplot2::theme_bw() +
+    ggplot2::theme(legend.position = "none") +
+    ggplot2::geom_sf(data = OkinawaLine, linewidth = .5) +
+    ggplot2::coord_sf(datum = NA) +
+    ggplot2::labs(caption = "CZ") +
+    ggplot2::theme(plot.caption = element_text(size = 5)) -> CZmap
+  doubleMap <- CZmap + UEAmap + 
+    patchwork::plot_annotation(
+      caption = "この地図は国内のほぼ全ての市町村についてUEAとCZで塗り分けた地図である。市町村の境界については基準化しておらず、それぞれの年のものに従っている。\n地図の簡略化のため、小笠原諸島(東京都小笠原村)及び北方領土の一部(北海道色丹郡色丹村･国後郡泊村･留夜別村･択捉郡留別村･紗那郡紗那村･蘂取郡蘂取村)を省いている。\n地図の視認性向上のため、沖縄県の市町村については左上の枠内に表示している(沖縄県の市町村に対してすべて、緯度を+5,経度を+15して処理。)。それぞれのUEA及びCZは年によって色が異なる場合があるが、東京都市圏のみすべての年で色を固定して表示している。\n地図上グレーで塗られた市町村は、どのUEAにも含まれない市町村である。",
+      theme = theme(plot.caption = element_text(size = 5, hjust = 0))
+    )
+  ggplot2::ggsave(doubleMap, filename = paste0("output/map_image/TimeSeries_UEAandCZ/Original/Whole/", year[i], "_UEAandCZmap.png"), 
+                  bg = "white", width = 5, height = 3)
   
   UEA.sf.enlarged %>% 
     ggplot2::ggplot() + 
@@ -285,30 +368,31 @@ for (i in (1:length(path_list.McEA))){
     ggplot2::scale_fill_manual(values = colors) +
     ggplot2::theme_bw() +
     ggplot2::theme(legend.position = "none") +
-    ggplot2::geom_sf(data = HokkaidoLine) +
+    ggplot2::geom_sf(data = HokkaidoLine, linewidth = .5) +
     ggplot2::coord_sf(ylim = c(31.2, 42),
                       xlim = c(129.3, 142.3),
                       datum = NA) +
-    ggplot2::labs(title = paste("UEA", year[i]))+
-    ggplot2::theme(plot.title = element_text(size = 5)) -> UEAmap.enlaged
-  
+    ggplot2::labs(caption = "UEA")+
+    ggplot2::theme(plot.caption = element_text(size = 5)) -> UEAmap
   CZ.sf.enlarged %>% 
     ggplot2::ggplot() + 
     ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "white") +
     ggplot2::scale_fill_manual(values = colors) +
     ggplot2::theme_bw() +
     ggplot2::theme(legend.position = "none") +
-    ggplot2::geom_sf(data = HokkaidoLine) +
+    ggplot2::geom_sf(data = HokkaidoLine, linewidth = .5) +
     ggplot2::coord_sf(ylim = c(31.2, 42),
                       xlim = c(129.3, 142.3),
                       datum = NA) +
-    ggplot2::labs(title = paste("CZ", year[i]))+
-    ggplot2::theme(plot.title = element_text(size = 5)) -> CZmap.enlaged
-  
-  gridExtra::grid.arrange(UEAmap.enlaged, CZmap.enlaged, nrow = 1) %>% 
-    ggplot2::ggsave(filename = paste0("output/map_image/TimeSeries_UEAandCZ/Original/enlaged_MainLands/", year[i], "_UEAandCZmap.png"), 
-                    bg = "white", width = 5, height = 3)
-  
+    ggplot2::labs(caption = "CZ")+
+    ggplot2::theme(plot.caption = element_text(size = 5)) -> CZmap
+  doubleMap <- CZmap + UEAmap + 
+    patchwork::plot_annotation(
+      caption = "この地図は主に北海道･本州･四国･九州についてUEAとCZで塗り分けた地図である。市町村の境界については基準化しておらず、それぞれの年のものに従っている。\n地図の簡略化のため、小笠原諸島(東京都小笠原村)及び北方領土の一部(北海道色丹郡色丹村･国後郡泊村･留夜別村･択捉郡留別村･紗那郡紗那村･蘂取郡蘂取村)を省いている。\n地図の視認性向上のため、北海道の市町村については左上の枠内に表示している(北海道の市町村に対してすべて、緯度を-4,経度を-10して処理した。)。\nそれぞれのUEA及びCZは年によって色が異なる場合があるが、東京都市圏のみすべての年で色を固定して表示している。\n地図上グレーで塗られた市町村は、どのUEAにも含まれない市町村である。",
+      theme = theme(plot.caption = element_text(size = 5, hjust = 0))
+    )
+  ggplot2::ggsave(doubleMap, filename = paste0("output/map_image/TimeSeries_UEAandCZ/Original/enlaged_MainLands/", year[i], "_UEAandCZmap.png"), 
+                  bg = "white", width = 5, height = 3)
   
   UEA.sf %>% 
     dplyr::filter(JISCODE %not.in% (25000:47999),
@@ -321,9 +405,8 @@ for (i in (1:length(path_list.McEA))){
     ggplot2::coord_sf(ylim = c(34.5, 37.1),
                       xlim = c(138, 141),
                       datum = NA) +
-    ggplot2::labs(title = paste("関東地方 UEA", year[i]))+
-    theme(plot.title    = element_text(size = 5))　-> UEAmap.Kanto
-  
+    ggplot2::labs(caption = "UEA")+
+    theme(plot.caption    = element_text(size = 5))　-> UEAmap
   CZ.sf %>% 
     dplyr::filter(JISCODE %not.in% (25000:47999),
                   JISCODE %not.in% (1000:5999)) %>% 
@@ -335,40 +418,45 @@ for (i in (1:length(path_list.McEA))){
     ggplot2::coord_sf(ylim = c(34.5, 37.1),
                       xlim = c(138, 141),
                       datum = NA) +
-    ggplot2::labs(title = paste("関東地方 CZ", year[i]))+
-    theme(plot.title    = element_text(size = 5))　-> CZmap.Kanto
+    ggplot2::labs(caption = "CZ")+
+    theme(plot.caption    = element_text(size = 5))　-> CZmap
+  doubleMap <- CZmap + UEAmap + 
+    patchwork::plot_annotation(
+      caption = "この地図は主に関東地方についてUEAとCZで塗り分けた地図である。市町村の境界については基準化しておらず、それぞれの年のものに従っている。\nそれぞれのUEA及びCZは年によって色が異なる場合があるが、東京都市圏のみすべての年で色を固定して表示している。\n地図上グレーで塗られた市町村は、どのUEAにも含まれない市町村である。",
+      theme = theme(plot.caption = element_text(size = 5, hjust = 0))
+    )
+  ggplot2::ggsave(doubleMap, filename = paste0("output/map_image/TimeSeries_UEAandCZ/Original/Kanto/", year[i], "_UEAandCZmap.png"), 
+                  bg = "white", width = 5, height = 3)
   
-  gridExtra::grid.arrange(UEAmap.Kanto, CZmap.Kanto, nrow = 1) %>% 
-    ggplot2::ggsave(filename = paste0("output/map_image/TimeSeries_UEAandCZ/Original/Kanto/", year[i], "_UEAandCZmap.png"), 
-                    bg = "white", width = 5, height = 3)
-  
-  
-  fileName.whole <- paste0("output/map_image/TimeSeries_UEA/Original/Whole/", year[i], "_UEAmap.png")
-  fileName.enlaged <- paste0("output/map_image/TimeSeries_UEA/Original/Enlaged_MainLands/", year[i], "_UEAmap.png")
-  fileName.kanto <- paste0("output/map_image/TimeSeries_UEA/Original/Enlaged_Kanto/", year[i], "_UEAmap_Kanto.png")
-  
-  ggsave(UEAmap.whole, filename = fileName.whole, bg = "white")
-  ggsave(UEAmap.enlaged, filename = fileName.enlaged, bg = "white")
-  ggsave(UEAmap.Kanto, filename = fileName.kanto, bg = "white")
-  
-  assign(paste0(assign_list[i], "_whole"), UEAmap.whole)
-  assign(paste0(assign_list[i], "_enlarged"), UEAmap.enlaged)
-  assign(paste0(assign_list[i], "_kanto"), UEAmap.Kanto)
+  rm(doubleMap, CZmap, UEAmap)
 }
 
-gridExtra::grid.arrange(UEA1980_whole, UEA1990_whole, UEA1995_whole, UEA2000_whole,
-                        UEA2005_whole, UEA2010_whole, UEA2015_whole, nrow = 3) %>%
-  ggplot2::ggsave(filename = "output/map_image/TimeSeries_UEA/Original/multiple/1980to2015_UEAmap_Whole.png", bg = "white")
+somemaps <- ((UEA1980_whole + UEA1990_whole + UEA1995_whole) / (UEA2000_whole + UEA2005_whole + UEA2010_whole) / UEA2015_whole) +
+  patchwork::plot_annotation(
+    caption = "この地図は国内のほぼ全ての市町村についてUEAで塗り分けた地図である。市町村の境界については基準化しておらず、それぞれの年のものに従っている。\n地図の簡略化のため、小笠原諸島(東京都小笠原村)及び北方領土の一部(北海道色丹郡色丹村･国後郡泊村･留夜別村･択捉郡留別村･紗那郡紗那村･蘂取郡蘂取村)を省いている。\n地図の視認性向上のため、沖縄県の市町村については左上の枠内に表示している(沖縄県の市町村に対してすべて、緯度を+5,経度を+15して処理。)。\n東京都市圏のみ、すべての年で色を固定して表示しているが、その他の都市圏は年によって色が異なる場合がある。\n地図上グレーで塗られた市町村は、どのUEAにも含まれない市町村である。1985年については、UEAのコード表が配布されていないため省いている。",
+    theme = theme(plot.caption = element_text(size = 5, hjust = 0))
+  )
+ggplot2::ggsave(somemaps, filename = "output/map_image/TimeSeries_UEA/Original/multiple/1980to2015_UEAmap_Whole.png", bg = "white")
 
-gridExtra::grid.arrange(UEA1980_enlarged, UEA1990_enlarged, UEA1995_enlarged, UEA2000_enlarged,
-                        UEA2005_enlarged, UEA2010_enlarged, UEA2015_enlarged, nrow = 3) %>%
-  ggplot2::ggsave(filename = "output/map_image/TimeSeries_UEA/Original/multiple/1980to2015_UEAmap_enlarged.png", bg = "white")
+somemaps <- ((UEA1980_enlarged + UEA1990_enlarged + UEA1995_enlarged) / (UEA2000_enlarged + UEA2005_enlarged + UEA2010_enlarged) / UEA2015_enlarged) +
+  patchwork::plot_annotation(
+    caption = "この地図は主に北海道･本州･四国･九州についてUEAで塗り分けた地図である。市町村の境界については基準化しておらず、それぞれの年のものに従っている。\n地図の簡略化のため、小笠原諸島(東京都小笠原村)及び北方領土の一部(北海道色丹郡色丹村･国後郡泊村･留夜別村･択捉郡留別村･紗那郡紗那村･蘂取郡蘂取村)を省いている。\n地図の視認性向上のため、北海道の市町村については左上の枠内に表示している(北海道の市町村に対してすべて、緯度を-4,経度を-9して処理した。)。\n東京都市圏のみ、すべての年で色を固定して表示しているが、その他の都市圏は年によって色が異なる場合がある。地図上グレーで塗られた市町村は、どのUEAにも含まれない市町村である。1985年については、UEAのコード表が配布されていないため省いている。",
+    theme = theme(plot.caption = element_text(size = 5, hjust = 0))
+  )
+ggplot2::ggsave(somemaps, filename = "output/map_image/TimeSeries_UEA/Original/multiple/1980to2015_UEAmap_enlarged.png", bg = "white")
 
-gridExtra::grid.arrange(UEA1980_kanto, UEA1990_kanto, UEA1995_kanto, UEA2000_kanto,
-                        UEA2005_kanto, UEA2010_kanto, UEA2015_kanto, nrow = 3) %>%
-  ggplot2::ggsave(filename = "output/map_image/TimeSeries_UEA/Original/multiple/1980to2015_UEAmap_kanto.png", bg = "white")
+somemaps <- ((UEA1980_kanto + UEA1990_kanto + UEA1995_kanto) / (UEA2000_kanto + UEA2005_kanto + UEA2010_kanto) / UEA2015_kanto) +
+  patchwork::plot_annotation(
+    caption = "この地図は主に関東地方についてUEAで塗り分けた地図である。市町村の境界については基準化しておらず、それぞれの年のものに従っている。\n地図の視認性向上のため、北海道の市町村については左上の枠内に表示している。\n東京都市圏のみ、すべての年で色を固定して表示しているが、その他の都市圏は年によって色が異なる場合がある。\n地図上グレーで塗られた市町村は、どのUEAにも含まれない市町村である。1985年については、UEAのコード表が配布されていないため省いている。",
+    theme = theme(plot.caption = element_text(size = 5, hjust = 0))
+  )
+ggplot2::ggsave(somemaps, filename = "output/map_image/TimeSeries_UEA/Original/multiple/1980to2015_UEAmap_kanto.png", bg = "white")
 
 
 library(beepr)
 beepr::beep()
+
+
+
+
 
