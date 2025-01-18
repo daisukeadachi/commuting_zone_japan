@@ -3,12 +3,12 @@ library(sf)
 library(gridExtra)
 library(spdep)
 library(RColorBrewer)
+library(patchwork)
 "%not.in%" <- Negate("%in%")
 
 
 
 # year <- c(1980, 1985, 1990, 1995, 2000, 2005, 2010, 2015)
-# 
 lineMatrix = base::rbind(c(138, 45), c(138, 40), c(130, 37))
 OkinawaLine <- st_linestring(lineMatrix) %>%
   sf::st_sfc() %>%
@@ -26,12 +26,6 @@ path_list.McEA.C <- paste0("data/UEA/center/McEA/", list.files("data/UEA/center/
 path_list.MEA <- paste0("data/UEA/suburb/MEA/", list.files("data/UEA/suburb/MEA"))
 path_list.MEA.C <- paste0("data/UEA/center/MEA/", list.files("data/UEA/center/MEA"))
 
-assign_list <- paste0("UEA", list.files("data/UEA/suburb/McEA") %>% 
-                        stringr::str_replace(pattern = "A8", replacement = "A198") %>% 
-                        stringr::str_replace(pattern = "A9", replacement = "A199") %>% 
-                        stringr::str_sub(start = 5, end = -5) %>% 
-                        stringr::str_remove(pattern = "_Rev07")
-)
 
 year <- list.files("data/UEA/suburb/McEA") %>% 
   stringr::str_replace(pattern = "A8", replacement = "A198") %>% 
@@ -154,7 +148,7 @@ for (i in (1:length(path_list.McEA))){
      MEA.C, MEA, McEA.C, McEA)
   # assign(assign_list[i], UEA)
   
-  #### color assign ####
+  #### map making ####
   
   mapPath <- paste0("mapdata/mmm", year[i], "1001/mmm", year[i], "1001.shp")
   czPath <- paste0("output/", year[i], "_original.csv")
@@ -186,8 +180,6 @@ for (i in (1:length(path_list.McEA))){
     sf::st_make_valid()
   
   neighbors <- spdep::poly2nb(UEA_color)
-  neighbor_matrix <- spdep::nb2mat(neighbors, style = "B", zero.policy = TRUE)
-  
   color_assignment <- rep(NA, length(neighbors))
   color_assignment[which(UEA_color$UEA == 13100)] <- colors[1]
   roop <- (1:length(neighbors))[-which(UEA_color$UEA == 13100)]
@@ -197,9 +189,9 @@ for (i in (1:length(path_list.McEA))){
     color_assignment[j] <- available_colors[1]
   }
   UEA_color$color <- color_assignment
-  UEA.sf <- UEA_color 
+  UEA.sf <- UEA_color
   
-  rm(j, neighbors, neighbor_matrix, color_assignment, available_colors, UEA_color)
+  rm(j, neighbors, color_assignment, available_colors, UEA_color)
   
   CZ_color <- CZ.sf %>%
     dplyr::group_by(cluster) %>%
@@ -213,16 +205,17 @@ for (i in (1:length(path_list.McEA))){
   color_assignment <- rep(NA, length(neighbors))
   color_assignment[Gohunai] <- colors[1]
   roop <- (1:length(neighbors))[-Gohunai]
-
-
+  
   for (j in roop) {
     available_colors <- setdiff(colors, color_assignment[neighbors[[j]]])
     color_assignment[j] <- available_colors[1]
   }
   CZ_color$color <- color_assignment
-  CZ.sf <- CZ_color 
-  
+  CZ.sf <- CZ_color
   rm(j, neighbors, color_assignment, available_colors, CZ_color, EdoCenter, Gohunai)
+  
+  
+  
   
   ### Rail #####################################################################
   Yr <- year[i] %>% as.numeric()
@@ -231,88 +224,140 @@ for (i in (1:length(path_list.McEA))){
                   start <= Yr)
   
   ### Kanto ####################################################################
-  UEA.sf %>%
-    dplyr::filter(JISCODE %not.in% (25000:47999),
-                  JISCODE %not.in% (1000:5999)) %>%
-    ggplot2::ggplot() +
-    ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "white") +
-    ggplot2::scale_fill_manual(values = colors) +
-    ggplot2::geom_sf(data = Rail, color = "black", linewidth = .1, alpha = .5) +
-    ggplot2::theme_bw() +
-    ggplot2::theme(legend.position = "none") +
-    ggplot2::coord_sf(ylim = c(34.5, 37.1),
-                      xlim = c(138, 141),
-                      datum = NA) +
-    ggplot2::labs(title = paste("関東地方 UEA", year[i]))+
-    theme(plot.title    = element_text(size = 5))　-> UEAmap.Kanto
   
-  fileName.kanto.UEA <- paste0("output/map_image/Expway/Original/Kanto/UEA/", year[i], "_UEAmap_Kanto.png")
-  ggsave(UEAmap.Kanto, filename = fileName.kanto.UEA, bg = "white")
-  UEA_map.kanto <- append(UEA_map.kanto, list(UEAmap.Kanto))
-  
-  CZ.sf %>%
-    dplyr::filter(JISCODE %not.in% (25000:47999),
-                  JISCODE %not.in% (1000:5999)) %>%
+  UEA.sf %>% #関東地方･UEA･編年用
     ggplot2::ggplot() +
-    ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "white") +
+    ggplot2::geom_sf(data = muni.sf, fill = "darkgrey", linewidth = 0) +
+    ggplot2::geom_sf(aes(fill = color), linewidth = .1, color = "gainsboro") +
     ggplot2::scale_fill_manual(values = colors) +
-    ggplot2::geom_sf(data = Rail, color = "black", linewidth = .1, alpha = .5) +
+    ggplot2::geom_sf(data = Rail, color = "black", linewidth = .2) +
     ggplot2::theme_bw() +
     ggplot2::theme(legend.position = "none") +
     ggplot2::coord_sf(ylim = c(34.6, 37.1),
                       xlim = c(138, 141),
                       datum = NA) +
-    ggplot2::labs(title = paste("関東地方 CZ", year[i]))+
-    theme(plot.title    = element_text(size = 5))　-> CZmap.Kanto
-  fileName.kanto.CZ <- paste0("output/map_image/Expway/Original/Kanto/CZ/", year[i], "_CZmap_Kanto.png")
-  ggsave(UEAmap.Kanto, filename = fileName.kanto.CZ, bg = "white")
+    ggplot2::labs(caption = paste0("(", year[i], ")"))+
+    theme(plot.caption = element_text(size = 5))　-> UEAmap.Kanto
+  UEA_map.kanto <- append(UEA_map.kanto, list(UEAmap.Kanto))
+  
+  CZ.sf %>% # 関東地方･CZ･編年用
+    ggplot2::ggplot() +
+    ggplot2::geom_sf(aes(fill = color), linewidth = 0) +
+    ggplot2::scale_fill_manual(values = colors) +
+    ggplot2::geom_sf(data = Rail, color = "black", linewidth = .2) +
+    ggplot2::theme_bw() +
+    ggplot2::theme(legend.position = "none") +
+    ggplot2::coord_sf(ylim = c(34.6, 37.1),
+                      xlim = c(138, 141),
+                      datum = NA) +
+    ggplot2::labs(caption = paste0("(", year[i], ")"))+
+    theme(plot.caption    = element_text(size = 5))　-> CZmap.Kanto
   CZ_map.kanto <- append(CZ_map.kanto, list(CZmap.Kanto))
   
-  gridExtra::grid.arrange(UEAmap.Kanto, CZmap.Kanto, nrow = 1) %>%
-    ggplot2::ggsave(filename = paste0("output/map_image/Expway/Original/Kanto/double/", year[i], "_UEAandCZmap.png"),
-                    bg = "white", width = 5, height = 3)
+  UEA.sf %>% #関東地方･UEA･当年用
+    ggplot2::ggplot() +
+    ggplot2::geom_sf(data = muni.sf, fill = "darkgrey", linewidth = 0) +
+    ggplot2::geom_sf(aes(fill = color), linewidth = .1, color = "gainsboro") +
+    ggplot2::scale_fill_manual(values = colors) +
+    ggplot2::geom_sf(data = Rail, color = "black", linewidth = .2) +
+    ggplot2::theme_bw() +
+    ggplot2::theme(legend.position = "none") +
+    ggplot2::coord_sf(ylim = c(34.6, 37.1),
+                      xlim = c(138, 141),
+                      datum = NA) +
+    ggplot2::labs(title = "UEA")+
+    theme(plot.title    = element_text(size = 8))　-> UEAmap.Kanto
+  CZ.sf %>% # 関東地方･CZ･当年用
+    ggplot2::ggplot() +
+    ggplot2::geom_sf(aes(fill = color), linewidth = 0) +
+    ggplot2::scale_fill_manual(values = colors) +
+    ggplot2::geom_sf(data = Rail, color = "black", linewidth = .2) +
+    ggplot2::theme_bw() +
+    ggplot2::theme(legend.position = "none") +
+    ggplot2::coord_sf(ylim = c(34.6, 37.1),
+                      xlim = c(138, 141),
+                      datum = NA) +
+    ggplot2::labs(title = "CZ") +
+    theme(plot.title    = element_text(size = 8))　-> CZmap.Kanto
+  
+  joinedmap <- CZmap.Kanto + UEAmap.Kanto + 
+    patchwork::plot_annotation(
+      caption = "この地図は関東地方のCZ･UEAの塗り分け図に高速道路を載せたものである。\n簡略化のため、市町村境界は表示していない。\nUEAの地図においてグレーとなっているところは、どのUEAにも属さない市町村である。",
+      theme = theme(plot.caption = element_text(size = 5, hjust = 0))
+    )
+  ggplot2::ggsave(joinedmap,filename = paste0("output/map_image/Expway/Original/Kanto/", year[i], "_Kanto_UEAandCZmap.png"), width = 5, height = 3)
+  
   
   
   ### no move ##################################################################
-  CZ.sf %>%
+  CZ.sf %>% # CZ･編年
     ggplot2::ggplot() +
-    ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "white") +
+    ggplot2::geom_sf(aes(fill = color), linewidth = .05, color = "gainsboro") +
     ggplot2::scale_fill_manual(values = colors) +
-    ggplot2::geom_sf(data = Rail, color = "black", linewidth = 0.1, alpha = .5) +
+    ggplot2::geom_sf(data = Rail, color = "black", linewidth = .1) +
     ggplot2::theme_bw() +
     ggplot2::theme(legend.position = "none") +
     # ggplot2::geom_sf(data = HokkaidoLine) +
     ggplot2::coord_sf(ylim = c(31.2, 45.5),
                       xlim = c(129.3, 145.8),
                       datum = NA) +
-    ggplot2::labs(title = paste("CZ", year[i])) +
-    theme(plot.title    = element_text(size = 5))-> CZmap_rail
-  
-  fileName.CZ <- paste0("output/map_image/Expway/Original/Whole/CZ/", year[i], "_CZmap_Kanto.png")
-  ggsave(CZmap_rail, filename = fileName.CZ, bg = "white")
+    ggplot2::labs(caption = paste("(", year[i], ")")) +
+    theme(plot.caption    = element_text(size = 5))-> CZmap_rail
   CZ_map <- append(CZ_map, list(CZmap_rail))
   
-  
-  UEA.sf %>%
+  UEA.sf %>% # UEA･編年
     ggplot2::ggplot() +
-    ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "white") +
+    ggplot2::geom_sf(data = muni.sf, fill = "darkgrey", linewidth = 0) +
+    ggplot2::geom_sf(aes(fill = color), linewidth = .05, color = "gainsboro") +
     ggplot2::scale_fill_manual(values = colors) +
-    ggplot2::geom_sf(data = Rail, color = "black", linewidth = 0.1, alpha = .5) +
+    ggplot2::geom_sf(data = Rail, color = "black", linewidth = .1) +
     ggplot2::theme_bw() +
     ggplot2::theme(legend.position = "none") +
+    # ggplot2::geom_sf(data = HokkaidoLine) +
     ggplot2::coord_sf(ylim = c(31.2, 45.5),
                       xlim = c(129.3, 145.8),
                       datum = NA) +
-    ggplot2::labs(title = paste("UEA", year[i])) +
-    theme(plot.title    = element_text(size = 5)) -> UEAmap_rail
-  
-  fileName.UEA <- paste0("output/map_image/Expway/Original/Whole/UEA/", year[i], "_UEAmap_Kanto.png")
-  ggsave(CZmap_rail, filename = fileName.UEA, bg = "white")
+    ggplot2::labs(caption = paste("(", year[i], ")")) +
+    theme(plot.caption    = element_text(size = 5)) -> UEAmap_rail
   UEA_map <- append(UEA_map, list(UEAmap_rail))
   
-  gridExtra::grid.arrange(CZmap_rail, UEAmap_rail, nrow = 1) %>%
-    ggplot2::ggsave(filename = paste0("output/map_image/Expway/Original/Whole/double/", year[i], "_UEAandCZmap.png"),
-                    bg = "white", width = 5, height = 3)
+  CZ.sf %>% # CZ･当年
+    ggplot2::ggplot() +
+    ggplot2::geom_sf(aes(fill = color), linewidth = .05, color = "gainsboro") +
+    ggplot2::scale_fill_manual(values = colors) +
+    ggplot2::geom_sf(data = Rail, color = "black", linewidth = .1) +
+    ggplot2::theme_bw() +
+    ggplot2::theme(legend.position = "none") +
+    # ggplot2::geom_sf(data = HokkaidoLine) +
+    ggplot2::coord_sf(ylim = c(31.2, 45.5),
+                      xlim = c(129.3, 145.8),
+                      datum = NA) +
+    ggplot2::labs(title = "CZ") +
+    theme(plot.title    = element_text(size = 8))-> CZmap_rail
+  
+  UEA.sf %>% # UEA･当年
+    ggplot2::ggplot() +
+    ggplot2::geom_sf(data = muni.sf, fill = "darkgrey", linewidth = 0) +
+    ggplot2::geom_sf(aes(fill = color), linewidth = .05, color = "gainsboro") +
+    ggplot2::scale_fill_manual(values = colors) +
+    ggplot2::geom_sf(data = Rail, color = "black", linewidth = .1) +
+    ggplot2::theme_bw() +
+    ggplot2::theme(legend.position = "none") +
+    # ggplot2::geom_sf(data = HokkaidoLine) +
+    ggplot2::coord_sf(ylim = c(31.2, 45.5),
+                      xlim = c(129.3, 145.8),
+                      datum = NA) +
+    ggplot2::labs(title = "UEA") +
+    theme(plot.title    = element_text(size = 8)) -> UEAmap_rail
+  joinedmap <- CZmap_rail + UEAmap_rail + 
+    patchwork::plot_annotation(
+      caption = "この地図は全国のCZ･UEAの塗り分け図に高速道路を載せたものである。南西諸島･北方四島･小笠原諸島などは簡略化のため省略した。\n市町村の境界については基準化しておらず、それぞれの年のものに従っている。なお、市町村境界については簡略化のため省略している。\nUEAの地図においてグレーとなっているところは、どのUEAにも属さない市町村である。",
+      theme = theme(plot.caption = element_text(size = 5, hjust = 0))
+    )
+  ggplot2::ggsave(joinedmap,filename = paste0("output/map_image/Expway/Original/Whole/", year[i], "_Kanto_UEAandCZmap.png"), width = 5, height = 3)
+  
+  
+  
   # 1985年だけUEAがかけてるのでCZだけ作る
   if (i == 5) {
     muni.sf <- sf::read_sf("mapdata/mmm19851001/mmm19851001.shp", options = "ENCODING=CP932") %>% 
@@ -333,57 +378,81 @@ for (i in (1:length(path_list.McEA))){
       dplyr::summarise() %>%
       sf::st_make_valid()
     
-    neighbors <- spdep::poly2nb(CZ_color)
-    neighbor_matrix <- spdep::nb2mat(neighbors, style = "B", zero.policy = TRUE)
-    color_assignment <- rep(NA, length(neighbors))
+    EdoCenter <- which(CZ.sf$JISCODE == 13101)
+    Gohunai <- CZ.sf$cluster[EdoCenter]
     
-    for (j in 1:length(neighbors)) {
+    neighbors <- spdep::poly2nb(CZ_color)
+    color_assignment <- rep(NA, length(neighbors))
+    color_assignment[Gohunai] <- colors[1]
+    roop <- (1:length(neighbors))[-Gohunai]
+    
+    for (j in roop) {
       available_colors <- setdiff(colors, color_assignment[neighbors[[j]]])
       color_assignment[j] <- available_colors[1]
     }
     CZ_color$color <- color_assignment
-    CZ_color <- CZ_color %>%
-      dplyr::tibble() %>%
-      select(-geometry)
-    
-    CZ.sf <- dplyr::left_join(CZ.sf, CZ_color, by = "cluster")
+    CZ.sf <- CZ_color
     
     rm(j, neighbors, neighbor_matrix, color_assignment, available_colors, CZ_color)
     Rail <- Rail.row %>% 
       dplyr::filter(end >= 1985,
                     start <= 1985)
     CZ.sf %>%
-      dplyr::filter(JISCODE %not.in% (25000:47999),
-                    JISCODE %not.in% (1000:5999)) %>%
       ggplot2::ggplot() +
-      ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "white") +
+      ggplot2::geom_sf(aes(fill = color), linewidth = .05, color = "gainsboro") +
       ggplot2::scale_fill_manual(values = colors) +
-      ggplot2::geom_sf(data = Rail, color = "black", linewidth = 0.1, alpha = .5) +
+      ggplot2::geom_sf(data = Rail, color = "black", linewidth = .2) +
       ggplot2::theme_bw() +
       ggplot2::theme(legend.position = "none") +
       ggplot2::coord_sf(ylim = c(34.6, 37.1),
                         xlim = c(138, 141),
                         datum = NA) +
-      ggplot2::labs(title = "関東地方 CZ 1985")+
-      theme(plot.title    = element_text(size = 5))　-> CZmap.Kanto
-    ggsave(UEAmap.Kanto, filename = "output/map_image/Expway/Original/Kanto/CZ/1985_CZmap_Kanto.png", bg = "white")
+      ggplot2::labs(caption = "(1985)")+
+      theme(plot.caption = element_text(size = 3))　-> CZmap.Kanto
     CZ_map.kanto <- append(CZ_map.kanto, list(CZmap.Kanto))
     
     CZ.sf %>%
       ggplot2::ggplot() +
-      ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "white") +
+      ggplot2::geom_sf(aes(fill = color), linewidth = .05, color = "gainsboro") +
       ggplot2::scale_fill_manual(values = colors) +
-      ggplot2::geom_sf(data = Rail, color = "black", linewidth = 0.1, alpha = .5) +
+      ggplot2::geom_sf(data = Rail, color = "black", linewidth = .1) +
       ggplot2::theme_bw() +
       ggplot2::theme(legend.position = "none") +
+      # ggplot2::geom_sf(data = HokkaidoLine) +
       ggplot2::coord_sf(ylim = c(31.2, 45.5),
                         xlim = c(129.3, 145.8),
                         datum = NA) +
-      ggplot2::labs(title = "CZ 1985") +
-      theme(plot.title    = element_text(size = 5))-> CZmap_rail
-    
-    ggsave(CZmap_rail, filename = "output/map_image/Expway/Original/Whole/CZ/1985_CZmap_Kanto.png", bg = "white")
+      ggplot2::labs(caption = "(1985)") +
+      theme(plot.caption  = element_text(size = 3))-> CZmap_rail
     CZ_map <- append(CZ_map, list(CZmap_rail))
+    
+    CZ.sf %>%
+      ggplot2::ggplot() +
+      ggplot2::geom_sf(aes(fill = color), linewidth = .05, color = "gainsboro") +
+      ggplot2::scale_fill_manual(values = colors) +
+      ggplot2::geom_sf(data = Rail, color = "black", linewidth = .2) +
+      ggplot2::theme_bw() +
+      ggplot2::theme(legend.position = "none") +
+      ggplot2::coord_sf(ylim = c(34.6, 37.1),
+                        xlim = c(138, 141),
+                        datum = NA) -> CZ1985
+      ggplot2::ggsave(CZ1985, filename = "output/map_image/Expway/Original/Whole/1985_CZmap.png", width = 5, height = 3)
+    
+    CZ.sf %>%
+      ggplot2::ggplot() +
+      ggplot2::geom_sf(aes(fill = color), linewidth = .05, color = "gainsboro") +
+      ggplot2::scale_fill_manual(values = colors) +
+      ggplot2::geom_sf(data = Rail, color = "black", linewidth = .1) +
+      ggplot2::theme_bw() +
+      ggplot2::theme(legend.position = "none") +
+      # ggplot2::geom_sf(data = HokkaidoLine) +
+      ggplot2::coord_sf(ylim = c(31.2, 45.5),
+                        xlim = c(129.3, 145.8),
+                        datum = NA) -> CZ1985
+      ggplot2::ggsave(CZ1985, filename = "output/map_image/Expway/Original/Kanto/1985_Kanto_CZmap.png", width = 5, height = 3)
+    
+    rm(CZ1985)
+    
   }
 }
 
@@ -393,16 +462,45 @@ UEA_map.kanto <- UEA_map.kanto[c(setdiff(seq_len(length(UEA_map.kanto)), seq(1, 
 CZ_map.kanto <- CZ_map.kanto[c(setdiff(seq_len(length(CZ_map.kanto)), seq(1, 4)), seq(1, 4))]
 CZ_map <- CZ_map[c(setdiff(seq_len(length(CZ_map)), seq(1, 4)), seq(1, 4))]
 
+map1980to2015 <- patchwork::wrap_plots(UEA_map, nrow = 3) +
+  patchwork::plot_annotation(
+    caption = "この地図はUEAの塗り分け地図に高速道路を重ねたものである。地図の簡略化のため南西諸島･北方四島･小笠原諸島などは省略した。\n市町村の境界については基準化しておらず、それぞれの年のものに従っている。なお、市町村境界については簡略化のため省略している。\n東京都市圏のみ、すべての年で色を固定して表示しているが、その他の都市圏は年によって色が異なる場合がある。\n地図上グレーで塗られた市町村は、どのUEAにも含まれない市町村である。\n1985年については、UEAのコード表が配布されていないため省いている。",
+    theme = theme(
+      plot.caption = element_text(size = 5, hjust = 0),
+    )
+  )
+ggplot2::ggsave(map1980to2015, filename = "output/map_image/Expway/Original/multiple/1980to2015_UEAmap.png", bg = "white")
 
-gridExtra::grid.arrange(grobs = UEA_map.kanto, nrow = 3) %>%
-  ggplot2::ggsave(filename = "output/map_image/Expway/Original/multiple/1980to2015_UEAmap_kanto.png", bg = "white")
-gridExtra::grid.arrange(grobs = CZ_map.kanto, nrow = 3) %>%
-  ggplot2::ggsave(filename = "output/map_image/Expway/Original/multiple/1980to2015_CZmap_kanto.png", bg = "white")
-gridExtra::grid.arrange(grobs = UEA_map, nrow = 3) %>%
-  ggplot2::ggsave(filename = "output/map_image/Expway/Original/multiple/1980to2015_UEAmap.png", bg = "white")
-gridExtra::grid.arrange(grobs = CZ_map, nrow = 3) %>%
-  ggplot2::ggsave(filename = "output/map_image/Expway/Original/multiple/1980to2015_CZmap.png", bg = "white")
+map1980to2015 <- patchwork::wrap_plots(CZ_map, nrow = 3) +
+  patchwork::plot_annotation(
+    caption = "この地図はCZの塗り分け地図に高速道路を重ねたものである。地図の簡略化のため南西諸島･北方四島･小笠原諸島などは省略した。\n市町村の境界については基準化しておらず、それぞれの年のものに従っている。なお、市町村境界については簡略化のため省略している。\n東京都千代田区が含まれるCZのみ、すべての年で色を固定して表示しているが、その他のCZは年によって色が異なる場合がある。",
+    theme = theme(
+      plot.caption = element_text(size = 5, hjust = 0),
+    )
+  )
+ggplot2::ggsave(map1980to2015, filename = "output/map_image/Expway/Original/multiple/1980to2015_CZmap.png", bg = "white")
 
-library(beepr)
+map1980to2015 <- patchwork::wrap_plots(CZ_map.kanto, nrow = 3) +
+  patchwork::plot_annotation(
+    caption = "この地図は関東地方のCZの塗り分け地図に高速道路を重ねたものである。\n市町村の境界については基準化しておらず、それぞれの年のものに従っている。なお、市町村境界については簡略化のため省略している。\n東京都千代田区が含まれるCZのみ、すべての年で色を固定して表示しているが、その他のCZは年によって色が異なる場合がある。",
+    theme = theme(
+      plot.caption = element_text(size = 5, hjust = 0),
+    )
+  )
+ggplot2::ggsave(map1980to2015, filename = "output/map_image/Expway/Original/multiple/1980to2015_CZmap_kanto.png", bg = "white")
+
+map1980to2015 <- patchwork::wrap_plots(UEA_map.kanto, nrow = 3) +
+  patchwork::plot_annotation(
+    caption = "この地図は関東地方のUEAの塗り分け地図に高速道路を重ねたものである。\n市町村の境界については基準化しておらず、それぞれの年のものに従っている。なお、市町村境界については簡略化のため省略している。\n東京都市圏のみ、すべての年で色を固定して表示しているが、その他の都市圏は年によって色が異なる場合がある。\n地図上グレーで塗られた市町村は、どのUEAにも含まれない市町村である。\n1985年については、UEAのコード表が配布されていないため省いている。",
+    theme = theme(
+      plot.caption = element_text(size = 5, hjust = 0),
+    )
+  )
+ggplot2::ggsave(map1980to2015, filename = "output/map_image/Expway/Original/multiple/1980to2015_UEAmap_kanto.png", bg = "white")
+
+
+
+
+
 beepr::beep()
 
