@@ -6,6 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
+setwd("~/RA_CommutingZone/commuting_zone_japan/Ikuta_RA")
 library(tidyverse)
 library(sf)
 library(gridExtra)
@@ -33,9 +34,8 @@ year <- list.files("data/UEA/suburb/McEA") %>%
   stringr::str_replace(pattern = "A9", replacement = "A199") %>% 
   stringr::str_sub(start = 5, end = -5) %>% 
   stringr::str_remove(pattern = "_Rev07")
+i = 1
 
-
-for (i in (1:length(path_list.McEA))){
   #### data cleaning ####
   McEA <- readr::read_csv(path_list.McEA[i], locale = locale(encoding = "cp932"), show_col_types = FALSE) %>% 
     rename_with(\(x) stringr::str_replace(x, pattern = " ", replacement = "_")) %>% 
@@ -202,22 +202,42 @@ for (i in (1:length(path_list.McEA))){
   
   rm(j, neighbors, neighbor_matrix, color_assignment, available_colors, CZ_color)
   
-  
-  assign(paste0("CZ_", year[i], ".sf"), CZ.sf)
-  assign(paste0("UEA_", year[i], ".sf"), UEA.sf)
-}
-rm(CZ.sf, UEA.sf)
+Rail.row <- sf::read_sf("data/N05-23_GML/N05-23_RailroadSection2.shp")
 
+SHR.row <- Rail.row %>% 
+  dplyr::filter(stringr::str_detect(N05_002, "新幹線")) %>% 
+  dplyr::rename(ID = N05_006) %>% 
+  dplyr::mutate(constructed = as.integer(N05_004),
+                start = as.integer(N05_005b),
+                end = as.integer(N05_005e)) %>% 
+  dplyr::select(ID, constructed, start, end) %>% 
+  dplyr::filter(end >= 2000,
+                start <= 2000) %>% 
+  sf::st_transform(4612)
+
+Rail.row <- Rail.row %>% 
+  dplyr::filter(stringr::str_detect(N05_002, "新幹線", negate = TRUE)) %>% 
+  dplyr::rename(ID = N05_006) %>% 
+  dplyr::mutate(constructed = as.integer(N05_004),
+                start = as.integer(N05_005b),
+                end = as.integer(N05_005e)) %>% 
+  dplyr::select(ID, constructed, start, end) %>% 
+      dplyr::filter(end >= 2000,
+                  start <= 2000) %>% 
+  sf::st_transform(4612)
 ```
 
 ```{r 1980 CZ, echo=FALSE, message=FALSE, warning=FALSE}
-leaflet::leaflet(data = CZ_1980.sf) %>% 
+leaflet::leaflet(data = CZ.sf) %>% 
   addTiles() %>% 
   addPolygons(
     fillColor = ~color,
     fillOpacity = .7,
     color = "dimgrey",
     weight = 1
+  ) %>% 
+  addPolylines(
+    data = Rail.row
   )
 ```
 

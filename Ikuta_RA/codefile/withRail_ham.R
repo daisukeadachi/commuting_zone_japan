@@ -10,15 +10,15 @@ library(patchwork)
 
 # year <- c(1980, 1985, 1990, 1995, 2000, 2005, 2010, 2015)
 # 
-lineMatrix = base::rbind(c(138, 45), c(138, 40), c(130, 37))
-OkinawaLine <- st_linestring(lineMatrix) %>%
-  sf::st_sfc() %>%
-  sf::st_set_crs(4612)
-lineMatrix = base::rbind(c(139.5, 41), c(137.5, 40), c(137.5, 38), c(134, 37), c(130, 37))
-HokkaidoLine <- st_linestring(lineMatrix) %>% 
-  sf::st_sfc() %>% 
-  sf::st_set_crs(4612)
-rm(lineMatrix)
+# lineMatrix = base::rbind(c(138, 45), c(138, 40), c(130, 37))
+# OkinawaLine <- st_linestring(lineMatrix) %>%
+#   sf::st_sfc() %>%
+#   sf::st_set_crs(4612)
+# lineMatrix = base::rbind(c(139.5, 41), c(137.5, 40), c(137.5, 38), c(134, 37), c(130, 37))
+# HokkaidoLine <- st_linestring(lineMatrix) %>% 
+#   sf::st_sfc() %>% 
+#   sf::st_set_crs(4612)
+# rm(lineMatrix)
 colors <- RColorBrewer::brewer.pal(7, "Set1")
 
 

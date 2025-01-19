@@ -454,7 +454,6 @@ for (i in (1:length(path_list.McEA))){
       ggplot2::geom_sf(data = Rail, color = "black", linewidth = .1, linetype = "dashed") +
       ggplot2::theme_bw() +
       ggplot2::theme(legend.position = "none") +
-      # ggplot2::geom_sf(data = HokkaidoLine) +
       ggplot2::coord_sf(ylim = c(31.2, 45.5),
                         xlim = c(129.3, 145.8),
                         datum = NA) +
@@ -483,7 +482,6 @@ for (i in (1:length(path_list.McEA))){
       ggplot2::geom_sf(data = Rail, color = "black", linewidth = .1, linetype = "dashed") +
       ggplot2::theme_bw() +
       ggplot2::theme(legend.position = "none") +
-      # ggplot2::geom_sf(data = HokkaidoLine) +
       ggplot2::coord_sf(ylim = c(31.2, 45.5),
                         xlim = c(129.3, 145.8),
                         datum = NA) -> CZ1985
