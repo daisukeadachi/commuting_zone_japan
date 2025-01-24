@@ -16,6 +16,11 @@ HokkaidoLine <- base::rbind(c(137.5, 45), c(137.5, 40), c(134, 37), c(120, 37)) 
   sf::st_sf()
 colors <- RColorBrewer::brewer.pal(8, "Set2")
 
+muni.sf <- sf::read_sf("mapdata/mmm20151001/mmm20151001.shp", options = "ENCODING=CP932") %>% 
+  dplyr::filter(JISCODE != 13421,
+                JISCODE %not.in% c(1695, 1696, 1698)) %>% # 北方領土･小笠原諸島は解釈が難しいので、地図には出さない
+  dplyr::select(-NO, -DATE) %>% 
+  sf::st_transform(4612)
 
 path_list.McEA <- paste0("data/UEA/suburb/McEA/", list.files("data/UEA/suburb/McEA"))
 path_list.McEA.C <- paste0("data/UEA/center/McEA/", list.files("data/UEA/center/McEA"))
@@ -139,24 +144,27 @@ for (i in (1:length(path_list.McEA))){
   #### map making ####
   
   ## map data ##################################################################
+  if(year[i] != 2015){
+    codePath <- paste0("mapdata/codelist_", year[i], "1001and20151001.csv")
+    code <- readr::read_csv(codePath, locale = locale(encoding = "cp932")) %>%
+      dplyr::mutate(JISCODE = as.numeric(JISCODE1),
+                    JISCODE_2015 = as.numeric(JISCODE2)) %>% 
+      dplyr::select(JISCODE, JISCODE_2015)
+    UEA <- UEA %>% 
+      dplyr::left_join(code, by = "JISCODE") %>% 
+      dplyr::select(-JISCODE) %>% 
+      dplyr::rename(JISCODE = JISCODE_2015) %>% 
+      dplyr::distinct()
+  }
   
-  mapPath <- paste0("mapdata/mmm", year[i], "1001/mmm", year[i], "1001.shp")
-  czPath <- paste0("output/", year[i], "_original.csv")
-  
-  muni.sf <- sf::read_sf(mapPath, options = "ENCODING=CP932") %>% 
-    dplyr::filter(JISCODE != 13421,
-                  JISCODE %not.in% c(1695, 1696, 1698)) %>% # 北方領土･小笠原諸島は解釈が難しいので、地図には出さない
-    dplyr::select(-NO, -DATE) %>% 
-    sf::st_transform(4612)
-  
+  czPath <- paste0("output/", year[i], "_harmonized.csv")
   UEA.sf <- muni.sf %>% 
     dplyr::mutate(JISCODE = dplyr::if_else((stringr::str_sub(CNAME, -1, -1) == "区" & PNAME == "東京都"), 
                                            base::trunc(JISCODE * 0.01) * 100 , 
                                            JISCODE
-                                           )
-                  ) %>% 
+    )
+    ) %>% 
     dplyr::left_join(UEA, by = "JISCODE")
-  
   CZ.sf <- muni.sf %>% 
     dplyr::left_join(readr::read_csv(czPath), by = c("JISCODE" = "i"))
   
@@ -204,7 +212,7 @@ for (i in (1:length(path_list.McEA))){
   
   
   color_assignment <- rep(NA, length(neighbors))
-
+  
   for (j in 1:length(neighbors)) {
     available_colors <- setdiff(colors, color_assignment[neighbors[[j]]])
     color_assignment[j] <- available_colors[1]
@@ -256,8 +264,8 @@ for (i in (1:length(path_list.McEA))){
   CZ.sf.enlarged <- CZ.sf %>% 
     dplyr::filter(JISCODE %not.in% (1000:1999)) %>% 
     dplyr::bind_rows(movement_Hokkaido) 
-
-  rm(movement_okinwa, movement_Hokkaido, muni.sf)
+  
+  rm(movement_okinwa, movement_Hokkaido)
   
   ## ggplot zone(for multiple) #################################################
   UEA.sf.whole %>% 
@@ -330,13 +338,13 @@ for (i in (1:length(path_list.McEA))){
     theme(plot.caption    = element_text(size = 5))　-> CZmap
   doubleMap <- CZmap + UEAmap + 
     patchwork::plot_annotation(
-      caption = "この地図は主に関東地方についてUEAとCZで塗り分けた地図である。市町村の境界については基準化しておらず、それぞれの年のものに従っている。\nそれぞれのUEA及びCZは年によって色が異なる場合があるが、東京都市圏のみすべての年で色を固定して表示している。\n地図上グレーで塗られた市町村は、どのUEAにも含まれない市町村である。",
+      caption = "この地図は主に関東地方についてUEAとCZで塗り分けた地図である。市町村の境界については2015年で基準化している。\nそれぞれのUEA及びCZは年によって色が異なる場合があるが、東京都市圏のみすべての年で色を固定して表示している。\n地図上グレーで塗られた市町村は、どのUEAにも含まれない市町村である。",
       theme = theme(plot.caption = element_text(size = 5, hjust = 0))
     )
-  ggplot2::ggsave(doubleMap, filename = paste0("output/map_image/TimeSeries_UEAandCZ/Original/Kanto/", year[i], "_UEAandCZmap.png"), 
+  ggplot2::ggsave(doubleMap, filename = paste0("output/map_image/TimeSeries_UEAandCZ/harmonized/Kanto/", year[i], "_UEAandCZmap.png"), 
                   bg = "white", width = 5, height = 3)
   rm(doubleMap, CZmap, UEAmap, UEA.sf, CZ.sf)
-
+  
   UEA.sf.whole %>% 
     ggplot2::ggplot() + 
     ggplot2::geom_sf(aes(fill = color), linewidth = 0.01, color = "white") +
@@ -359,10 +367,10 @@ for (i in (1:length(path_list.McEA))){
     ggplot2::theme(plot.caption = element_text(size = 5)) -> CZmap
   doubleMap <- CZmap + UEAmap + 
     patchwork::plot_annotation(
-      caption = "この地図は国内のほぼ全ての市町村についてUEAとCZで塗り分けた地図である。市町村の境界については基準化しておらず、\nそれぞれの年のものに従っている。地図の簡略化のため、小笠原諸島(東京都小笠原村)及び\n北方領土の一部(北海道色丹郡色丹村･国後郡泊村･留夜別村･択捉郡留別村･紗那郡紗那村･蘂取郡蘂取村)を省いている。\n地図の視認性向上のため、沖縄県の市町村については左上の枠内に表示している(沖縄県の市町村に対してすべて、\n緯度を+5,経度を+15して処理。)。それぞれのUEA及びCZは年によって色が異なる場合があるが、東京都市圏のみすべての年で\n色を固定して表示している。地図上グレーで塗られた市町村は、どのUEAにも含まれない市町村である。",
+      caption = "この地図は国内のほぼ全ての市町村についてUEAとCZで塗り分けた地図である。市町村の境界については2015年で基準化している。地図の簡略化のため、小笠原諸島(東京都小笠原村)及び\n北方領土の一部(北海道色丹郡色丹村･国後郡泊村･留夜別村･択捉郡留別村･紗那郡紗那村･蘂取郡蘂取村)を省いている。\n地図の視認性向上のため、沖縄県の市町村については左上の枠内に表示している(沖縄県の市町村に対してすべて、\n緯度を+5,経度を+15して処理。)。それぞれのUEA及びCZは年によって色が異なる場合があるが、東京都市圏のみすべての年で\n色を固定して表示している。地図上グレーで塗られた市町村は、どのUEAにも含まれない市町村である。",
       theme = theme(plot.caption = element_text(size = 5, hjust = 0))
     )
-  ggplot2::ggsave(doubleMap, filename = paste0("output/map_image/TimeSeries_UEAandCZ/Original/Whole/", year[i], "_UEAandCZmap.png"), 
+  ggplot2::ggsave(doubleMap, filename = paste0("output/map_image/TimeSeries_UEAandCZ/harmonized/Whole/", year[i], "_UEAandCZmap.png"), 
                   bg = "white", width = 5, height = 3)
   rm(doubleMap, CZmap, UEAmap, CZ.sf.whole, UEA.sf.whole)
   
@@ -390,13 +398,13 @@ for (i in (1:length(path_list.McEA))){
                       datum = NA) +
     ggplot2::labs(caption = "CZ")+
     ggplot2::theme(plot.caption = element_text(size = 5)) -> CZmap
-  caption_text <- "この地図は主に北海道･本州･四国･九州についてUEAとCZで塗り分けた地図である。市町村の境界については基準化しておらず、\nそれぞれの年のものに従っている。地図の簡略化のため、小笠原諸島(東京都小笠原村)及び北方領土の一部(北海道色丹郡色丹村･\n国後郡泊村･留夜別村･択捉郡留別村･紗那郡紗那村･蘂取郡蘂取村)を省いている。地図の視認性向上のため、北海道の市町村に\nついては左上の枠内に表示している(北海道の市町村に対してすべて、緯度を-4,経度を-10して処理した。)。それぞれのUEA及びCZは\n年によって色が異なる場合があるが、東京都市圏のみすべての年で色を固定して表示している。地図上グレーで塗られた市町村は、\nどのUEAにも含まれない市町村である。"
+  caption_text <- "この地図は主に北海道･本州･四国･九州についてUEAとCZで塗り分けた地図である。市町村の境界については2015年で基準化している。地図の簡略化のため、小笠原諸島(東京都小笠原村)及び北方領土の一部(北海道色丹郡色丹村･\n国後郡泊村･留夜別村･択捉郡留別村･紗那郡紗那村･蘂取郡蘂取村)を省いている。地図の視認性向上のため、北海道の市町村に\nついては左上の枠内に表示している(北海道の市町村に対してすべて、緯度を-4,経度を-10して処理した。)。それぞれのUEA及びCZは\n年によって色が異なる場合があるが、東京都市圏のみすべての年で色を固定して表示している。地図上グレーで塗られた市町村は、\nどのUEAにも含まれない市町村である。"
   doubleMap <- CZmap + UEAmap + 
     patchwork::plot_annotation(
       caption = caption_text,
       theme = theme(plot.caption = element_text(size = 5, hjust = 0))
     )
-  ggplot2::ggsave(doubleMap, filename = paste0("output/map_image/TimeSeries_UEAandCZ/Original/enlaged_MainLands/", year[i], "_UEAandCZmap.png"), 
+  ggplot2::ggsave(doubleMap, filename = paste0("output/map_image/TimeSeries_UEAandCZ/harmonized/enlaged_MainLands/", year[i], "_UEAandCZmap.png"), 
                   bg = "white", width = 5, height = 3)
   rm(doubleMap, CZmap, UEAmap, CZ.sf.enlarged, UEA.sf.enlarged)
 }
@@ -404,26 +412,26 @@ for (i in (1:length(path_list.McEA))){
 detach("package:spdep")
 somemaps <- patchwork::wrap_plots(UEA_Whole, nrow = 3) +
   patchwork::plot_annotation(
-    caption = "この地図は国内のほぼ全ての市町村についてUEAで塗り分けた地図である。市町村の境界については基準化しておらず、それぞれの年のものに従っている。\n地図の簡略化のため、小笠原諸島(東京都小笠原村)及び北方領土の一部(北海道色丹郡色丹村･国後郡泊村･留夜別村･択捉郡留別村･紗那郡紗那村･蘂取郡蘂取村)を省いている。\n地図の視認性向上のため、沖縄県の市町村については左上の枠内に表示している(沖縄県の市町村に対してすべて、緯度を+5,経度を+15して処理。)。\n東京都市圏のみ、すべての年で色を固定して表示しているが、その他の都市圏は年によって色が異なる場合がある。\n地図上グレーで塗られた市町村は、どのUEAにも含まれない市町村である。1985年については、UEAのコード表が配布されていないため省いている。",
+    caption = "この地図は国内のほぼ全ての市町村についてUEAで塗り分けた地図である。市町村の境界については2015年で基準化している。\n地図の簡略化のため、小笠原諸島(東京都小笠原村)及び北方領土の一部(北海道色丹郡色丹村･国後郡泊村･留夜別村･択捉郡留別村･紗那郡紗那村･蘂取郡蘂取村)を省いている。\n地図の視認性向上のため、沖縄県の市町村については左上の枠内に表示している(沖縄県の市町村に対してすべて、緯度を+5,経度を+15して処理。)。\n東京都市圏のみ、すべての年で色を固定して表示しているが、その他の都市圏は年によって色が異なる場合がある。\n地図上グレーで塗られた市町村は、どのUEAにも含まれない市町村である。1985年については、UEAのコード表が配布されていないため省いている。",
     theme = theme(plot.caption = element_text(size = 5, hjust = 0))
   )
-ggplot2::ggsave(somemaps, filename = "output/map_image/TimeSeries_UEA/Original/multiple/1980to2015_UEAmap_Whole.png", bg = "white")
+ggplot2::ggsave(somemaps, filename = "output/map_image/TimeSeries_UEA/harmonized/multiple/1980to2015_UEAmap_Whole.png", bg = "white")
 rm(UEA_Whole, somemaps)
 
 somemaps <- patchwork::wrap_plots(UEA_Enlarged, nrow = 3)
-  patchwork::plot_annotation(
-    caption = "この地図は主に北海道･本州･四国･九州についてUEAで塗り分けた地図である。市町村の境界については基準化しておらず、それぞれの年のものに従っている。\n地図の簡略化のため、小笠原諸島(東京都小笠原村)及び北方領土の一部(北海道色丹郡色丹村･国後郡泊村･留夜別村･択捉郡留別村･紗那郡紗那村･蘂取郡蘂取村)を省いている。\n地図の視認性向上のため、北海道の市町村については左上の枠内に表示している(北海道の市町村に対してすべて、緯度を-4,経度を-9して処理した。)。\n東京都市圏のみ、すべての年で色を固定して表示しているが、その他の都市圏は年によって色が異なる場合がある。地図上グレーで塗られた市町村は、どのUEAにも含まれない市町村である。1985年については、UEAのコード表が配布されていないため省いている。",
-    theme = theme(plot.caption = element_text(size = 5, hjust = 0))
-  )
-ggplot2::ggsave(somemaps, filename = "output/map_image/TimeSeries_UEA/Original/multiple/1980to2015_UEAmap_enlarged.png", bg = "white")
+patchwork::plot_annotation(
+  caption = "この地図は主に北海道･本州･四国･九州についてUEAで塗り分けた地図である。市町村の境界については2015年で基準化している。\n地図の簡略化のため、小笠原諸島(東京都小笠原村)及び北方領土の一部(北海道色丹郡色丹村･国後郡泊村･留夜別村･択捉郡留別村･紗那郡紗那村･蘂取郡蘂取村)を省いている。\n地図の視認性向上のため、北海道の市町村については左上の枠内に表示している(北海道の市町村に対してすべて、緯度を-4,経度を-9して処理した。)。\n東京都市圏のみ、すべての年で色を固定して表示しているが、その他の都市圏は年によって色が異なる場合がある。地図上グレーで塗られた市町村は、どのUEAにも含まれない市町村である。1985年については、UEAのコード表が配布されていないため省いている。",
+  theme = theme(plot.caption = element_text(size = 5, hjust = 0))
+)
+ggplot2::ggsave(somemaps, filename = "output/map_image/TimeSeries_UEA/harmonized/multiple/1980to2015_UEAmap_enlarged.png", bg = "white")
 rm(UEA_Enlarged, somemaps)
 
 somemaps <- patchwork::wrap_plots(UEA_kanto, nrow = 3)
-  patchwork::plot_annotation(
-    caption = "この地図は主に関東地方についてUEAで塗り分けた地図である。市町村の境界については基準化しておらず、それぞれの年のものに従っている。\n地図の視認性向上のため、北海道の市町村については左上の枠内に表示している。\n東京都市圏のみ、すべての年で色を固定して表示しているが、その他の都市圏は年によって色が異なる場合がある。\n地図上グレーで塗られた市町村は、どのUEAにも含まれない市町村である。1985年については、UEAのコード表が配布されていないため省いている。",
-    theme = theme(plot.caption = element_text(size = 5, hjust = 0))
-  )
-ggplot2::ggsave(somemaps, filename = "output/map_image/TimeSeries_UEA/Original/multiple/1980to2015_UEAmap_kanto.png", bg = "white")
+patchwork::plot_annotation(
+  caption = "この地図は主に関東地方についてUEAで塗り分けた地図である。市町村の境界については2015年で基準化している。\n地図の視認性向上のため、北海道の市町村については左上の枠内に表示している。\n東京都市圏のみ、すべての年で色を固定して表示しているが、その他の都市圏は年によって色が異なる場合がある。\n地図上グレーで塗られた市町村は、どのUEAにも含まれない市町村である。1985年については、UEAのコード表が配布されていないため省いている。",
+  theme = theme(plot.caption = element_text(size = 5, hjust = 0))
+)
+ggplot2::ggsave(somemaps, filename = "output/map_image/TimeSeries_UEA/harmonized/multiple/1980to2015_UEAmap_kanto.png", bg = "white")
 
 
 library(beepr)

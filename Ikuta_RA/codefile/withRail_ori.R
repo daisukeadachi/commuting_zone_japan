@@ -10,15 +10,15 @@ library(patchwork)
 
 # year <- c(1980, 1985, 1990, 1995, 2000, 2005, 2010, 2015)
 # 
-lineMatrix = base::rbind(c(138, 45), c(138, 40), c(130, 37))
-OkinawaLine <- st_linestring(lineMatrix) %>%
-  sf::st_sfc() %>%
-  sf::st_set_crs(4612)
-lineMatrix = base::rbind(c(139.5, 41), c(137.5, 40), c(137.5, 38), c(134, 37), c(130, 37))
-HokkaidoLine <- st_linestring(lineMatrix) %>% 
-  sf::st_sfc() %>% 
-  sf::st_set_crs(4612)
-rm(lineMatrix)
+# lineMatrix = base::rbind(c(138, 45), c(138, 40), c(130, 37))
+# OkinawaLine <- st_linestring(lineMatrix) %>%
+#   sf::st_sfc() %>%
+#   sf::st_set_crs(4612)
+# lineMatrix = base::rbind(c(139.5, 41), c(137.5, 40), c(137.5, 38), c(134, 37), c(130, 37))
+# HokkaidoLine <- st_linestring(lineMatrix) %>% 
+#   sf::st_sfc() %>% 
+#   sf::st_set_crs(4612)
+# rm(lineMatrix)
 colors <- RColorBrewer::brewer.pal(7, "Set1")
 
 
@@ -469,9 +469,9 @@ for (i in (1:length(path_list.McEA))){
       ggplot2::coord_sf(ylim = c(34.6, 37.1),
                         xlim = c(138, 141),
                         datum = NA) +
-      ggplot2::labs(caption = "この地図は関東地方のCZ･UEAの塗り分け図に鉄道を載せたものである。点線は新幹線、実線は在来線を示している。\n市町村の境界については基準化しておらず、それぞれの年のものに従っている。なお、市町村境界については簡略化のため省略している。") + 
+      ggplot2::labs(caption = "この地図は関東地方のCZ･UEAの塗り分け図に鉄道を載せたものである。点線は新幹線、実線は在来線を示している。\n市町村の境界については基準化しておらず、それぞれの年のものに従っている。\nなお、市町村境界については簡略化のため省略している。") + 
       ggplot2::theme(legend.position = "none", 
-                     plot.caption = element_text(size = 3)) -> CZ1985
+                     plot.caption = element_text(size = 5, hjust = 0)) -> CZ1985
       ggplot2::ggsave(CZ1985, filename = "output/map_image/Railroad/Original/Kanto/1985_kanto_CZmap.png", width = 5, height = 3)
       rm(CZ1985)
       CZ.sf %>%
@@ -488,7 +488,7 @@ for (i in (1:length(path_list.McEA))){
                         datum = NA) 
       ggplot2::labs(caption = "この地図は全国のCZ･UEAの塗り分け図に鉄道を載せたものである。点線は新幹線、実線は在来線を示している。\n鉄道がない南西諸島･北方四島･小笠原諸島などは省略した。\n市町村の境界については基準化しておらず、それぞれの年のものに従っている。なお、市町村境界については簡略化のため省略している。") + 
         ggplot2::theme(legend.position = "none", 
-                       plot.caption = element_text(size = 3)) -> CZ1985
+                       plot.caption = element_text(size = 5, hjust = 0)) -> CZ1985
       ggplot2::ggsave(CZ1985, filename = "output/map_image/Railroad/Original/Whole/1985_CZmap.png", width = 5, height = 3)
       rm(CZ1985)
     

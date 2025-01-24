@@ -472,8 +472,10 @@ for (i in (1:length(path_list.McEA))){
       ggplot2::theme(legend.position = "none") +
       ggplot2::coord_sf(ylim = c(34.6, 37.1),
                         xlim = c(138, 141),
-                        datum = NA) -> CZ1985
-    ggplot2::ggsave(CZ1985, filename = "output/map_image/Railroad/harmonized/Whole/1985_CZmap.png", width = 5, height = 3)
+                        datum = NA) +
+      ggplot2::labs(caption = "この地図は関東地方のCZの塗り分け図に鉄道を載せたものである。点線は新幹線、実線は在来線を示している。\n鉄道がない南西諸島･北方四島･小笠原諸島などは省略した。\n市町村についてのデータは2015年時点のもので基準化している。なお、市町村境界については簡略化のため省略している。") +
+      ggplot2::theme(plot.caption = element_text(size = 5, hjust = 0))-> CZ1985
+    ggplot2::ggsave(CZ1985, filename = "output/map_image/Railroad/harmonized/Kanto/1985_Kanto_CZmap.png", width = 5, height = 3)
     
     CZ.sf %>%
       ggplot2::ggplot() +
@@ -486,8 +488,10 @@ for (i in (1:length(path_list.McEA))){
       # ggplot2::geom_sf(data = HokkaidoLine) +
       ggplot2::coord_sf(ylim = c(31.2, 45.5),
                         xlim = c(129.3, 145.8),
-                        datum = NA) -> CZ1985
-    ggplot2::ggsave(CZ1985, filename = "output/map_image/Railroad/harmonized/Kanto/1985_Kanto_CZmap.png", width = 5, height = 3)
+                        datum = NA) +
+      ggplot2::labs(caption = "この地図は全国のCZの塗り分け図に鉄道を載せたものである。点線は新幹線、実線は在来線を示している。\n鉄道がない南西諸島･北方四島･小笠原諸島などは省略した。\n市町村についてのデータは2015年時点のもので基準化している。なお、市町村境界については簡略化のため省略している。") +
+      ggplot2::theme(plot.caption = element_text(size = 5, hjust = 0))-> CZ1985
+    ggplot2::ggsave(CZ1985, filename = "output/map_image/Railroad/harmonized/Whole/1985_CZmap.png", width = 5, height = 3)
     
     
     
