@@ -327,7 +327,7 @@ for (i in (1:length(path_list.McEA))){
     ggplot2::labs(caption = paste("(", year[i], ")")) +
     theme(plot.caption    = element_text(size = 5))-> CZmap_rail
   CZ_map <- append(CZ_map, list(CZmap_rail))
-  
+  rm(CZmap_rail)
   UEA.sf %>% # UEA･編年
     ggplot2::ggplot() +
     ggplot2::geom_sf(data = muni.sf, fill = "darkgrey", linewidth = 0) +
@@ -344,7 +344,7 @@ for (i in (1:length(path_list.McEA))){
     ggplot2::labs(caption = paste("(", year[i], ")")) +
     theme(plot.caption    = element_text(size = 5)) -> UEAmap_rail
   UEA_map <- append(UEA_map, list(UEAmap_rail))
-  
+  rm(UEAmap_rail)
   CZ.sf %>% # CZ･当年
     ggplot2::ggplot() +
     ggplot2::geom_sf(aes(fill = color), linewidth = .05, color = "gainsboro") +
@@ -380,8 +380,9 @@ for (i in (1:length(path_list.McEA))){
       caption = "この地図は全国のCZ･UEAの塗り分け図に鉄道を載せたものである。鉄道がない南西諸島･北方四島･小笠原諸島などは省略した。\n市町村の境界については基準化しておらず、それぞれの年のものに従っている。なお、市町村境界については簡略化のため省略している。\nUEAの地図においてグレーとなっているところは、どのUEAにも属さない市町村である。",
       theme = theme(plot.caption = element_text(size = 5, hjust = 0))
     )
+  rm(CZmap_rail, UEAmap_rail)
   ggplot2::ggsave(joinedmap,filename = paste0("output/map_image/Railroad/Original/Whole/", year[i], "_Kanto_UEAandCZmap.png"), width = 5, height = 3)
-  
+  rm(joinedmap)
   
   
   # 1985年だけUEAがかけてるのでCZだけ作る
@@ -439,9 +440,9 @@ for (i in (1:length(path_list.McEA))){
                         xlim = c(138, 141),
                         datum = NA) +
       ggplot2::labs(caption = "(1985)")+
-      theme(plot.caption = element_text(size = 3))　-> CZmap.Kanto
+      theme(plot.caption = element_text(size = 5))　-> CZmap.Kanto
     CZ_map.kanto <- append(CZ_map.kanto, list(CZmap.Kanto))
-    
+    rm(CZmap.Kanto)
     CZ.sf %>%
       ggplot2::ggplot() +
       ggplot2::geom_sf(aes(fill = color), linewidth = .05, color = "gainsboro") +
@@ -455,9 +456,9 @@ for (i in (1:length(path_list.McEA))){
                         xlim = c(129.3, 145.8),
                         datum = NA) +
       ggplot2::labs(caption = "(1985)") +
-      theme(plot.caption  = element_text(size = 3))-> CZmap_rail
+      theme(plot.caption  = element_text(size = 5))-> CZmap_rail
     CZ_map <- append(CZ_map, list(CZmap_rail))
-    
+    rm(CZmap_rail)
     CZ.sf %>%
       ggplot2::ggplot() +
       ggplot2::geom_sf(aes(fill = color), linewidth = .05, color = "gainsboro") +
@@ -465,12 +466,14 @@ for (i in (1:length(path_list.McEA))){
       ggplot2::geom_sf(data = SHR, color = "#333333", linewidth = .2, linetype = "dashed") +
       ggplot2::geom_sf(data = Rail, color = "black", linewidth = .2) +
       ggplot2::theme_bw() +
-      ggplot2::theme(legend.position = "none") +
       ggplot2::coord_sf(ylim = c(34.6, 37.1),
                         xlim = c(138, 141),
-                        datum = NA) -> CZ1985
-      ggplot2::ggsave(CZ1985, filename = "output/map_image/Railroad/Original/Whole/1985_CZmap.png", width = 5, height = 3)
-      
+                        datum = NA) +
+      ggplot2::labs(caption = "この地図は関東地方のCZ･UEAの塗り分け図に鉄道を載せたものである。鉄道がない南西諸島･北方四島･小笠原諸島などは省略した。\n市町村の境界については基準化しておらず、それぞれの年のものに従っている。なお、市町村境界については簡略化のため省略している。") + 
+      ggplot2::theme(legend.position = "none", 
+                     plot.caption = element_text(size = 3)) -> CZ1985
+      ggplot2::ggsave(CZ1985, filename = "output/map_image/Railroad/Original/Kanto/1985_kanto_CZmap.png", width = 5, height = 3)
+      rm(CZ1985)
       CZ.sf %>%
       ggplot2::ggplot() +
       ggplot2::geom_sf(aes(fill = color), linewidth = .05, color = "gainsboro") +
@@ -482,9 +485,12 @@ for (i in (1:length(path_list.McEA))){
       # ggplot2::geom_sf(data = HokkaidoLine) +
       ggplot2::coord_sf(ylim = c(31.2, 45.5),
                         xlim = c(129.3, 145.8),
-                        datum = NA) -> CZ1985
-      ggplot2::ggsave(CZ1985, filename = "output/map_image/Railroad/Original/Kanto/1985_Kanto_CZmap.png", width = 5, height = 3)
-      
+                        datum = NA) 
+      ggplot2::labs(caption = "この地図は全国のCZ･UEAの塗り分け図に鉄道を載せたものである。鉄道がない南西諸島･北方四島･小笠原諸島などは省略した。\n市町村の境界については基準化しておらず、それぞれの年のものに従っている。なお、市町村境界については簡略化のため省略している。") + 
+        ggplot2::theme(legend.position = "none", 
+                       plot.caption = element_text(size = 3)) -> CZ1985
+      ggplot2::ggsave(CZ1985, filename = "output/map_image/Railroad/Original/Whole/1985_CZmap.png", width = 5, height = 3)
+      rm(CZ1985)
     
     
   }
@@ -500,7 +506,7 @@ map1980to2015 <- patchwork::wrap_plots(UEA_map, nrow = 3) +
   patchwork::plot_annotation(
     caption = "この地図はUEAの塗り分け地図に鉄道を重ねたものである。鉄道がない南西諸島･北方四島･小笠原諸島などは省略した。\n市町村の境界については基準化しておらず、それぞれの年のものに従っている。なお、市町村境界については簡略化のため省略している。\n東京都市圏のみ、すべての年で色を固定して表示しているが、その他の都市圏は年によって色が異なる場合がある。\n地図上グレーで塗られた市町村は、どのUEAにも含まれない市町村である。\n1985年については、UEAのコード表が配布されていないため省いている。",
     theme = theme(
-      plot.caption = element_text(size = 5, hjust = 0),
+      plot.caption = element_text(size = 8, hjust = 0),
     )
   )
 ggplot2::ggsave(map1980to2015, filename = "output/map_image/Railroad/Original/multiple/1980to2015_UEAmap.png", bg = "white")
@@ -509,7 +515,7 @@ map1980to2015 <- patchwork::wrap_plots(CZ_map, nrow = 3) +
   patchwork::plot_annotation(
     caption = "この地図はCZの塗り分け地図に鉄道を重ねたものである。鉄道がない南西諸島･北方四島･小笠原諸島などは省略した。\n市町村の境界については基準化しておらず、それぞれの年のものに従っている。なお、市町村境界については簡略化のため省略している。\n東京都千代田区が含まれるCZのみ、すべての年で色を固定して表示しているが、その他のCZは年によって色が異なる場合がある。",
     theme = theme(
-      plot.caption = element_text(size = 5, hjust = 0),
+      plot.caption = element_text(size = 8, hjust = 0),
     )
   )
 ggplot2::ggsave(map1980to2015, filename = "output/map_image/Railroad/Original/multiple/1980to2015_CZmap.png", bg = "white")
@@ -518,7 +524,7 @@ map1980to2015 <- patchwork::wrap_plots(CZ_map.kanto, nrow = 3) +
   patchwork::plot_annotation(
     caption = "この地図は関東地方のCZの塗り分け地図に鉄道を重ねたものである。\n市町村の境界については基準化しておらず、それぞれの年のものに従っている。なお、市町村境界については簡略化のため省略している。\n東京都千代田区が含まれるCZのみ、すべての年で色を固定して表示しているが、その他のCZは年によって色が異なる場合がある。",
     theme = theme(
-      plot.caption = element_text(size = 5, hjust = 0),
+      plot.caption = element_text(size = 8, hjust = 0),
     )
   )
 ggplot2::ggsave(map1980to2015, filename = "output/map_image/Railroad/Original/multiple/1980to2015_CZmap_kanto.png", bg = "white")
@@ -527,7 +533,7 @@ map1980to2015 <- patchwork::wrap_plots(UEA_map.kanto, nrow = 3) +
   patchwork::plot_annotation(
     caption = "この地図は関東地方のUEAの塗り分け地図に鉄道を重ねたものである。\n市町村の境界については基準化しておらず、それぞれの年のものに従っている。なお、市町村境界については簡略化のため省略している。\n東京都市圏のみ、すべての年で色を固定して表示しているが、その他の都市圏は年によって色が異なる場合がある。\n地図上グレーで塗られた市町村は、どのUEAにも含まれない市町村である。\n1985年については、UEAのコード表が配布されていないため省いている。",
     theme = theme(
-      plot.caption = element_text(size = 5, hjust = 0),
+      plot.caption = element_text(size = 8, hjust = 0),
     )
   )
 ggplot2::ggsave(map1980to2015, filename = "output/map_image/Railroad/Original/multiple/1980to2015_UEAmap_kanto.png", bg = "white")

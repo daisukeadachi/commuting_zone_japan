@@ -9,23 +9,12 @@ library(patchwork)
 
 
 # year <- c(1980, 1985, 1990, 1995, 2000, 2005, 2010, 2015)
-# lineMatrix = base::rbind(c(138, 45), c(138, 40), c(130, 37))
-# OkinawaLine <- st_linestring(lineMatrix) %>%
-#   sf::st_sfc() %>%
-#   sf::st_set_crs(4612)
-# lineMatrix = base::rbind(c(139.5, 41), c(137.5, 40), c(137.5, 38), c(134, 37), c(130, 37))
-# HokkaidoLine <- st_linestring(lineMatrix) %>% 
-#   sf::st_sfc() %>% 
-#   sf::st_set_crs(4612)
-# rm(lineMatrix)
 colors <- RColorBrewer::brewer.pal(7, "Set1")
-
 
 path_list.McEA <- paste0("data/UEA/suburb/McEA/", list.files("data/UEA/suburb/McEA"))
 path_list.McEA.C <- paste0("data/UEA/center/McEA/", list.files("data/UEA/center/McEA"))
 path_list.MEA <- paste0("data/UEA/suburb/MEA/", list.files("data/UEA/suburb/MEA"))
 path_list.MEA.C <- paste0("data/UEA/center/MEA/", list.files("data/UEA/center/MEA"))
-
 
 year <- list.files("data/UEA/suburb/McEA") %>% 
   stringr::str_replace(pattern = "A8", replacement = "A198") %>% 

@@ -9,17 +9,15 @@ library(RColorBrewer)
 
 # year <- c(1980, 1985, 1990, 1995, 2000, 2005, 2010, 2015)
 
-lineMatrix = base::rbind(c(138, 45), c(138, 40), c(130, 37))
-OkinawaLine <- st_linestring(lineMatrix) %>%
-  sf::st_sfc() %>%
-  sf::st_set_crs(4612)
-lineMatrix = base::rbind(c(137.5, 45), c(137.5, 40), c(134, 37), c(120, 37))
-HokkaidoLine <- st_linestring(lineMatrix) %>% 
-  sf::st_sfc() %>% 
-  sf::st_set_crs(4612)
-rm(lineMatrix)
+OkinawaLine <- base::rbind(c(138, 45), c(138, 40), c(130, 37)) %>% 
+  st_linestring() %>%
+  sf::st_sfc(crs = 4612) %>%
+  sf::st_sf()
+HokkaidoLine <- base::rbind(c(137.5, 45), c(137.5, 40), c(134, 37), c(120, 37)) %>% 
+  st_linestring() %>% 
+  sf::st_sfc(crs = 4612) %>% 
+  sf::st_sf()
 colors <- RColorBrewer::brewer.pal(8, "Set2")
-
 
 path_list.McEA <- paste0("data/UEA/suburb/McEA/", list.files("data/UEA/suburb/McEA"))
 path_list.McEA.C <- paste0("data/UEA/center/McEA/", list.files("data/UEA/center/McEA"))
@@ -30,9 +28,7 @@ assign_list <- paste0("UEA", list.files("data/UEA/suburb/McEA") %>%
                         stringr::str_replace(pattern = "A8", replacement = "A198") %>% 
                         stringr::str_replace(pattern = "A9", replacement = "A199") %>% 
                         stringr::str_sub(start = 5, end = -5) %>% 
-                        stringr::str_remove(pattern = "_Rev07")
-)
-
+                        stringr::str_remove(pattern = "_Rev07"))
 year <- list.files("data/UEA/suburb/McEA") %>% 
   stringr::str_replace(pattern = "A8", replacement = "A198") %>% 
   stringr::str_replace(pattern = "A9", replacement = "A199") %>% 

@@ -7,7 +7,7 @@ library(RColorBrewer)
 
 # year <- c(1980, 1985, 1990, 1995, 2000, 2005, 2010, 2015)
 OkinawaLine <- list(base::rbind(c(138, 45), c(138, 40), c(130, 37))) %>% 
-  st_multilinestring() %>%
+  st_linestring() %>%
   sf::st_sfc(crs = 4612) %>% 
   sf::st_sf()
 HokkaidoLine <- base::rbind(c(137.5, 45), c(137.5, 40), c(134, 37), c(120, 37)) %>% 
