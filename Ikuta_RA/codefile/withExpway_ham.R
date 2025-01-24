@@ -250,6 +250,7 @@ for (i in (1:length(path_list.McEA))){
     ggplot2::labs(caption = paste0("(", year[i], ")"))+
     theme(plot.caption = element_text(size = 5))　-> UEAmap.Kanto
   UEA_map.kanto <- append(UEA_map.kanto, list(UEAmap.Kanto))
+  rm(UEAmap.Kanto)
   
   CZ.sf %>% # 関東地方･CZ･編年用
     ggplot2::ggplot() +
@@ -264,6 +265,7 @@ for (i in (1:length(path_list.McEA))){
     ggplot2::labs(caption = paste0("(", year[i], ")"))+
     theme(plot.caption    = element_text(size = 5))　-> CZmap.Kanto
   CZ_map.kanto <- append(CZ_map.kanto, list(CZmap.Kanto))
+  rm(CZmap.Kanto)
   
   UEA.sf %>% #関東地方･UEA･当年用
     ggplot2::ggplot() +
@@ -296,8 +298,9 @@ for (i in (1:length(path_list.McEA))){
       caption = "この地図は関東地方のCZ･UEAの塗り分け図に高速道路を載せたものである。\n簡略化のため、市町村境界は表示していない。\nUEAの地図においてグレーとなっているところは、どのUEAにも属さない市町村である。",
       theme = theme(plot.caption = element_text(size = 5, hjust = 0))
     )
+  rm(CZmap.Kanto, UEAmap.Kanto)
   ggplot2::ggsave(joinedmap,filename = paste0("output/map_image/Expway/harmonized/Kanto/", year[i], "_Kanto_UEAandCZmap.png"), width = 5, height = 3)
-  
+  rm(joinedmap)
   
   
   ### no move ##################################################################
@@ -315,6 +318,7 @@ for (i in (1:length(path_list.McEA))){
     ggplot2::labs(caption = paste("(", year[i], ")")) +
     theme(plot.caption    = element_text(size = 5))-> CZmap_rail
   CZ_map <- append(CZ_map, list(CZmap_rail))
+  rm(CZmap_rail)
   
   UEA.sf %>% # UEA･編年
     ggplot2::ggplot() +
@@ -331,6 +335,7 @@ for (i in (1:length(path_list.McEA))){
     ggplot2::labs(caption = paste("(", year[i], ")")) +
     theme(plot.caption    = element_text(size = 5)) -> UEAmap_rail
   UEA_map <- append(UEA_map, list(UEAmap_rail))
+  rm(UEAmap_rail)
   
   CZ.sf %>% # CZ･当年
     ggplot2::ggplot() +
@@ -365,8 +370,9 @@ for (i in (1:length(path_list.McEA))){
       caption = "この地図は全国のCZ･UEAの塗り分け図に高速道路を載せたものである。南西諸島･北方四島･小笠原諸島などは簡略化のため省略した。\n市町村についてのデータは2015年時点のもので基準化している。なお、市町村境界については簡略化のため省略している。\nUEAの地図においてグレーとなっているところは、どのUEAにも属さない市町村である。",
       theme = theme(plot.caption = element_text(size = 5, hjust = 0))
     )
+  rm(CZmap_rail, UEAmap_rail)
   ggplot2::ggsave(joinedmap,filename = paste0("output/map_image/Expway/harmonized/Whole/", year[i], "_Kanto_UEAandCZmap.png"), width = 5, height = 3)
-  
+  rm(joinedmap)
   
   
   # 1985年だけUEAがかけてるのでCZだけ作る
@@ -440,8 +446,10 @@ for (i in (1:length(path_list.McEA))){
       ggplot2::theme(legend.position = "none") +
       ggplot2::coord_sf(ylim = c(34.6, 37.1),
                         xlim = c(138, 141),
-                        datum = NA) -> CZ1985
-    ggplot2::ggsave(CZ1985, filename = "output/map_image/Expway/harmonized/Whole/1985_CZmap.png", width = 5, height = 3)
+                        datum = NA) +
+      ggplot2::labs(caption = "この地図は全国のCZの塗り分け図に高速道路を載せたものである。南西諸島･北方四島･小笠原諸島などは簡略化のため省略した。\n市町村についてのデータは2015年時点のもので基準化している。なお、市町村境界については簡略化のため省略している。") + 
+      ggplot2::theme(plot.caption = element_text(size = 5))-> CZ1985
+    ggplot2::ggsave(CZ1985, filename = "output/map_image/Expway/harmonized/Kanto/1985_Kanto_CZmap.png", width = 5, height = 3)
     
     CZ.sf %>%
       ggplot2::ggplot() +
@@ -453,8 +461,10 @@ for (i in (1:length(path_list.McEA))){
       # ggplot2::geom_sf(data = HokkaidoLine) +
       ggplot2::coord_sf(ylim = c(31.2, 45.5),
                         xlim = c(129.3, 145.8),
-                        datum = NA) -> CZ1985
-    ggplot2::ggsave(CZ1985, filename = "output/map_image/Expway/harmonized/Kanto/1985_Kanto_CZmap.png", width = 5, height = 3)
+                        datum = NA) +
+      ggplot2::labs(caption = "この地図は関東地方のCZの塗り分け図に高速道路を載せたものである。南西諸島･北方四島･小笠原諸島などは簡略化のため省略した。\n市町村についてのデータは2015年時点のもので基準化している。なお、市町村境界については簡略化のため省略している。") + 
+      ggplot2::theme(plot.caption = element_text(size = 5))-> CZ1985
+    ggplot2::ggsave(CZ1985, filename = "output/map_image/Expway/harmonized/Whole/1985_CZmap.png", width = 5, height = 3)
     
     rm(CZ1985)
     
@@ -475,6 +485,7 @@ map1980to2015 <- patchwork::wrap_plots(UEA_map, nrow = 3) +
     )
   )
 ggplot2::ggsave(map1980to2015, filename = "output/map_image/Expway/harmonized/multiple/1980to2015_UEAmap.png", bg = "white")
+rm(UEA_map)
 
 map1980to2015 <- patchwork::wrap_plots(CZ_map, nrow = 3) +
   patchwork::plot_annotation(
@@ -484,6 +495,7 @@ map1980to2015 <- patchwork::wrap_plots(CZ_map, nrow = 3) +
     )
   )
 ggplot2::ggsave(map1980to2015, filename = "output/map_image/Expway/harmonized/multiple/1980to2015_CZmap.png", bg = "white")
+rm(CZ_map)
 
 map1980to2015 <- patchwork::wrap_plots(CZ_map.kanto, nrow = 3) +
   patchwork::plot_annotation(
@@ -493,6 +505,7 @@ map1980to2015 <- patchwork::wrap_plots(CZ_map.kanto, nrow = 3) +
     )
   )
 ggplot2::ggsave(map1980to2015, filename = "output/map_image/Expway/harmonized/multiple/1980to2015_CZmap_kanto.png", bg = "white")
+rm(CZ_map.kanto)
 
 map1980to2015 <- patchwork::wrap_plots(UEA_map.kanto, nrow = 3) +
   patchwork::plot_annotation(
@@ -502,7 +515,7 @@ map1980to2015 <- patchwork::wrap_plots(UEA_map.kanto, nrow = 3) +
     )
   )
 ggplot2::ggsave(map1980to2015, filename = "output/map_image/Expway/harmonized/multiple/1980to2015_UEAmap_kanto.png", bg = "white")
-
+rm(UEA_map.kanto)
 
 
 

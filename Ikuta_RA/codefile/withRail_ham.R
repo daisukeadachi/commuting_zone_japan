@@ -315,7 +315,7 @@ for (i in (1:length(path_list.McEA))){
   
   joinedmap <- CZmap.Kanto + UEAmap.Kanto + 
     patchwork::plot_annotation(
-      caption = "この地図は関東地方のCZ･UEAの塗り分け図に鉄道を載せたものである。市町村についてのデータは2015年時点のもので基準化している。\n簡略化のため、市町村境界は表示していない。\nUEAの地図においてグレーとなっているところは、どのUEAにも属さない市町村である。",
+      caption = "この地図は関東地方のCZ･UEAの塗り分け図に鉄道を載せたものである。点線は新幹線、実線は在来線を示している。\n市町村についてのデータは2015年時点のもので基準化している。簡略化のため、市町村境界は表示していない。\nUEAの地図においてグレーとなっているところは、どのUEAにも属さない市町村である。",
       theme = theme(plot.caption = element_text(size = 5, hjust = 0))
     )
   ggplot2::ggsave(joinedmap,filename = paste0("output/map_image/Railroad/harmonized/Kanto/", year[i], "_Kanto_UEAandCZmap.png"), width = 5, height = 3)
@@ -388,7 +388,7 @@ for (i in (1:length(path_list.McEA))){
     theme(plot.title    = element_text(size = 8)) -> UEAmap_rail
   joinedmap <- CZmap_rail + UEAmap_rail + 
     patchwork::plot_annotation(
-      caption = "この地図は全国のCZ･UEAの塗り分け図に鉄道を載せたものである。市町村についてのデータは2015年時点のもので基準化している。鉄道がない南西諸島･北方四島･小笠原諸島などは省略した。\n市町村についてのデータは2015年時点のもので基準化している。なお、市町村境界については簡略化のため省略している。\nUEAの地図においてグレーとなっているところは、どのUEAにも属さない市町村である。",
+      caption = "この地図は全国のCZ･UEAの塗り分け図に鉄道を載せたものである。点線は新幹線、実線は在来線を示している。\n鉄道がない南西諸島･北方四島･小笠原諸島などは省略した。\n市町村についてのデータは2015年時点のもので基準化している。なお、市町村境界については簡略化のため省略している。\nUEAの地図においてグレーとなっているところは、どのUEAにも属さない市町村である。",
       theme = theme(plot.caption = element_text(size = 5, hjust = 0))
     )
   ggplot2::ggsave(joinedmap,filename = paste0("output/map_image/Railroad/harmonized/Whole/", year[i], "_Kanto_UEAandCZmap.png"), width = 5, height = 3)
@@ -502,7 +502,7 @@ CZ_map <- CZ_map[c(setdiff(seq_len(length(CZ_map)), seq(1, 4)), seq(1, 4))]
 
 map1980to2015 <- patchwork::wrap_plots(UEA_map, nrow = 3) +
   patchwork::plot_annotation(
-    caption = "この地図はUEAの塗り分け地図に鉄道を重ねたものである。\n市町村についてのデータは2015年時点のもので基準化している。鉄道がない南西諸島･北方四島･小笠原諸島などは省略した。なお、市町村境界については簡略化のため省略している。\n東京都市圏のみ、すべての年で色を固定して表示しているが、その他の都市圏は年によって色が異なる場合がある。\n地図上グレーで塗られた市町村は、どのUEAにも含まれない市町村である。\n1985年については、UEAのコード表が配布されていないため省いている。",
+    caption = "この地図はUEAの塗り分け地図に鉄道を重ねたものである。点線は新幹線、実線は在来線を示している。\n市町村についてのデータは2015年時点のもので基準化している。なお、市町村境界については簡略化のため省略している。\n鉄道がない南西諸島･北方四島･小笠原諸島などは省略した。\n東京都市圏のみ、すべての年で色を固定して表示しているが、その他の都市圏は年によって色が異なる場合がある。\n地図上グレーで塗られた市町村は、どのUEAにも含まれない市町村である。\n1985年については、UEAのコード表が配布されていないため省いている。",
     theme = theme(
       plot.caption = element_text(size = 5, hjust = 0),
     )
@@ -511,7 +511,7 @@ ggplot2::ggsave(map1980to2015, filename = "output/map_image/Railroad/harmonized/
 
 map1980to2015 <- patchwork::wrap_plots(CZ_map, nrow = 3) +
   patchwork::plot_annotation(
-    caption = "この地図はCZの塗り分け地図に鉄道を重ねたものである。\n市町村についてのデータは2015年時点のもので基準化している。なお、市町村境界については簡略化のため省略している。\n鉄道がない南西諸島･北方四島･小笠原諸島などは省略した。\n東京都千代田区が含まれるCZのみ、すべての年で色を固定して表示しているが、その他のCZは年によって色が異なる場合がある。",
+    caption = "この地図はCZの塗り分け地図に鉄道を重ねたものである。点線は新幹線、実線は在来線を示している。\n市町村についてのデータは2015年時点のもので基準化している。なお、市町村境界については簡略化のため省略している。\n鉄道がない南西諸島･北方四島･小笠原諸島などは省略した。\n東京都千代田区が含まれるCZのみ、すべての年で色を固定して表示しているが、その他のCZは年によって色が異なる場合がある。",
     theme = theme(
       plot.caption = element_text(size = 5, hjust = 0),
     )
@@ -520,7 +520,7 @@ ggplot2::ggsave(map1980to2015, filename = "output/map_image/Railroad/harmonized/
 
 map1980to2015 <- patchwork::wrap_plots(CZ_map.kanto, nrow = 3) +
   patchwork::plot_annotation(
-    caption = "この地図は関東地方のCZの塗り分け地図に鉄道を重ねたものである。\n市町村についてのデータは2015年時点のもので基準化している。なお、市町村境界については簡略化のため省略している。\n東京都千代田区が含まれるCZのみ、すべての年で色を固定して表示しているが、その他のCZは年によって色が異なる場合がある。",
+    caption = "この地図は関東地方のCZの塗り分け地図に鉄道を重ねたものである。点線は新幹線、実線は在来線を示している。\n市町村についてのデータは2015年時点のもので基準化している。なお、市町村境界については簡略化のため省略している。\n東京都千代田区が含まれるCZのみ、すべての年で色を固定して表示しているが、その他のCZは年によって色が異なる場合がある。",
     theme = theme(
       plot.caption = element_text(size = 5, hjust = 0),
     )
@@ -529,7 +529,7 @@ ggplot2::ggsave(map1980to2015, filename = "output/map_image/Railroad/harmonized/
 
 map1980to2015 <- patchwork::wrap_plots(UEA_map.kanto, nrow = 3) +
   patchwork::plot_annotation(
-    caption = "この地図は関東地方のUEAの塗り分け地図に鉄道を重ねたものである。\n市町村についてのデータは2015年時点のもので基準化している。なお、市町村境界については簡略化のため省略している。\n東京都市圏のみ、すべての年で色を固定して表示しているが、その他の都市圏は年によって色が異なる場合がある。\n地図上グレーで塗られた市町村は、どのUEAにも含まれない市町村である。\n1985年については、UEAのコード表が配布されていないため省いている。",
+    caption = "この地図は関東地方のUEAの塗り分け地図に鉄道を重ねたものである。点線は新幹線、実線は在来線を示している。\n市町村についてのデータは2015年時点のもので基準化している。なお、市町村境界については簡略化のため省略している。\n東京都市圏のみ、すべての年で色を固定して表示しているが、その他の都市圏は年によって色が異なる場合がある。\n地図上グレーで塗られた市町村は、どのUEAにも含まれない市町村である。\n1985年については、UEAのコード表が配布されていないため省いている。",
     theme = theme(
       plot.caption = element_text(size = 5, hjust = 0),
     )
