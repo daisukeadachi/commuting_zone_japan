@@ -318,7 +318,7 @@ for (i in (1:length(path_list.McEA))){
       caption = "この地図は関東地方のCZ･UEAの塗り分け図に鉄道を載せたものである。点線は新幹線、実線は在来線を示している。\n市町村についてのデータは2015年時点のもので基準化している。簡略化のため、市町村境界は表示していない。\nUEAの地図においてグレーとなっているところは、どのUEAにも属さない市町村である。",
       theme = theme(plot.caption = element_text(size = 5, hjust = 0))
     )
-  ggplot2::ggsave(joinedmap,filename = paste0("output/map_image/Railroad/harmonized/Kanto/", year[i], "_Kanto_UEAandCZmap.png"), width = 5, height = 3)
+  ggplot2::ggsave(joinedmap,filename = paste0("output/map_image/Railroad/harmonized/Kanto/", year[i], "_Kanto_UEAandCZmap.png"), width = 5, height = 3, dpi = 900)
   
   
   
@@ -391,7 +391,7 @@ for (i in (1:length(path_list.McEA))){
       caption = "この地図は全国のCZ･UEAの塗り分け図に鉄道を載せたものである。点線は新幹線、実線は在来線を示している。\n鉄道がない南西諸島･北方四島･小笠原諸島などは省略した。\n市町村についてのデータは2015年時点のもので基準化している。なお、市町村境界については簡略化のため省略している。\nUEAの地図においてグレーとなっているところは、どのUEAにも属さない市町村である。",
       theme = theme(plot.caption = element_text(size = 5, hjust = 0))
     )
-  ggplot2::ggsave(joinedmap,filename = paste0("output/map_image/Railroad/harmonized/Whole/", year[i], "_Kanto_UEAandCZmap.png"), width = 5, height = 3)
+  ggplot2::ggsave(joinedmap,filename = paste0("output/map_image/Railroad/harmonized/Whole/", year[i], "_Kanto_UEAandCZmap.png"), width = 5, height = 3, dpi = 900)
   
   
   
@@ -475,7 +475,7 @@ for (i in (1:length(path_list.McEA))){
                         datum = NA) +
       ggplot2::labs(caption = "この地図は関東地方のCZの塗り分け図に鉄道を載せたものである。点線は新幹線、実線は在来線を示している。\n鉄道がない南西諸島･北方四島･小笠原諸島などは省略した。\n市町村についてのデータは2015年時点のもので基準化している。なお、市町村境界については簡略化のため省略している。") +
       ggplot2::theme(plot.caption = element_text(size = 5, hjust = 0))-> CZ1985
-    ggplot2::ggsave(CZ1985, filename = "output/map_image/Railroad/harmonized/Kanto/1985_Kanto_CZmap.png", width = 5, height = 3)
+    ggplot2::ggsave(CZ1985, filename = "output/map_image/Railroad/harmonized/Kanto/1985_Kanto_CZmap.png", width = 5, height = 3, dpi = 600)
     
     CZ.sf %>%
       ggplot2::ggplot() +
@@ -491,7 +491,7 @@ for (i in (1:length(path_list.McEA))){
                         datum = NA) +
       ggplot2::labs(caption = "この地図は全国のCZの塗り分け図に鉄道を載せたものである。点線は新幹線、実線は在来線を示している。\n鉄道がない南西諸島･北方四島･小笠原諸島などは省略した。\n市町村についてのデータは2015年時点のもので基準化している。なお、市町村境界については簡略化のため省略している。") +
       ggplot2::theme(plot.caption = element_text(size = 5, hjust = 0))-> CZ1985
-    ggplot2::ggsave(CZ1985, filename = "output/map_image/Railroad/harmonized/Whole/1985_CZmap.png", width = 5, height = 3)
+    ggplot2::ggsave(CZ1985, filename = "output/map_image/Railroad/harmonized/Whole/1985_CZmap.png", width = 5, height = 3, dpi = 600)
     
     
     
@@ -508,37 +508,37 @@ map1980to2015 <- patchwork::wrap_plots(UEA_map, nrow = 3) +
   patchwork::plot_annotation(
     caption = "この地図はUEAの塗り分け地図に鉄道を重ねたものである。点線は新幹線、実線は在来線を示している。\n市町村についてのデータは2015年時点のもので基準化している。なお、市町村境界については簡略化のため省略している。\n鉄道がない南西諸島･北方四島･小笠原諸島などは省略した。\n東京都市圏のみ、すべての年で色を固定して表示しているが、その他の都市圏は年によって色が異なる場合がある。\n地図上グレーで塗られた市町村は、どのUEAにも含まれない市町村である。\n1985年については、UEAのコード表が配布されていないため省いている。",
     theme = theme(
-      plot.caption = element_text(size = 5, hjust = 0),
+      plot.caption = element_text(size = 3, hjust = 0),
     )
   )
-ggplot2::ggsave(map1980to2015, filename = "output/map_image/Railroad/harmonized/multiple/1980to2015_UEAmap.png", bg = "white")
+ggplot2::ggsave(map1980to2015, filename = "output/map_image/Railroad/harmonized/multiple/1980to2015_UEAmap.png", bg = "white", dpi = 1200)
 
 map1980to2015 <- patchwork::wrap_plots(CZ_map, nrow = 3) +
   patchwork::plot_annotation(
     caption = "この地図はCZの塗り分け地図に鉄道を重ねたものである。点線は新幹線、実線は在来線を示している。\n市町村についてのデータは2015年時点のもので基準化している。なお、市町村境界については簡略化のため省略している。\n鉄道がない南西諸島･北方四島･小笠原諸島などは省略した。\n東京都千代田区が含まれるCZのみ、すべての年で色を固定して表示しているが、その他のCZは年によって色が異なる場合がある。",
     theme = theme(
-      plot.caption = element_text(size = 5, hjust = 0),
+      plot.caption = element_text(size = 3, hjust = 0),
     )
   )
-ggplot2::ggsave(map1980to2015, filename = "output/map_image/Railroad/harmonized/multiple/1980to2015_CZmap.png", bg = "white")
+ggplot2::ggsave(map1980to2015, filename = "output/map_image/Railroad/harmonized/multiple/1980to2015_CZmap.png", bg = "white", dpi = 1200)
 
 map1980to2015 <- patchwork::wrap_plots(CZ_map.kanto, nrow = 3) +
   patchwork::plot_annotation(
     caption = "この地図は関東地方のCZの塗り分け地図に鉄道を重ねたものである。点線は新幹線、実線は在来線を示している。\n市町村についてのデータは2015年時点のもので基準化している。なお、市町村境界については簡略化のため省略している。\n東京都千代田区が含まれるCZのみ、すべての年で色を固定して表示しているが、その他のCZは年によって色が異なる場合がある。",
     theme = theme(
-      plot.caption = element_text(size = 5, hjust = 0),
+      plot.caption = element_text(size = 3, hjust = 0),
     )
   )
-ggplot2::ggsave(map1980to2015, filename = "output/map_image/Railroad/harmonized/multiple/1980to2015_CZmap_kanto.png", bg = "white")
+ggplot2::ggsave(map1980to2015, filename = "output/map_image/Railroad/harmonized/multiple/1980to2015_CZmap_kanto.png", bg = "white", dpi = 1200)
 
 map1980to2015 <- patchwork::wrap_plots(UEA_map.kanto, nrow = 3) +
   patchwork::plot_annotation(
     caption = "この地図は関東地方のUEAの塗り分け地図に鉄道を重ねたものである。点線は新幹線、実線は在来線を示している。\n市町村についてのデータは2015年時点のもので基準化している。なお、市町村境界については簡略化のため省略している。\n東京都市圏のみ、すべての年で色を固定して表示しているが、その他の都市圏は年によって色が異なる場合がある。\n地図上グレーで塗られた市町村は、どのUEAにも含まれない市町村である。\n1985年については、UEAのコード表が配布されていないため省いている。",
     theme = theme(
-      plot.caption = element_text(size = 5, hjust = 0),
+      plot.caption = element_text(size = 3, hjust = 0),
     )
   )
-ggplot2::ggsave(map1980to2015, filename = "output/map_image/Railroad/harmonized/multiple/1980to2015_UEAmap_kanto.png", bg = "white")
+ggplot2::ggsave(map1980to2015, filename = "output/map_image/Railroad/harmonized/multiple/1980to2015_UEAmap_kanto.png", bg = "white", dpi = 1200)
 
 
 

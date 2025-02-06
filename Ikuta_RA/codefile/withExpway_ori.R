@@ -455,37 +455,37 @@ map1980to2015 <- patchwork::wrap_plots(UEA_map, nrow = 3) +
   patchwork::plot_annotation(
     caption = "この地図はUEAの塗り分け地図に高速道路を重ねたものである。地図の簡略化のため南西諸島･北方四島･小笠原諸島などは省略した。\n市町村の境界については基準化しておらず、それぞれの年のものに従っている。なお、市町村境界については簡略化のため省略している。\n東京都市圏のみ、すべての年で色を固定して表示しているが、その他の都市圏は年によって色が異なる場合がある。\n地図上グレーで塗られた市町村は、どのUEAにも含まれない市町村である。\n1985年については、UEAのコード表が配布されていないため省いている。",
     theme = theme(
-      plot.caption = element_text(size = 5, hjust = 0),
+      plot.caption = element_text(size = 3, hjust = 0),
     )
   )
-ggplot2::ggsave(map1980to2015, filename = "output/map_image/Expway/Original/multiple/1980to2015_UEAmap.png", bg = "white")
+ggplot2::ggsave(map1980to2015, filename = "output/map_image/Expway/Original/multiple/1980to2015_UEAmap.png", bg = "white", dpi = 1200)
 
 map1980to2015 <- patchwork::wrap_plots(CZ_map, nrow = 3) +
   patchwork::plot_annotation(
     caption = "この地図はCZの塗り分け地図に高速道路を重ねたものである。地図の簡略化のため南西諸島･北方四島･小笠原諸島などは省略した。\n市町村の境界については基準化しておらず、それぞれの年のものに従っている。なお、市町村境界については簡略化のため省略している。\n東京都千代田区が含まれるCZのみ、すべての年で色を固定して表示しているが、その他のCZは年によって色が異なる場合がある。",
     theme = theme(
-      plot.caption = element_text(size = 5, hjust = 0),
+      plot.caption = element_text(size = 3, hjust = 0),
     )
   )
-ggplot2::ggsave(map1980to2015, filename = "output/map_image/Expway/Original/multiple/1980to2015_CZmap.png", bg = "white")
+ggplot2::ggsave(map1980to2015, filename = "output/map_image/Expway/Original/multiple/1980to2015_CZmap.png", bg = "white", dpi = 1200)
 
 map1980to2015 <- patchwork::wrap_plots(CZ_map.kanto, nrow = 3) +
   patchwork::plot_annotation(
     caption = "この地図は関東地方のCZの塗り分け地図に高速道路を重ねたものである。\n市町村の境界については基準化しておらず、それぞれの年のものに従っている。なお、市町村境界については簡略化のため省略している。\n東京都千代田区が含まれるCZのみ、すべての年で色を固定して表示しているが、その他のCZは年によって色が異なる場合がある。",
     theme = theme(
-      plot.caption = element_text(size = 5, hjust = 0),
+      plot.caption = element_text(size = 3, hjust = 0),
     )
   )
-ggplot2::ggsave(map1980to2015, filename = "output/map_image/Expway/Original/multiple/1980to2015_CZmap_kanto.png", bg = "white")
+ggplot2::ggsave(map1980to2015, filename = "output/map_image/Expway/Original/multiple/1980to2015_CZmap_kanto.png", bg = "white", dpi = 1200)
 
 map1980to2015 <- patchwork::wrap_plots(UEA_map.kanto, nrow = 3) +
   patchwork::plot_annotation(
     caption = "この地図は関東地方のUEAの塗り分け地図に高速道路を重ねたものである。\n市町村の境界については基準化しておらず、それぞれの年のものに従っている。なお、市町村境界については簡略化のため省略している。\n東京都市圏のみ、すべての年で色を固定して表示しているが、その他の都市圏は年によって色が異なる場合がある。\n地図上グレーで塗られた市町村は、どのUEAにも含まれない市町村である。\n1985年については、UEAのコード表が配布されていないため省いている。",
     theme = theme(
-      plot.caption = element_text(size = 5, hjust = 0),
+      plot.caption = element_text(size = 3, hjust = 0),
     )
   )
-ggplot2::ggsave(map1980to2015, filename = "output/map_image/Expway/Original/multiple/1980to2015_UEAmap_kanto.png", bg = "white")
+ggplot2::ggsave(map1980to2015, filename = "output/map_image/Expway/Original/multiple/1980to2015_UEAmap_kanto.png", bg = "white", dpi = 1200)
 
 
 
