@@ -1,7 +1,8 @@
 pacman::p_load(
   tidyverse,
   sf,
-  patchwork
+  patchwork,
+  ggborderline
 )
 
 White1980.sf <- sf::read_sf("mapdata/mmm19801001/mmm19801001.shp", options = "ENCODING=CP932") %>% 
@@ -72,12 +73,18 @@ for (y in year){
     dplyr::filter(disused < y)
   HSR <- HSR.row %>% 
     dplyr::filter(start <= y & end >= y)
+  coords <- st_coordinates(Rail_exist) |> 
+    data.frame()
+  Rail_exist <- cbind(Rail_exist, coords)
   White1980.sf %>% 
     ggplot2::ggplot() +
     ggplot2::geom_sf(linewidth = 0) +
     ggplot2::geom_sf(data = Rail_disused, color = "red", linewidth = .05) +
     ggplot2::geom_sf(data = HSR, color = "#333333", linewidth = .1, alpha = .5, linetype = "dashed") +
-    ggplot2::geom_sf(data = Rail_exist, color = "black", linewidth = .05) +
+    ggborderline::geom_borderline(data = coords, aes(x = X, y = Y),
+                                  lineend = "square", linejoin = "round",
+                                  bordercolour = "#B8FB3C", color = "black",
+                                  borderwidth = .01, linewidth = .05) +
     ggplot2::theme_bw() +
     ggplot2::theme(legend.position = "none") +
     ggplot2::coord_sf(ylim = c(31.2, 45.5),
@@ -92,5 +99,5 @@ saveMap <- patchwork::wrap_plots(map_list, ncol = 3) +
   patchwork::plot_annotation(caption = "黒い実線が在来線、点線が新幹線、赤線が廃線を示す。",
                              theme = theme(plot.caption = element_text(size = 4)))
 ggplot2::ggsave(plot =saveMap, filename = "output/map_image/Railroad/white/1950to2015_Railmap_nonBoundary.png", dpi = 1200)
-
+ggsave(filename = "cover/tempR.png")
 

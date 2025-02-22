@@ -285,7 +285,7 @@ for (i in (1:length(path_list.McEA))){
 somemaps <- patchwork::wrap_plots(UEA_Whole, nrow = 3) +
   patchwork::plot_annotation(
     caption = "この地図は国内のほぼ全ての市町村についてUEAで塗り分けた地図である。市町村の境界については基準化しておらず、それぞれの年のものに従っている。\n地図の簡略化のため、小笠原諸島(東京都小笠原村)及び北方領土の一部(北海道色丹郡色丹村･国後郡泊村･留夜別村･択捉郡留別村･紗那郡紗那村･蘂取郡蘂取村)を省いている。\n地図の視認性向上のため、沖縄県の市町村については左上の枠内に表示している(沖縄県の市町村に対してすべて、緯度を+5,経度を+15して処理。)。\n東京都市圏のみ、すべての年で色を固定して表示しているが、その他の都市圏は年によって色が異なる場合がある。\n地図上グレーで塗られた市町村は、どのUEAにも含まれない市町村である。1985年については、UEAのコード表が配布されていないため省いている。",
-    theme = theme(plot.caption = element_text(size = 5, hjust = 0))
+    theme = theme(plot.caption = element_text(size = 3, hjust = 0))
   )
 ggplot2::ggsave(somemaps, filename = "output/map_image/TimeSeries_UEA/Original/multiple/1980to2015_UEAmap_Whole.png", bg = "white", dpi = 1200)
 rm(UEA_Whole, somemaps)
@@ -293,7 +293,7 @@ rm(UEA_Whole, somemaps)
 somemaps <- patchwork::wrap_plots(UEA_Enlarged, nrow = 3) +
   patchwork::plot_annotation(
     caption = "この地図は主に北海道･本州･四国･九州についてUEAで塗り分けた地図である。市町村の境界については基準化しておらず、それぞれの年のものに従っている。\n地図の簡略化のため、小笠原諸島(東京都小笠原村)及び北方領土の一部(北海道色丹郡色丹村･国後郡泊村･留夜別村･択捉郡留別村･紗那郡紗那村･蘂取郡蘂取村)を省いている。\n地図の視認性向上のため、北海道の市町村については左上の枠内に表示している(北海道の市町村に対してすべて、緯度を-4,経度を-9して処理した。)。\n東京都市圏のみ、すべての年で色を固定して表示しているが、その他の都市圏は年によって色が異なる場合がある。地図上グレーで塗られた市町村は、どのUEAにも含まれない市町村である。1985年については、UEAのコード表が配布されていないため省いている。",
-    theme = theme(plot.caption = element_text(size = 5, hjust = 0))
+    theme = theme(plot.caption = element_text(size = 3, hjust = 0))
   )
 ggplot2::ggsave(somemaps, filename = "output/map_image/TimeSeries_UEA/Original/multiple/1980to2015_UEAmap_enlarged.png", bg = "white", dpi = 1200)
 rm(UEA_Enlarged, somemaps)
@@ -301,7 +301,7 @@ rm(UEA_Enlarged, somemaps)
 somemaps <- patchwork::wrap_plots(UEA_kanto, nrow = 3) +
   patchwork::plot_annotation(
     caption = "この地図は主に関東地方についてUEAで塗り分けた地図である。市町村の境界については基準化しておらず、それぞれの年のものに従っている。\n地図の視認性向上のため、北海道の市町村については左上の枠内に表示している。\n東京都市圏のみ、すべての年で色を固定して表示しているが、その他の都市圏は年によって色が異なる場合がある。\n地図上グレーで塗られた市町村は、どのUEAにも含まれない市町村である。1985年については、UEAのコード表が配布されていないため省いている。",
-    theme = theme(plot.caption = element_text(size = 5, hjust = 0))
+    theme = theme(plot.caption = element_text(size = 3, hjust = 0))
   )
 ggplot2::ggsave(somemaps, filename = "output/map_image/TimeSeries_UEA/Original/multiple/1980to2015_UEAmap_kanto.png", bg = "white", dpi = 1200)
 
