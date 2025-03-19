@@ -42,7 +42,6 @@ for (y in year) {
     sf::st_make_valid()
   
   neighbors <- spdep::poly2nb(cz_color)
-  neighbor_matrix <- spdep::nb2mat(neighbors, style = "B", zero.policy = TRUE)
   color_assignment <- rep(NA, length(neighbors))
   
   for (i in 1:length(neighbors)) {

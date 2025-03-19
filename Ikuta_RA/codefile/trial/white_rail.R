@@ -81,10 +81,10 @@ for (y in year){
     ggplot2::geom_sf(linewidth = 0) +
     ggplot2::geom_sf(data = Rail_disused, color = "red", linewidth = .05) +
     ggplot2::geom_sf(data = HSR, color = "#333333", linewidth = .1, alpha = .5, linetype = "dashed") +
-    ggborderline::geom_borderline(data = coords, aes(x = X, y = Y),
-                                  lineend = "square", linejoin = "round",
-                                  bordercolour = "#B8FB3C", color = "black",
-                                  borderwidth = .01, linewidth = .05) +
+    # ggborderline::geom_borderline(data = coords, aes(x = X, y = Y),
+    #                               lineend = "square", linejoin = "round",
+    #                               bordercolour = "#B8FB3C", color = "black",
+    #                               borderwidth = .01, linewidth = .05) +
     ggplot2::theme_bw() +
     ggplot2::theme(legend.position = "none") +
     ggplot2::coord_sf(ylim = c(31.2, 45.5),
