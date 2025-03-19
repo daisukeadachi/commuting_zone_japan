@@ -19,6 +19,7 @@ library(patchwork)
 #   sf::st_sfc() %>% 
 #   sf::st_set_crs(4612)
 # rm(lineMatrix)
+colors <- RColorBrewer::brewer.pal(7, "Set1")
 kinki_x = c(134.7, 134.7+2.5)
 kinki_y = c(34.1, 35.5)
 
@@ -59,8 +60,14 @@ UEA_map.Kinki <- list()
 CZ_map <- list()
 CZ_map.Kinki <- list()
 
+muni.sf <- sf::read_sf("mapdata/mmm20151001/mmm20151001.shp", options = "ENCODING=CP932") %>% 
+  dplyr::filter(JISCODE != 13421,
+                JISCODE %not.in% c(1695, 1696, 1698)) %>% # 北方領土･小笠原諸島は解釈が難しいので、地図には出さない
+  dplyr::select(-NO, -DATE) %>% 
+  sf::st_transform(4612)
+
+
 for (i in (1:length(path_list.McEA))){
-  colors <- RColorBrewer::brewer.pal(6, "Set2")
   #### data cleaning ####
   McEA <- readr::read_csv(path_list.McEA[i], locale = locale(encoding = "cp932"), show_col_types = FALSE) %>% 
     rename_with(\(x) stringr::str_replace(x, pattern = " ", replacement = "_")) %>% 
@@ -164,15 +171,19 @@ for (i in (1:length(path_list.McEA))){
   
   #### map making ####
   
-  mapPath <- paste0("mapdata/mmm", year[i], "1001/mmm", year[i], "1001.shp")
-  czPath <- paste0("output/", year[i], "_original.csv")
-  
-  muni.sf <- sf::read_sf(mapPath, options = "ENCODING=CP932") %>% 
-    dplyr::filter(JISCODE != 13421,
-                  JISCODE %not.in% c(1695, 1696, 1698)) %>% # 北方領土･小笠原諸島は解釈が難しいので、地図には出さない
-    dplyr::select(-NO, -DATE) %>% 
-    sf::st_transform(4612)
-  
+  if(year[i] != 2015){
+    codePath <- paste0("mapdata/codelist_", year[i], "1001and20151001.csv")
+    code <- readr::read_csv(codePath, locale = locale(encoding = "cp932")) %>%
+      dplyr::mutate(JISCODE = as.numeric(JISCODE1),
+                    JISCODE_2015 = as.numeric(JISCODE2)) %>% 
+      dplyr::select(JISCODE, JISCODE_2015)
+    UEA <- UEA %>% 
+      dplyr::left_join(code, by = "JISCODE") %>% 
+      dplyr::select(-JISCODE) %>% 
+      dplyr::rename(JISCODE = JISCODE_2015) %>% 
+      dplyr::distinct()
+  }
+  czPath <- paste0("output/", year[i], "_harmonized.csv")
   UEA.sf <- muni.sf %>% 
     dplyr::mutate(JISCODE = dplyr::if_else((stringr::str_sub(CNAME, -1, -1) == "区" & PNAME == "東京都"), 
                                            base::trunc(JISCODE * 0.01) * 100 , 
@@ -182,7 +193,7 @@ for (i in (1:length(path_list.McEA))){
     dplyr::left_join(UEA, by = "JISCODE")
   
   CZ.sf <- muni.sf %>% 
-    dplyr::left_join(readr::read_csv(czPath, show_col_types = FALSE), by = c("JISCODE" = "i"))
+    dplyr::left_join(readr::read_csv(czPath), by = c("JISCODE" = "i"))
   
   sf_use_s2(FALSE) 
   
@@ -204,7 +215,7 @@ for (i in (1:length(path_list.McEA))){
   }
   UEA_color$color <- color_assignment
   UEA.sf <- UEA_color 
-  rm(j, neighbors, color_assignment, available_colors, UEA_color, roop)
+  rm(j, neighbors, color_assignment, available_colors, UEA_color)
   
   CZ_color <- CZ.sf %>%
     dplyr::group_by(cluster) %>%
@@ -212,19 +223,19 @@ for (i in (1:length(path_list.McEA))){
     dplyr::summarise() %>%
     sf::st_make_valid()
   EdoCenter <- which(CZ.sf$JISCODE == 27100)
-  Gohunai <- CZ.sf$cluster[EdoCenter] 
+  Gohunai <- CZ.sf$cluster[EdoCenter]
   
   neighbors <- spdep::poly2nb(CZ_color)
   color_assignment <- rep(NA, length(neighbors))
-  color_assignment[Gohunai] <- "#E5C494"
+  color_assignment[Gohunai] <- colors[1]
   roop <- (1:length(neighbors))[-Gohunai]
+  
   for (j in roop) {
     available_colors <- setdiff(colors, color_assignment[neighbors[[j]]])
     color_assignment[j] <- available_colors[1]
   }
   CZ_color$color <- color_assignment
   CZ.sf <- CZ_color
-  print(CZ.sf$color[Gohunai])
   rm(j, neighbors, color_assignment, available_colors, CZ_color, EdoCenter, Gohunai)
   
   
@@ -243,7 +254,7 @@ for (i in (1:length(path_list.McEA))){
   # 
   
   ### Kinki ####################################################################
-  colors <- RColorBrewer::brewer.pal(7, "Set2")
+  
   UEA.sf %>% #近畿地方･UEA･編年用
     ggplot2::ggplot() +
     ggplot2::geom_sf(data = muni.sf, fill = "darkgrey", linewidth = 0) +
@@ -262,7 +273,7 @@ for (i in (1:length(path_list.McEA))){
   
   CZ.sf %>% # 近畿地方･CZ･編年用
     ggplot2::ggplot() +
-    ggplot2::geom_sf(aes(fill = color), linewidth = .05) +
+    ggplot2::geom_sf(aes(fill = color), linewidth = 0) +
     ggplot2::scale_fill_manual(values = colors) +
     ggplot2::geom_sf(data = SHR, color = "#333333", linewidth = .2, linetype = "dashed") +
     ggplot2::geom_sf(data = Rail, color = "black", linewidth = .2) +
@@ -308,7 +319,7 @@ for (i in (1:length(path_list.McEA))){
       caption = "この地図は近畿地方のCZ･UEAの塗り分け図に鉄道を載せたものである。点線は新幹線、実線は在来線を示している。\n簡略化のため、市町村境界は表示していない。\nUEAの地図においてグレーとなっているところは、どのUEAにも属さない市町村である。",
       theme = theme(plot.caption = element_text(size = 5, hjust = 0))
     )
-  ggplot2::ggsave(joinedmap,filename = paste0("output/map_image/Railroad/Original/Kinki/", year[i], "_Kinki_UEAandCZmap.png"), width = 5, height = 3, dpi = 900)
+  ggplot2::ggsave(joinedmap,filename = paste0("output/map_image/Railroad/harmonized/Kinki/", year[i], "_Kinki_UEAandCZmap.png"), width = 5, height = 3, dpi = 900)
   
   if (i == 5) {
     muni.sf <- sf::read_sf("mapdata/mmm19851001/mmm19851001.shp", options = "ENCODING=CP932") %>% 
@@ -364,9 +375,9 @@ for (i in (1:length(path_list.McEA))){
                         xlim = kinki_x,
                         datum = NA) +
       ggplot2::labs(caption = "(1985)")+
-      theme(plot.caption = element_text(size = 5))　-> CZmap.Kinki
-    CZ_map.Kinki <- append(CZ_map.Kinki, list(CZmap.Kinki))
-    rm(CZmap.Kinki)
+      theme(plot.caption = element_text(size = 5))　-> CZmap.Kanto
+    CZ_map.kanto <- append(CZ_map.Kinki, list(CZmap.Kanto))
+    rm(CZmap.Kanto)
     CZ.sf %>%
       ggplot2::ggplot() +
       ggplot2::geom_sf(aes(fill = color), linewidth = .05, color = "gainsboro") +
@@ -380,13 +391,15 @@ for (i in (1:length(path_list.McEA))){
       ggplot2::labs(caption = "この地図は近畿地方のCZ･UEAの塗り分け図に鉄道を載せたものである。点線は新幹線、実線は在来線を示している。\n市町村の境界については基準化しておらず、それぞれの年のものに従っている。\nなお、市町村境界については簡略化のため省略している。") + 
       ggplot2::theme(legend.position = "none", 
                      plot.caption = element_text(size = 5, hjust = 0)) -> CZ1985
-    ggplot2::ggsave(CZ1985, filename = "output/map_image/Railroad/Original/Kinki/1985_Kinki_CZmap.png", width = 5, height = 3, dpi = 600)
+    ggplot2::ggsave(CZ1985, filename = "output/map_image/Railroad/harmonized/Kinki/1985_kanto_CZmap.png", width = 5, height = 3, dpi = 600)
     rm(CZ1985)
 
+    
   }
   
-
+  
 }
+
 
 UEA_map.Kinki <- UEA_map.Kinki[c(setdiff(seq_len(length(UEA_map.Kinki)), seq(1, 4)), seq(1, 4))]
 CZ_map.Kinki <- CZ_map.Kinki[c(setdiff(seq_len(length(CZ_map.Kinki)), seq(1, 4)), seq(1, 4))]
@@ -398,7 +411,7 @@ map1980to2015 <- patchwork::wrap_plots(CZ_map.Kinki, nrow = 3) +
       plot.caption = element_text(size = 3, hjust = 0),
     )
   )
-ggplot2::ggsave(map1980to2015, filename = "output/map_image/Railroad/Original/multiple/1980to2015_CZmap_Kinki.png", bg = "white", dpi = 1200)
+ggplot2::ggsave(map1980to2015, filename = "output/map_image/Railroad/harmonized/multiple/1980to2015_CZmap_Kinki.png", bg = "white", dpi = 1200)
 
 map1980to2015 <- patchwork::wrap_plots(UEA_map.Kinki, nrow = 3) +
   patchwork::plot_annotation(
@@ -407,7 +420,7 @@ map1980to2015 <- patchwork::wrap_plots(UEA_map.Kinki, nrow = 3) +
       plot.caption = element_text(size = 3, hjust = 0),
     )
   )
-ggplot2::ggsave(map1980to2015, filename = "output/map_image/Railroad/Original/multiple/1980to2015_UEAmap_Kinki.png", bg = "white", dpi = 1200)
+ggplot2::ggsave(map1980to2015, filename = "output/map_image/Railroad/harmonized/multiple/1980to2015_UEAmap_Kinki.png", bg = "white", dpi = 1200)
 
 
 
