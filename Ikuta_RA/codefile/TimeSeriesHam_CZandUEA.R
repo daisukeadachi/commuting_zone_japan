@@ -43,8 +43,7 @@ for (i in (1:length(path_list.McEA))){
   McEA <- readr::read_csv(path_list.McEA[i], locale = locale(encoding = "cp932"), show_col_types = FALSE) %>% 
     rename_with(\(x) stringr::str_replace(x, pattern = " ", replacement = "_")) %>% 
     rename(UEA = 1) 
-  
-  
+
   McEA.C <- readr::read_csv(path_list.McEA.C[i], locale = locale(encoding = "cp932"), show_col_types = FALSE) %>% 
     rename_with(\(x) stringr::str_replace(x, pattern = " ", replacement = "_")) %>% 
     rename(UEA = 1)
@@ -181,8 +180,7 @@ for (i in (1:length(path_list.McEA))){
     sf::st_make_valid()
   
   neighbors <- spdep::poly2nb(UEA_color)
-  neighbor_matrix <- spdep::nb2mat(neighbors, style = "B", zero.policy = TRUE)
-  
+
   color_assignment <- rep(NA, length(neighbors))
   color_assignment[which(UEA_color$UEA == 13100)] <- colors[1]
   roop <- (1:length(neighbors))[-which(UEA_color$UEA == 13100)]
@@ -208,8 +206,7 @@ for (i in (1:length(path_list.McEA))){
     sf::st_make_valid()
   
   neighbors <- spdep::poly2nb(CZ_color)
-  neighbor_matrix <- spdep::nb2mat(neighbors, style = "B", zero.policy = TRUE)
-  
+
   
   color_assignment <- rep(NA, length(neighbors))
   
