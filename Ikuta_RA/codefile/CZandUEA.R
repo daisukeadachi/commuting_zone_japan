@@ -24,6 +24,8 @@ muni.sf <- sf::read_sf("mapdata/mmm20151001/mmm20151001.shp", options = "ENCODIN
   dplyr::select(-NO, -DATE) %>% 
   sf::st_transform(4612)
 
+prev_UEA_map <- NULL
+prev_CZ_map <- NULL
 for (y in c(1980, 2015)) {
   # ファイルパスをリストで定義
   if (y == 1980) {
@@ -149,19 +151,23 @@ for (y in c(1980, 2015)) {
   sf_use_s2(FALSE) 
   
   ## UEA ##
-  UEA_color <- assign_group_colors(UEA.sf, "UEA", colors = colors, fixed = list(value = 13100, color = RColorBrewer::brewer.pal(6, "Set2")[6]))
+  UEA_color <- assign_group_colors(UEA.sf, "UEA", colors = colors, fixed = list(value = 13100, color = RColorBrewer::brewer.pal(6, "Set2")[6]), prev_colors = prev_UEA_map)
   UEA.sf <- dplyr::left_join(UEA.sf, UEA_color, by = "UEA") %>% 
     dplyr::mutate(color = dplyr::if_else(
       is.na(color), "#a9a9a9", color
     ))
+  # persist UEA signature->color map for next iteration
+  prev_UEA_map <- UEA_color %>% dplyr::select(signature, color)
   rm(UEA_color)
   
   ## CZ ##
   EdoCenter <- which(CZ.sf$JISCODE == 13101)
   Gohunai <- CZ.sf$cluster[EdoCenter]
-  CZ_color <- assign_group_colors(CZ.sf, "cluster", colors = colors, fixed = list(value = Gohunai, color = RColorBrewer::brewer.pal(6, "Set2")[6]))
+  CZ_color <- assign_group_colors(CZ.sf, "cluster", colors = colors, fixed = list(value = Gohunai, color = RColorBrewer::brewer.pal(6, "Set2")[6]), prev_colors = prev_CZ_map)
   CZ.sf <- dplyr::left_join(CZ.sf, CZ_color, by = "cluster") %>% 
     dplyr::select(geometry, color)
+  # persist CZ signature->color map for next iteration
+  prev_CZ_map <- CZ_color %>% dplyr::select(signature, color)
   rm(CZ_color, EdoCenter, Gohunai)
   ## ggplot zone(for double) #################################################
   UEA.sf %>% 

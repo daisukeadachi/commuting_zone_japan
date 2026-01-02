@@ -18,6 +18,9 @@ kanto_x = c(138, 140.9)
 
 maps = list()
 
+# store signature->color mapping across years
+prev_CZ_map <- NULL
+
 # base municipality data
 muni.sf <- sf::read_sf("mapdata/mmm20151001/mmm20151001.shp", options = "ENCODING=CP932") %>% 
   # 北方領土･小笠原諸島は解釈が難しいので、地図には出さない
@@ -44,9 +47,11 @@ for (y in year){
 sf::sf_use_s2(FALSE)
   EdoCenter <- which(CZ.sf$JISCODE == 13101)
   Gohunai <- CZ.sf$cluster[EdoCenter]
-  CZ_color <- assign_group_colors(CZ.sf, "cluster", colors = colors, fixed = list(value = Gohunai, color = RColorBrewer::brewer.pal(6, "Set2")[6]))
+  CZ_color <- assign_group_colors(CZ.sf, "cluster", colors = colors, fixed = list(value = Gohunai, color = RColorBrewer::brewer.pal(6, "Set2")[6]), prev_colors = prev_CZ_map)
   CZ.sf <- dplyr::left_join(CZ.sf, CZ_color, by = "cluster") %>% 
     dplyr::select(geometry, color)
+  # persist for next year
+  prev_CZ_map <- CZ_color %>% dplyr::select(signature, color)
   rm(CZ_color, EdoCenter, Gohunai)
 
   # Kanto 
