@@ -7,8 +7,8 @@ library(RColorBrewer)
 rm(list = ls())
 
 "%not.in%" <- Negate("%in%")
-colors <- RColorBrewer::brewer.pal(8, "Set1")
-
+colors <- RColorBrewer::brewer.pal(5, "Set2")
+# c("#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3", "#A6D854", "#FFD92F", "#E5C494", "#B3B3B3")
 # limitation range
 lim_y = c(34.7, 37.1)
 lim_x = c(138, 140.9)
@@ -22,40 +22,32 @@ muni.sf <- sf::read_sf("mapdata/mmm20151001/mmm20151001.shp", options = "ENCODIN
   sf::st_transform(4612)
 
 for (y in c(1980, 2015)) {
+  # ファイルパスをリストで定義
   if (y == 1980) {
-    McEA <- readr::read_csv("https://www.csis.u-tokyo.ac.jp/UEA/McEA80_Rev07.csv", locale = readr::locale(encoding = "cp932"), show_col_types = FALSE) %>% 
-      rename_with(\(x) stringr::str_replace(x, pattern = " ", replacement = "_")) %>% 
-      rename(UEA = 1) 
-    
-    McEA.C <- readr::read_csv("https://www.csis.u-tokyo.ac.jp/UEA/McEA80C_Rev07.csv", locale = readr::locale(encoding = "cp932"), show_col_types = FALSE) %>% 
-      rename_with(\(x) stringr::str_replace(x, pattern = " ", replacement = "_")) %>% 
-      rename(UEA = 1)
-    
-    MEA <- readr::read_csv("https://www.csis.u-tokyo.ac.jp/UEA/MEA80_Rev07.csv", locale = readr::locale(encoding = "cp932"), show_col_types = FALSE) %>% 
-      rename_with(\(x) stringr::str_replace(x, pattern = " ", replacement = "_")) %>% 
-      rename(UEA = 1)
-    
-    MEA.C <- readr::read_csv("https://www.csis.u-tokyo.ac.jp/UEA/MEA80C_Rev07.csv", locale = readr::locale(encoding = "cp932"), show_col_types = FALSE) %>% 
-      rename_with(\(x) stringr::str_replace(x, pattern = " ", replacement = "_")) %>% 
-      rename(UEA = 1)
-  } 
-  if (y == 2015) {
-    McEA <- readr::read_csv("https://www.csis.u-tokyo.ac.jp/UEA/McEA2005.csv", locale = readr::locale(encoding = "cp932"), show_col_types = FALSE) %>% 
-      rename_with(\(x) stringr::str_replace(x, pattern = " ", replacement = "_")) %>% 
-      rename(UEA = 1) 
-    
-    McEA.C <- readr::read_csv("https://www.csis.u-tokyo.ac.jp/UEA/McEA2005C.csv", locale = readr::locale(encoding = "cp932"), show_col_types = FALSE) %>% 
-      rename_with(\(x) stringr::str_replace(x, pattern = " ", replacement = "_")) %>% 
-      rename(UEA = 1)
-    
-    MEA <- readr::read_csv("https://www.csis.u-tokyo.ac.jp/UEA/MEA2005.csv", locale = readr::locale(encoding = "cp932"), show_col_types = FALSE) %>% 
-      rename_with(\(x) stringr::str_replace(x, pattern = " ", replacement = "_")) %>% 
-      rename(UEA = 1)
-    
-    MEA.C <- readr::read_csv("https://www.csis.u-tokyo.ac.jp/UEA/MEA2005C.csv", locale = readr::locale(encoding = "cp932"), show_col_types = FALSE) %>% 
-      rename_with(\(x) stringr::str_replace(x, pattern = " ", replacement = "_")) %>% 
-      rename(UEA = 1)
+    files <- list(
+      McEA = "data/UEA/suburb/McEA/McEA80_Rev07.csv",
+      McEA.C = "data/UEA/center/McEA/McEA80C_Rev07.csv",
+      MEA = "data/UEA/suburb/MEA/MEA80_Rev07.csv",
+      MEA.C = "data/UEA/center/MEA/MEA80C_Rev07.csv"
+    )
+  } else if (y == 2015) {
+    files <- list(
+      McEA = "data/UEA/suburb/McEA/McEA2005.csv",
+      McEA.C = "data/UEA/center/McEA/McEA2005C.csv",
+      MEA = "data/UEA/suburb/MEA/MEA2005.csv",
+      MEA.C = "data/UEA/center/MEA/MEA2005C.csv"
+    )
   }
+  
+  # リストのファイルを読み込み
+  data_list <- purrr::map(files, ~readr::read_csv(.x, 
+                                                    locale = readr::locale(encoding = "cp932"), 
+                                                    show_col_types = FALSE) %>% 
+                            rename_with(~stringr::str_replace(.x, pattern = " ", replacement = "_")) %>% 
+                            rename(UEA = 1))
+  
+  # リストから個別の変数に割り当て
+  list2env(data_list, envir = environment())
   if (ncol(McEA) == 20){
     McEA_sub4 <- McEA %>% 
       dplyr::select(UEA, 都市圏名, suburb4) %>% 
@@ -159,11 +151,11 @@ for (y in c(1980, 2015)) {
     dplyr::group_by(UEA) %>%
     dplyr::select(UEA) %>%
     dplyr::summarise() %>%
-    sf::st_make_valid()
+    sf::st_make_valid() 
   
   neighbors <- spdep::poly2nb(UEA_color)
   color_assignment <- rep(NA, length(neighbors))
-  color_assignment[which(UEA_color$UEA == 13100)] <- colors[1]
+  color_assignment[which(UEA_color$UEA == 13100)] <- RColorBrewer::brewer.pal(6, "Set2")[6]
   roop <- (1:length(neighbors))[-which(UEA_color$UEA == 13100)]
   
   for (j in roop) {
@@ -174,7 +166,10 @@ for (y in c(1980, 2015)) {
   UEA_color <- UEA_color %>%
     dplyr::tibble() %>%
     select(-geometry)
-  UEA.sf <- dplyr::left_join(UEA.sf, UEA_color, by = "UEA")
+  UEA.sf <- dplyr::left_join(UEA.sf, UEA_color, by = "UEA") %>% 
+  dplyr::mutate(color = dplyr::if_else(
+    is.na(color), "#a9a9a9", color
+  ))
   
   rm(j, neighbors, color_assignment, available_colors, UEA_color)
   
@@ -191,7 +186,7 @@ for (y in c(1980, 2015)) {
   
   neighbors <- spdep::poly2nb(CZ_color)
   color_assignment <- rep(NA, length(neighbors))
-  color_assignment[edo] <- colors[1]
+  color_assignment[edo] <- RColorBrewer::brewer.pal(6, "Set2")[6]
   roop <- (1:length(neighbors))[-edo]
   for (j in roop) {
     available_colors <- lubridate::setdiff(colors, color_assignment[neighbors[[j]]])
@@ -208,7 +203,7 @@ for (y in c(1980, 2015)) {
   UEA.sf %>% 
     ggplot2::ggplot() + 
     ggplot2::geom_sf(aes(fill = color), linewidth = width) +
-    ggplot2::scale_fill_manual(values = colors) +
+    ggplot2::scale_fill_identity() +
     ggplot2::theme_bw() +
     ggplot2::theme(legend.position = "none") +
     ggplot2::coord_sf(ylim = lim_y,
@@ -219,7 +214,7 @@ for (y in c(1980, 2015)) {
   CZ.sf %>% 
     ggplot2::ggplot() + 
     ggplot2::geom_sf(aes(fill = color), linewidth = width) +
-    ggplot2::scale_fill_manual(values = colors) +
+    ggplot2::scale_fill_identity() +
     ggplot2::theme_bw() +
     ggplot2::theme(legend.position = "none") +
     ggplot2::coord_sf(ylim = lim_y,
@@ -236,8 +231,10 @@ for (y in c(1980, 2015)) {
                 plot.title = ggplot2::element_text(size = 11)
                 )
     )
-  ggplot2::ggsave(doubleMap, filename = paste0("output/map_image/CZ/master/", y, "_UEAandCZmap_eng.png"), 
+  ggplot2::ggsave(doubleMap, filename = paste0("output/map_image/CZ/master/", y, "_UEAandCZmap_eng.svg"), 
+                  device = svg,
                   bg = "white", width = 5, height = 3)
   rm(doubleMap, CZmap, UEAmap, UEA.sf, CZ.sf)
 
 }
+

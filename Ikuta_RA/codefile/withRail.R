@@ -19,7 +19,7 @@ HokkaidoLine <- rbind(c(137.5, 45), c(137.5, 40), c(134, 37), c(120, 37)) %>%
   sf::st_linestring() %>% 
   sf::st_sfc(crs = 4612) %>% 
   sf::st_sf()
-colors <- RColorBrewer::brewer.pal(8, "Set1")
+colors <- RColorBrewer::brewer.pal(8, "Set2")
 
 # limitation range
 kanto_y = c(34.7, 37.1)
@@ -121,7 +121,7 @@ muni.sf <- sf::read_sf("mapdata/mmm20151001/mmm20151001.shp", options = "ENCODIN
     ggplot2::coord_sf(ylim = kanto_y,
                       xlim = kanto_x,
                       datum = NA) +
-    ggplot2::labs(title = paste0("CZ and railroad in Kanto district(", y, ")"))+
+    ggplot2::labs(title = paste0("CZ and railroads in Kanto district(", y, ")"))+
     ggplot2::theme(plot.title    = ggplot2::element_text(size = 10))　-> CZmap
   filepath = paste0("output/map_image/CZ/master/", y, "_kanto_CZwithRailmap_eng.png")
   ggplot2::ggsave(filename = filepath, plot = CZmap)

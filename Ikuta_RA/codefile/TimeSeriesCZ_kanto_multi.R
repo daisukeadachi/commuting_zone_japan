@@ -9,8 +9,7 @@ rm(list =ls())
 
 "%not.in%" <- Negate("%in%")
 year <- seq(1980, 2020, 5)
-colors <- RColorBrewer::brewer.pal(8, "Set1")
-
+colors <- RColorBrewer::brewer.pal(5, "Set2")
 # limitation range
 kanto_y = c(34.7, 37.1)
 kanto_x = c(138, 140.9)
@@ -53,7 +52,7 @@ for (y in year){
   
   neighbors <- spdep::poly2nb(CZ_color)
   color_assignment <- rep(NA, length(neighbors))
-  color_assignment[edo] <- colors[1]
+  color_assignment[edo] <- RColorBrewer::brewer.pal(6, "Set2")[6]
   roop <- (1:length(neighbors))[-edo]
   for (j in roop) {
     available_colors <- lubridate::setdiff(colors, color_assignment[neighbors[[j]]])
@@ -71,7 +70,7 @@ for (y in year){
   CZ.sf %>% 
     ggplot2::ggplot() +
     ggplot2::geom_sf(aes(fill = color), linewidth = .05) +
-    ggplot2::scale_fill_manual(values = colors) +
+    ggplot2::scale_fill_identity() +
     ggplot2::theme_bw() +
     ggplot2::theme(legend.position = "none") +
     ggplot2::coord_sf(ylim = kanto_y,
@@ -84,7 +83,7 @@ for (y in year){
     CZ.sf %>% 
       ggplot2::ggplot() +
       ggplot2::geom_sf(aes(fill = color), linewidth = .1) +
-      ggplot2::scale_fill_manual(values = colors) +
+    ggplot2::scale_fill_identity() +
       ggplot2::theme_bw() +
       ggplot2::theme(legend.position = "none") +
       ggplot2::coord_sf(ylim = kanto_y,
