@@ -4,6 +4,8 @@ library(patchwork)
 library(RColorBrewer)
 library(spdep)
 rm(list =ls())
+# helper for assigning colors to grouped polygons
+source("codefile/color_assignment.R")
 # This code generate original CZ map in Kanto (the year of municipality data equal to the year of CZ data.) 
 # This code only make one file including all year(1980~2020) maps. 
 
@@ -39,32 +41,13 @@ for (y in year){
   
   # combining all municipalities in the same CZ.
   # to process sf object with dplyr::summarise(), we switch s2 geometry engine off
-  sf::sf_use_s2(FALSE) 
-  CZ_color <- CZ.sf %>%
-    dplyr::group_by(cluster) %>%
-    dplyr::select(cluster) %>%
-    dplyr::summarise() %>%
-    sf::st_make_valid() 
-  
+sf::sf_use_s2(FALSE)
   EdoCenter <- which(CZ.sf$JISCODE == 13101)
   Gohunai <- CZ.sf$cluster[EdoCenter]
-  edo <- which(CZ_color$cluster == Gohunai)
-  
-  neighbors <- spdep::poly2nb(CZ_color)
-  color_assignment <- rep(NA, length(neighbors))
-  color_assignment[edo] <- RColorBrewer::brewer.pal(6, "Set2")[6]
-  roop <- (1:length(neighbors))[-edo]
-  for (j in roop) {
-    available_colors <- lubridate::setdiff(colors, color_assignment[neighbors[[j]]])
-    color_assignment[j] <- available_colors[1]
-  }
-  CZ_color$color <- color_assignment
-  CZ_color <- CZ_color %>%
-    dplyr::tibble() %>%
-    dplyr::select(-geometry)
+  CZ_color <- assign_group_colors(CZ.sf, "cluster", colors = colors, fixed = list(value = Gohunai, color = RColorBrewer::brewer.pal(6, "Set2")[6]))
   CZ.sf <- dplyr::left_join(CZ.sf, CZ_color, by = "cluster") %>% 
     dplyr::select(geometry, color)
-  rm(j, neighbors, color_assignment, available_colors, CZ_color)
+  rm(CZ_color, EdoCenter, Gohunai)
 
   # Kanto 
   CZ.sf %>% 

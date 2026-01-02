@@ -6,6 +6,9 @@ library(RColorBrewer)
 
 rm(list = ls())
 
+# helper for assigning colors to grouped polygons
+source("codefile/color_assignment.R")
+
 "%not.in%" <- Negate("%in%")
 colors <- RColorBrewer::brewer.pal(5, "Set2")
 # c("#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3", "#A6D854", "#FFD92F", "#E5C494", "#B3B3B3")
@@ -146,59 +149,20 @@ for (y in c(1980, 2015)) {
   sf_use_s2(FALSE) 
   
   ## UEA ##
-  UEA_color <- UEA.sf %>%
-    tidyr::drop_na(UEA) %>% 
-    dplyr::group_by(UEA) %>%
-    dplyr::select(UEA) %>%
-    dplyr::summarise() %>%
-    sf::st_make_valid() 
-  
-  neighbors <- spdep::poly2nb(UEA_color)
-  color_assignment <- rep(NA, length(neighbors))
-  color_assignment[which(UEA_color$UEA == 13100)] <- RColorBrewer::brewer.pal(6, "Set2")[6]
-  roop <- (1:length(neighbors))[-which(UEA_color$UEA == 13100)]
-  
-  for (j in roop) {
-    available_colors <- setdiff(colors, color_assignment[neighbors[[j]]])
-    color_assignment[j] <- available_colors[1]
-  }
-  UEA_color$color <- color_assignment
-  UEA_color <- UEA_color %>%
-    dplyr::tibble() %>%
-    select(-geometry)
+  UEA_color <- assign_group_colors(UEA.sf, "UEA", colors = colors, fixed = list(value = 13100, color = RColorBrewer::brewer.pal(6, "Set2")[6]))
   UEA.sf <- dplyr::left_join(UEA.sf, UEA_color, by = "UEA") %>% 
-  dplyr::mutate(color = dplyr::if_else(
-    is.na(color), "#a9a9a9", color
-  ))
-  
-  rm(j, neighbors, color_assignment, available_colors, UEA_color)
+    dplyr::mutate(color = dplyr::if_else(
+      is.na(color), "#a9a9a9", color
+    ))
+  rm(UEA_color)
   
   ## CZ ##
-  CZ_color <- CZ.sf %>%
-    dplyr::group_by(cluster) %>%
-    dplyr::select(cluster) %>%
-    dplyr::summarise() %>%
-    sf::st_make_valid()
-
   EdoCenter <- which(CZ.sf$JISCODE == 13101)
   Gohunai <- CZ.sf$cluster[EdoCenter]
-  edo <- which(CZ_color$cluster == Gohunai)
-  
-  neighbors <- spdep::poly2nb(CZ_color)
-  color_assignment <- rep(NA, length(neighbors))
-  color_assignment[edo] <- RColorBrewer::brewer.pal(6, "Set2")[6]
-  roop <- (1:length(neighbors))[-edo]
-  for (j in roop) {
-    available_colors <- lubridate::setdiff(colors, color_assignment[neighbors[[j]]])
-    color_assignment[j] <- available_colors[1]
-  }
-  CZ_color$color <- color_assignment
-  CZ_color <- CZ_color %>%
-    dplyr::tibble() %>%
-    dplyr::select(-geometry)
+  CZ_color <- assign_group_colors(CZ.sf, "cluster", colors = colors, fixed = list(value = Gohunai, color = RColorBrewer::brewer.pal(6, "Set2")[6]))
   CZ.sf <- dplyr::left_join(CZ.sf, CZ_color, by = "cluster") %>% 
     dplyr::select(geometry, color)
-  rm(j, neighbors, color_assignment, available_colors, CZ_color)
+  rm(CZ_color, EdoCenter, Gohunai)
   ## ggplot zone(for double) #################################################
   UEA.sf %>% 
     ggplot2::ggplot() + 
