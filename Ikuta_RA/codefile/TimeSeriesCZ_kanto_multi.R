@@ -5,7 +5,7 @@ library(RColorBrewer)
 library(spdep)
 rm(list =ls())
 # helper for assigning colors to grouped polygons
-source("codefile/color_assignment.R")
+source("codefile/color_assignment_impl.R")
 # This code generate original CZ map in Kanto (the year of municipality data equal to the year of CZ data.) 
 # This code only make one file including all year(1980~2020) maps. 
 
@@ -18,8 +18,10 @@ kanto_x = c(138, 140.9)
 
 maps = list()
 
-# store signature->color mapping across years
-prev_CZ_map <- NULL
+# directory to persist signature->color maps across runs
+color_map_dir <- "output/color_map"
+# load previous CZ map if exists
+prev_CZ_map <- load_color_map("CZ", dir = color_map_dir)
 
 # base municipality data
 muni.sf <- sf::read_sf("mapdata/mmm20151001/mmm20151001.shp", options = "ENCODING=CP932") %>% 
@@ -50,8 +52,9 @@ sf::sf_use_s2(FALSE)
   CZ_color <- assign_group_colors(CZ.sf, "cluster", colors = colors, fixed = list(value = Gohunai, color = RColorBrewer::brewer.pal(6, "Set2")[6]), prev_colors = prev_CZ_map)
   CZ.sf <- dplyr::left_join(CZ.sf, CZ_color, by = "cluster") %>% 
     dplyr::select(geometry, color)
-  # persist for next year
+  # persist and save for next year
   prev_CZ_map <- CZ_color %>% dplyr::select(signature, color)
+  save_color_map(prev_CZ_map, "CZ", dir = color_map_dir)
   rm(CZ_color, EdoCenter, Gohunai)
 
   # Kanto 

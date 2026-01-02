@@ -7,7 +7,7 @@ library(RColorBrewer)
 rm(list = ls())
 
 # helper for assigning colors to grouped polygons
-source("codefile/color_assignment.R")
+source("codefile/color_assignment_impl.R")
 
 "%not.in%" <- Negate("%in%")
 colors <- RColorBrewer::brewer.pal(5, "Set2")
@@ -24,8 +24,11 @@ muni.sf <- sf::read_sf("mapdata/mmm20151001/mmm20151001.shp", options = "ENCODIN
   dplyr::select(-NO, -DATE) %>% 
   sf::st_transform(4612)
 
-prev_UEA_map <- NULL
-prev_CZ_map <- NULL
+# directory to persist signature->color maps across runs
+color_map_dir <- "output/color_map"
+# load previously saved maps if any
+prev_UEA_map <- load_color_map("UEA", dir = color_map_dir)
+prev_CZ_map <- load_color_map("CZ", dir = color_map_dir)
 for (y in c(1980, 2015)) {
   # ファイルパスをリストで定義
   if (y == 1980) {
@@ -156,8 +159,9 @@ for (y in c(1980, 2015)) {
     dplyr::mutate(color = dplyr::if_else(
       is.na(color), "#a9a9a9", color
     ))
-  # persist UEA signature->color map for next iteration
+  # persist and save UEA signature->color map
   prev_UEA_map <- UEA_color %>% dplyr::select(signature, color)
+  save_color_map(prev_UEA_map, "UEA", dir = color_map_dir)
   rm(UEA_color)
   
   ## CZ ##
@@ -166,8 +170,9 @@ for (y in c(1980, 2015)) {
   CZ_color <- assign_group_colors(CZ.sf, "cluster", colors = colors, fixed = list(value = Gohunai, color = RColorBrewer::brewer.pal(6, "Set2")[6]), prev_colors = prev_CZ_map)
   CZ.sf <- dplyr::left_join(CZ.sf, CZ_color, by = "cluster") %>% 
     dplyr::select(geometry, color)
-  # persist CZ signature->color map for next iteration
+  # persist and save CZ signature->color map for next iteration
   prev_CZ_map <- CZ_color %>% dplyr::select(signature, color)
+  save_color_map(prev_CZ_map, "CZ", dir = color_map_dir)
   rm(CZ_color, EdoCenter, Gohunai)
   ## ggplot zone(for double) #################################################
   UEA.sf %>% 

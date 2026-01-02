@@ -4,7 +4,10 @@ library(RColorBrewer)
 library(spdep)
 rm(list =ls())
 # helper for assigning colors to grouped polygons
-source("codefile/color_assignment.R")
+source("codefile/color_assignment_impl.R")
+# directory to persist signature->color maps across runs
+color_map_dir <- "output/color_map"
+prev_CZ_map <- load_color_map("CZ", dir = color_map_dir)
 # This code generate original CZ map (the year of municipality data equal to the year of CZ data.) 
 # This code only make the one year maps. This code make not only simple map but als
 # the number of map variation is 4
@@ -76,9 +79,12 @@ muni.sf <- sf::read_sf("mapdata/mmm20151001/mmm20151001.shp", options = "ENCODIN
   
   # combining all municipalities in the same CZ.
   # to process sf object with dplyr::summarise(), we switch s2 geometry engine off
-  CZ_color <- assign_group_colors(CZ.sf, "cluster", colors = colors)
+  CZ_color <- assign_group_colors(CZ.sf, "cluster", colors = colors, prev_colors = prev_CZ_map)
   CZ.sf <- dplyr::left_join(CZ.sf, CZ_color, by = "cluster") %>% 
     dplyr::select(JISCODE, geometry, color)
+  # persist and save CZ map
+  prev_CZ_map <- CZ_color %>% dplyr::select(signature, color)
+  save_color_map(prev_CZ_map, "CZ", dir = color_map_dir)
   rm(CZ_color)
   
   
