@@ -143,3 +143,24 @@ save_color_map <- function(map_df, kind, dir = "output/color_map"){
   readr::write_csv(combined, file)
   return(invisible(combined))
 }
+
+
+#' @description to save space, move Hokkaido to north west of the image.
+#' @param sf_obj sf object including municipalities in Hokkaido
+#' @param jis_col the name containing JISCODE
+#' @param shift Numeric vec to adjust position. Default:c(10,4) 
+move_Hokaido <- function(sf_obj, jis_col = "JISCODE", shift = c(10, 4)){
+    #### moving Hokkaido ####
+  require(dplyr)
+  require(magrittr)
+  # To generate enlarge map, we move Hokkaido to upper side by edit geometry.
+  movement_Hokkaido <- sf_obj %>% 
+    dplyr::filter(.data[[jis_col]] %in% (1000:1999)) %>% 
+    # Minus 10 from longitude and 4 from latitude. 
+    sf::st_set_geometry(sf::st_geometry(sf_obj %>% dplyr::filter(.data[[jis_col]] %in% (1000:1999))) - shift) %>% 
+    sf::st_set_crs(4612)
+  master <- sf_obj %>% 
+    dplyr::filter(!(.data[[jis_col]] %in% (1000:1999))) %>% 
+    dplyr::bind_rows(movement_Hokkaido) 
+  return(master)
+}
