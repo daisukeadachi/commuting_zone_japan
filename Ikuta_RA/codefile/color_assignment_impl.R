@@ -1,11 +1,10 @@
-# Color assignment helper for polygon groups
-# assign_group_colors(sf_obj, group_col, colors = RColorBrewer::brewer.pal(5, "Set2"), fixed = NULL, prev_colors = NULL)
-# - sf_obj: an sf object containing the grouping column
-# - group_col: name of the grouping column as a string (e.g., "cluster" or "UEA")
-# - colors: character vector of color hex codes
-# - fixed: optional list(value = <group value to pin>, color = <hex string>)
-# - prev_colors: optional mapping signature -> color (named vector or data.frame with columns signature,color)
-
+#' @description  Color assignment helper for polygon groups
+#' assign_group_colors(sf_obj, group_col, colors = RColorBrewer::brewer.pal(5, "Set2"), fixed = NULL, prev_colors = NULL)
+#' - sf_obj: an sf object containing the grouping column
+#' - group_col: name of the grouping column as a string (e.g., "cluster" or "UEA")
+#' - colors: character vector of color hex codes
+#' - fixed: optional list(value = <group value to pin>, color = <hex string>)
+#' - prev_colors: optional mapping signature -> color (named vector or data.frame with columns signature,color)
 assign_group_colors <- function(sf_obj, group_col, colors = RColorBrewer::brewer.pal(5, "Set2"), fixed = NULL, prev_colors = NULL){
   #' prev_colors: optional mapping of signatures to colors. Accepts named character vector (names = signature, values = color) or data.frame/tibble with columns `signature` and `color`. When provided, groups whose membership signature matches will reuse the color.
   stopifnot(!missing(sf_obj), !missing(group_col))
@@ -114,7 +113,7 @@ assign_group_colors <- function(sf_obj, group_col, colors = RColorBrewer::brewer
   return(out)
 }
 
-# Load persisted color map for a given kind (e.g., "CZ", "UEA") from directory
+#' @description Load persisted color map for a given kind (e.g., "CZ", "UEA") from directory
 load_color_map <- function(kind, dir = "output/color_map"){
   file <- file.path(dir, paste0(kind, "_signature_color.csv"))
   if (!file.exists(file)) return(NULL)
@@ -123,7 +122,7 @@ load_color_map <- function(kind, dir = "output/color_map"){
   return(m %>% dplyr::select(signature, color))
 }
 
-# Save/merge color map: keep existing entries and append new ones
+#' @description Save/merge color map: keep existing entries and append new ones
 save_color_map <- function(map_df, kind, dir = "output/color_map"){
   if (is.null(map_df) || nrow(map_df) == 0) return(invisible(NULL))
   if (!all(c("signature","color") %in% names(map_df))) stop("map_df must contain 'signature' and 'color' columns")
