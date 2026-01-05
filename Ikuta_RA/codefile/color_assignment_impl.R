@@ -5,7 +5,7 @@
 #' - colors: character vector of color hex codes
 #' - fixed: optional list(value = <group value to pin>, color = <hex string>)
 #' - prev_colors: optional mapping signature -> color (named vector or data.frame with columns signature,color)
-assign_group_colors <- function(sf_obj, group_col, colors = RColorBrewer::brewer.pal(5, "Set2"), fixed = NULL, prev_colors = NULL){
+assign_group_colors <- function(sf_obj, group_col, colors = RColorBrewer::brewer.pal(5, "Set2"), fixed = NULL, prev_colors = NULL) {
   #' prev_colors: optional mapping of signatures to colors. Accepts named character vector (names = signature, values = color) or data.frame/tibble with columns `signature` and `color`. When provided, groups whose membership signature matches will reuse the color.
   stopifnot(!missing(sf_obj), !missing(group_col))
   # make sure required packages are available
@@ -21,13 +21,13 @@ assign_group_colors <- function(sf_obj, group_col, colors = RColorBrewer::brewer
   grp <- sf_obj[!is.na(sf_obj[[group_col]]), , drop = FALSE]
 
   # compute membership signature (sorted JISCODEs joined) so we can reuse colors across years
-  if (!"JISCODE" %in% names(sf_obj)){
+  if (!"JISCODE" %in% names(sf_obj)) {
     warning("sf_obj does not contain 'JISCODE' column; prev_colors matching by membership will be disabled")
     signatures <- rep(NA_character_, length(unique(grp[[group_col]])))
     group_vals <- unique(grp[[group_col]])
   } else {
     group_vals <- unique(grp[[group_col]])
-    signatures <- vapply(group_vals, function(g){
+    signatures <- vapply(group_vals, function(g) {
       mem <- grp$JISCODE[grp[[group_col]] == g]
       mem <- sort(unique(as.character(mem)))
       paste(mem, collapse = ",")
@@ -48,24 +48,24 @@ assign_group_colors <- function(sf_obj, group_col, colors = RColorBrewer::brewer
   color_assignment <- rep(NA_character_, length(neighbors))
 
   # apply prev_colors mapping (by membership signature) if provided
-  if (!is.null(prev_colors) && !is.null(grp_signature)){
+  if (!is.null(prev_colors) && !is.null(grp_signature)) {
     # normalize prev_colors to named character vector: names = signature, values = color
-    if (is.data.frame(prev_colors)){
-      if (!all(c("signature","color") %in% names(prev_colors))) stop("prev_colors data.frame must contain columns 'signature' and 'color'")
+    if (is.data.frame(prev_colors)) {
+      if (!all(c("signature", "color") %in% names(prev_colors))) stop("prev_colors data.frame must contain columns 'signature' and 'color'")
       prev_map <- setNames(as.character(prev_colors$color), as.character(prev_colors$signature))
-    } else if (is.character(prev_colors) && !is.null(names(prev_colors))){
+    } else if (is.character(prev_colors) && !is.null(names(prev_colors))) {
       prev_map <- prev_colors
     } else {
       stop("prev_colors must be a named character vector or a data.frame/tibble with columns 'signature' and 'color'")
     }
     matched <- which(grp_signature %in% names(prev_map))
-    if (length(matched) > 0){
+    if (length(matched) > 0) {
       color_assignment[matched] <- prev_map[grp_signature[matched]]
     }
   }
 
   # apply fixed seed if provided (explicit fixed overrides prev_colors)
-  if (!is.null(fixed) && !is.null(fixed$value) && !is.null(fixed$color)){
+  if (!is.null(fixed) && !is.null(fixed$value) && !is.null(fixed$color)) {
     idx <- which(grp[[group_col]] == fixed$value)
     if (length(idx) > 0) color_assignment[idx] <- fixed$color
   }
@@ -76,19 +76,19 @@ assign_group_colors <- function(sf_obj, group_col, colors = RColorBrewer::brewer
 
   palette <- colors
   # ensure fixed color is present in the palette
-  if (!is.null(fixed) && !is.null(fixed$color) && !(fixed$color %in% palette)){
+  if (!is.null(fixed) && !is.null(fixed$color) && !(fixed$color %in% palette)) {
     palette <- c(palette, fixed$color)
   }
 
-  for (v in order_idx){
+  for (v in order_idx) {
     if (!is.na(color_assignment[v])) next
     nbcols <- color_assignment[neighbors[[v]]]
     nbcols <- nbcols[!is.na(nbcols)]
     available <- setdiff(palette, nbcols)
     # if no available color, extend palette and retry
-    while (length(available) == 0){
+    while (length(available) == 0) {
       new_n <- max(4, length(palette) * 2)
-      palette <- c(palette, grDevices::colorRampPalette(palette)(new_n)[(length(palette)+1):new_n])
+      palette <- c(palette, grDevices::colorRampPalette(palette)(new_n)[(length(palette) + 1):new_n])
       available <- setdiff(palette, nbcols)
     }
     color_assignment[v] <- available[1]
@@ -96,14 +96,14 @@ assign_group_colors <- function(sf_obj, group_col, colors = RColorBrewer::brewer
 
   # verification: ensure no adjacent groups share the same color
   conflicts <- character(0)
-  for (i in seq_along(neighbors)){
-    for (j in neighbors[[i]]){
-      if (i < j && !is.na(color_assignment[i]) && !is.na(color_assignment[j]) && color_assignment[i] == color_assignment[j]){
+  for (i in seq_along(neighbors)) {
+    for (j in neighbors[[i]]) {
+      if (i < j && !is.na(color_assignment[i]) && !is.na(color_assignment[j]) && color_assignment[i] == color_assignment[j]) {
         conflicts <- c(conflicts, paste0(grp[[group_col]][i], "-", grp[[group_col]][j], ":", color_assignment[i]))
       }
     }
   }
-  if (length(conflicts) > 0){
+  if (length(conflicts) > 0) {
     stop("Coloring conflict detected between adjacent groups: ", paste(conflicts, collapse = "; "))
   }
 
@@ -114,25 +114,29 @@ assign_group_colors <- function(sf_obj, group_col, colors = RColorBrewer::brewer
 }
 
 #' @description Load persisted color map for a given kind (e.g., "CZ", "UEA") from directory
-load_color_map <- function(kind, dir = "output/color_map"){
+load_color_map <- function(kind, dir = "output/color_map") {
   file <- file.path(dir, paste0(kind, "_signature_color.csv"))
-  if (!file.exists(file)) return(NULL)
+  if (!file.exists(file)) {
+    return(NULL)
+  }
   # read as character to avoid type inference issues
   m <- readr::read_csv(file, show_col_types = FALSE, col_types = readr::cols(.default = readr::col_character()))
-  if (!all(c("signature","color") %in% names(m))) stop("Color map file must contain 'signature' and 'color' columns")
+  if (!all(c("signature", "color") %in% names(m))) stop("Color map file must contain 'signature' and 'color' columns")
   m <- m %>% dplyr::mutate(signature = as.character(signature), color = as.character(color))
   return(m %>% dplyr::select(signature, color))
 }
 
 #' @description Save/merge color map: keep existing entries and append new ones
-save_color_map <- function(map_df, kind, dir = "output/color_map"){
-  if (is.null(map_df) || nrow(map_df) == 0) return(invisible(NULL))
-  if (!all(c("signature","color") %in% names(map_df))) stop("map_df must contain 'signature' and 'color' columns")
+save_color_map <- function(map_df, kind, dir = "output/color_map") {
+  if (is.null(map_df) || nrow(map_df) == 0) {
+    return(invisible(NULL))
+  }
+  if (!all(c("signature", "color") %in% names(map_df))) stop("map_df must contain 'signature' and 'color' columns")
   dir.create(dir, recursive = TRUE, showWarnings = FALSE)
   file <- file.path(dir, paste0(kind, "_signature_color.csv"))
   # ensure types are character
   map_df <- map_df %>% dplyr::mutate(signature = as.character(signature), color = as.character(color))
-  if (file.exists(file)){
+  if (file.exists(file)) {
     existing <- readr::read_csv(file, show_col_types = FALSE, col_types = readr::cols(.default = readr::col_character()))
     existing <- existing %>% dplyr::mutate(signature = as.character(signature), color = as.character(color))
   } else {
@@ -148,20 +152,20 @@ save_color_map <- function(map_df, kind, dir = "output/color_map"){
 #' @description to save space, move Hokkaido to north west of the image.
 #' @param sf_obj sf object including municipalities in Hokkaido
 #' @param jis_col the name containing JISCODE
-#' @param shift Numeric vec to adjust position. Default:c(10,4) 
-move_Hokaido <- function(sf_obj, jis_col = "JISCODE", shift = c(10, 4)){
-    #### moving Hokkaido ####
+#' @param shift Numeric vec to adjust position. Default:c(10,4)
+move_Hokaido <- function(sf_obj, jis_col = "JISCODE", shift = c(10, 4)) {
+  #### moving Hokkaido ####
   require(dplyr)
   require(magrittr)
   # To generate enlarge map, we move Hokkaido to upper side by edit geometry.
-  movement_Hokkaido <- sf_obj %>% 
-    dplyr::filter(.data[[jis_col]] %in% (1000:1999)) %>% 
-    # Minus 10 from longitude and 4 from latitude. 
-    sf::st_set_geometry(sf::st_geometry(sf_obj %>% dplyr::filter(.data[[jis_col]] %in% (1000:1999))) - shift) %>% 
+  movement_Hokkaido <- sf_obj %>%
+    dplyr::filter(.data[[jis_col]] %in% (1000:1999)) %>%
+    # Minus 10 from longitude and 4 from latitude.
+    sf::st_set_geometry(sf::st_geometry(sf_obj %>% dplyr::filter(.data[[jis_col]] %in% (1000:1999))) - shift) %>%
     sf::st_set_crs(4612)
-  master <- sf_obj %>% 
-    dplyr::filter(!(.data[[jis_col]] %in% (1000:1999))) %>% 
-    dplyr::bind_rows(movement_Hokkaido) 
+  master <- sf_obj %>%
+    dplyr::filter(!(.data[[jis_col]] %in% (1000:1999))) %>%
+    dplyr::bind_rows(movement_Hokkaido)
   return(master)
 }
 
@@ -170,30 +174,59 @@ move_Hokaido <- function(sf_obj, jis_col = "JISCODE", shift = c(10, 4)){
 #' @param lim_x limitation of x coordinate
 #' @param lim_y limitation of y coordinate
 #' @param linewidth width of lines of munis
-#' @param caption caption text 
+#' @param caption caption text
 make_basic_plot <- function(
-  sf_obj,
-  lim_x,
-  lim_y,
-  caption,
-  linewidth = .1,
-  color_col = "color",
-  caption_size = 10
-  ){
-    sf_obj %>% 
-    ggplot2::ggplot() + 
-    ggplot2::geom_sf(ggplot2::aes(fill = .data[[color_col]]), linewidth = linewidth) +
-    ggplot2::scale_fill_identity() +
-    ggplot2::theme_bw() +
-    ggplot2::theme(
-      legend.position = "none",
-      plot.caption    = ggplot2::element_text(size = caption_size)
+    sf_obj,
+    lim_x,
+    lim_y,
+    caption = NULL,
+    HokkaidoLine = FALSE,
+    linewidth = .1,
+    color_col = "color",
+    caption_size = 10) {
+  if (HokkaidoLine) {
+    sf_obj %>%
+      ggplot2::ggplot() +
+      ggplot2::geom_sf(ggplot2::aes(fill = .data[[color_col]]), linewidth = linewidth) +
+      gen_Hokkaidoline() +
+      ggplot2::scale_fill_identity() +
+      ggplot2::theme_bw() +
+      ggplot2::theme(
+        legend.position = "none",
+        plot.caption    = ggplot2::element_text(size = caption_size)
       ) +
-    ggplot2::coord_sf(
-      ylim = lim_y,
-      xlim = lim_x,
-      datum = NA
-    ) +
-    ggplot2::labs(caption = caption) -> out
+      ggplot2::coord_sf(
+        ylim = lim_y,
+        xlim = lim_x,
+        datum = NA
+      ) +
+      ggplot2::labs(caption = caption) -> out
     return(out)
+  } else {
+    sf_obj %>%
+      ggplot2::ggplot() +
+      ggplot2::geom_sf(ggplot2::aes(fill = .data[[color_col]]), linewidth = linewidth) +
+      ggplot2::scale_fill_identity() +
+      ggplot2::theme_bw() +
+      ggplot2::theme(
+        legend.position = "none",
+        plot.caption    = ggplot2::element_text(size = caption_size)
+      ) +
+      ggplot2::coord_sf(
+        ylim = lim_y,
+        xlim = lim_x,
+        datum = NA
+      ) +
+      ggplot2::labs(caption = caption) -> out
+    return(out)
+  }
+}
+
+#' @description genarate Line
+gen_Hokkaidoline <- function() {
+  HokkaidoLine <- rbind(c(137.5, 45), c(137.5, 40), c(134, 37), c(120, 37)) %>%
+    sf::st_linestring() %>%
+    sf::st_sfc(crs = 4612) %>%
+    sf::st_sf()
+  return(ggplot2::geom_sf(data = HokkaidoLine, linewidth = .1))
 }
