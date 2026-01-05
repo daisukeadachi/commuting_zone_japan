@@ -176,27 +176,19 @@ for (y in c(1980, 2015)) {
   rm(CZ_color, EdoCenter, Gohunai)
   ## ggplot zone(for double) #################################################
   UEA.sf %>% 
-    ggplot2::ggplot() + 
-    ggplot2::geom_sf(aes(fill = color), linewidth = width) +
-    ggplot2::scale_fill_identity() +
-    ggplot2::theme_bw() +
-    ggplot2::theme(legend.position = "none") +
-    ggplot2::coord_sf(ylim = lim_y,
-                      xlim = lim_x,
-                      datum = NA) +
-    ggplot2::labs(caption = "UEA")+
-    theme(plot.caption    = element_text(size = 10))　-> UEAmap
+    make_basic_plot(
+      lim_x = lim_x,
+      lim_y = lim_y,
+      caption = "UEA"
+    ) -> UEAmap
+
   CZ.sf %>% 
-    ggplot2::ggplot() + 
-    ggplot2::geom_sf(aes(fill = color), linewidth = width) +
-    ggplot2::scale_fill_identity() +
-    ggplot2::theme_bw() +
-    ggplot2::theme(legend.position = "none") +
-    ggplot2::coord_sf(ylim = lim_y,
-                      xlim = lim_x,
-                      datum = NA) +
-    ggplot2::labs(caption = "CZ")+
-    theme(plot.caption    = element_text(size = 10))　-> CZmap
+    make_basic_plot(
+      lim_x = lim_x,
+      lim_y = lim_y,
+      caption = "CZ"
+    ) -> CZmap
+
   doubleMap <- CZmap + UEAmap + 
     patchwork::plot_annotation(
       title = paste0("CZ and UEA in Kanto district(", y, ")"),

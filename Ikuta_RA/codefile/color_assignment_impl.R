@@ -164,3 +164,36 @@ move_Hokaido <- function(sf_obj, jis_col = "JISCODE", shift = c(10, 4)){
     dplyr::bind_rows(movement_Hokkaido) 
   return(master)
 }
+
+#' @description making choropleth maps of CZ or UEA.
+#' @param sf_obj sf object with color columun
+#' @param lim_x limitation of x coordinate
+#' @param lim_y limitation of y coordinate
+#' @param linewidth width of lines of munis
+#' @param caption caption text 
+make_basic_plot <- function(
+  sf_obj,
+  lim_x,
+  lim_y,
+  caption,
+  linewidth = .1,
+  color_col = "color",
+  caption_size = 10
+  ){
+    sf_obj %>% 
+    ggplot2::ggplot() + 
+    ggplot2::geom_sf(ggplot2::aes(fill = .data[[color_col]]), linewidth = linewidth) +
+    ggplot2::scale_fill_identity() +
+    ggplot2::theme_bw() +
+    ggplot2::theme(
+      legend.position = "none",
+      plot.caption    = ggplot2::element_text(size = caption_size)
+      ) +
+    ggplot2::coord_sf(
+      ylim = lim_y,
+      xlim = lim_x,
+      datum = NA
+    ) +
+    ggplot2::labs(caption = caption) -> out
+    return(out)
+}
