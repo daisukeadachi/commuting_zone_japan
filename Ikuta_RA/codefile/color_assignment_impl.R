@@ -117,8 +117,10 @@ assign_group_colors <- function(sf_obj, group_col, colors = RColorBrewer::brewer
 load_color_map <- function(kind, dir = "output/color_map"){
   file <- file.path(dir, paste0(kind, "_signature_color.csv"))
   if (!file.exists(file)) return(NULL)
-  m <- readr::read_csv(file, show_col_types = FALSE)
+  # read as character to avoid type inference issues
+  m <- readr::read_csv(file, show_col_types = FALSE, col_types = readr::cols(.default = readr::col_character()))
   if (!all(c("signature","color") %in% names(m))) stop("Color map file must contain 'signature' and 'color' columns")
+  m <- m %>% dplyr::mutate(signature = as.character(signature), color = as.character(color))
   return(m %>% dplyr::select(signature, color))
 }
 
@@ -128,8 +130,11 @@ save_color_map <- function(map_df, kind, dir = "output/color_map"){
   if (!all(c("signature","color") %in% names(map_df))) stop("map_df must contain 'signature' and 'color' columns")
   dir.create(dir, recursive = TRUE, showWarnings = FALSE)
   file <- file.path(dir, paste0(kind, "_signature_color.csv"))
+  # ensure types are character
+  map_df <- map_df %>% dplyr::mutate(signature = as.character(signature), color = as.character(color))
   if (file.exists(file)){
-    existing <- readr::read_csv(file, show_col_types = FALSE)
+    existing <- readr::read_csv(file, show_col_types = FALSE, col_types = readr::cols(.default = readr::col_character()))
+    existing <- existing %>% dplyr::mutate(signature = as.character(signature), color = as.character(color))
   } else {
     existing <- tibble::tibble(signature = character(), color = character())
   }

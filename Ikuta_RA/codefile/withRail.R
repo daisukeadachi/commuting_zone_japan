@@ -105,7 +105,7 @@ muni.sf <- sf::read_sf("mapdata/mmm20151001/mmm20151001.shp", options = "ENCODIN
     dplyr::filter(JISCODE %in% (7000:23999)) %>% 
     ggplot2::ggplot() +
     ggplot2::geom_sf(aes(fill = color), linewidth = 0) +
-    ggplot2::scale_fill_manual(values = colors) +
+    ggplot2::scale_fill_identity() +
     ggplot2::geom_sf(data = HSR, color = "#333333", linewidth = .2, linetype = "dashed") +
     ggplot2::geom_sf(data = Rail, color = "black", linewidth = .2) +
     ggplot2::theme_bw() +
@@ -124,7 +124,7 @@ muni.sf <- sf::read_sf("mapdata/mmm20151001/mmm20151001.shp", options = "ENCODIN
     dplyr::filter(JISCODE %in% (18000:31999)) %>% 
     ggplot2::ggplot() +
     ggplot2::geom_sf(aes(fill = color), linewidth = 0) +
-    ggplot2::scale_fill_manual(values = colors) +
+    ggplot2::scale_fill_identity() +
     ggplot2::geom_sf(data = HSR, color = "#333333", linewidth = .2, linetype = "dashed") +
     ggplot2::geom_sf(data = Rail, color = "black", linewidth = .2) +
     ggplot2::theme_bw() +
@@ -143,7 +143,7 @@ muni.sf <- sf::read_sf("mapdata/mmm20151001/mmm20151001.shp", options = "ENCODIN
     dplyr::filter(JISCODE %in% (16000:25999)) %>% 
     ggplot2::ggplot() +
     ggplot2::geom_sf(aes(fill = color), linewidth = 0) +
-    ggplot2::scale_fill_manual(values = colors) +
+    ggplot2::scale_fill_identity() +
     ggplot2::geom_sf(data = HSR, color = "#333333", linewidth = .2, linetype = "dashed") +
     ggplot2::geom_sf(data = Rail, color = "black", linewidth = .2) +
     ggplot2::theme_bw() +
@@ -161,7 +161,7 @@ muni.sf <- sf::read_sf("mapdata/mmm20151001/mmm20151001.shp", options = "ENCODIN
   CZ.sf %>% 
     ggplot2::ggplot() +
     ggplot2::geom_sf(aes(fill = color), linewidth = 0) +
-    ggplot2::scale_fill_manual(values = colors) +
+    ggplot2::scale_fill_identity() +
     ggplot2::geom_sf(data = HSR, color = "#333333", linewidth = .2, linetype = "dashed") +
     ggplot2::geom_sf(data = Rail, color = "white", linewidth = .2) +
     ggplot2::geom_sf(data = Rail, color = "black", linewidth = .1) +
