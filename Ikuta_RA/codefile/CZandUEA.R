@@ -5,7 +5,8 @@ library(spdep)
 library(RColorBrewer)
 
 rm(list = ls())
-
+# TODO:UEAみたくCZの空白はグレー
+# TODO: 処理の詳細を何処かに書いておく。readme.md
 # helper for assigning colors to grouped polygons
 source("codefile/color_assignment_impl.R")
 

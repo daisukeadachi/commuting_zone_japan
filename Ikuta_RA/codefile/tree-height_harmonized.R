@@ -14,6 +14,7 @@ colors <- c(RColorBrewer::brewer.pal(5, "Set2"))
 # c("#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3", "#A6D854", "#FFD92F", "#E5C494", "#B3B3B3")
 # limitation range
 
+# TODO:関東地方で出す。
 lim <- list(x = c(129.3, 142.3), y = c(31.2, 42))
 width <- .1
 outdir <- "output/map_image/CZ2015/"
