@@ -60,7 +60,16 @@ assign_group_colors <- function(sf_obj, group_col, colors = RColorBrewer::brewer
     }
     matched <- which(grp_signature %in% names(prev_map))
     if (length(matched) > 0) {
-      color_assignment[matched] <- prev_map[grp_signature[matched]]
+      # Check for conflicts with neighbors before assigning prev_colors
+      for (idx in matched) {
+        proposed_color <- prev_map[grp_signature[idx]]
+        neighbor_colors <- color_assignment[neighbors[[idx]]]
+        neighbor_colors <- neighbor_colors[!is.na(neighbor_colors)]
+        # only assign if no conflict with already-assigned neighbors
+        if (!proposed_color %in% neighbor_colors) {
+          color_assignment[idx] <- proposed_color
+        }
+      }
     }
   }
 
