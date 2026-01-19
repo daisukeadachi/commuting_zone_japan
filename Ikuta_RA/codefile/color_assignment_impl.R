@@ -75,21 +75,26 @@ assign_group_colors <- function(sf_obj, group_col, colors = RColorBrewer::brewer
   order_idx <- order(deg, decreasing = TRUE)
 
   palette <- colors
-  # ensure fixed color is present in the palette
-  if (!is.null(fixed) && !is.null(fixed$color) && !(fixed$color %in% palette)) {
-    palette <- c(palette, fixed$color)
+  fixed_color <- NULL
+  # ensure fixed color is present in the palette and reserve it
+  if (!is.null(fixed) && !is.null(fixed$color)) {
+    fixed_color <- fixed$color
+    if (!(fixed_color %in% palette)) {
+      palette <- c(palette, fixed_color)
+    }
   }
 
   for (v in order_idx) {
     if (!is.na(color_assignment[v])) next
     nbcols <- color_assignment[neighbors[[v]]]
     nbcols <- nbcols[!is.na(nbcols)]
-    available <- setdiff(palette, nbcols)
+    # exclude fixed color from available colors for other groups
+    available <- setdiff(palette, c(nbcols, fixed_color))
     # if no available color, extend palette and retry
     while (length(available) == 0) {
       new_n <- max(4, length(palette) * 2)
       palette <- c(palette, grDevices::colorRampPalette(palette)(new_n)[(length(palette) + 1):new_n])
-      available <- setdiff(palette, nbcols)
+      available <- setdiff(palette, c(nbcols, fixed_color))
     }
     color_assignment[v] <- available[1]
   }
