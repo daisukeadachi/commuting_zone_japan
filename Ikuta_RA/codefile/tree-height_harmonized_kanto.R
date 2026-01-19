@@ -21,7 +21,6 @@ colors <- c(RColorBrewer::brewer.pal(5, "Set2"))
 # c("#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3", "#A6D854", "#FFD92F", "#E5C494", "#B3B3B3")
 # limitation range
 
-# TODO:関東地方で出す。
 lim <- list(x = c(138, 140.9), y = c(34.7, 37.1))
 width <- .1
 
