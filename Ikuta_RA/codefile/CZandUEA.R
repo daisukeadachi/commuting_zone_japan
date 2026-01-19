@@ -43,10 +43,10 @@ for (y in c(1980, 2015)) {
     )
   } else if (y == 2015) {
     files <- list(
-      McEA = "data/UEA/suburb/McEA/McEA2005.csv",
-      McEA.C = "data/UEA/center/McEA/McEA2005C.csv",
-      MEA = "data/UEA/suburb/MEA/MEA2005.csv",
-      MEA.C = "data/UEA/center/MEA/MEA2005C.csv"
+      McEA = "data/UEA/suburb/McEA/MCEA2015.csv",
+      McEA.C = "data/UEA/center/McEA/MCEA2015C.csv",
+      MEA = "data/UEA/suburb/MEA/MEA2015.csv",
+      MEA.C = "data/UEA/center/MEA/MEA2015C.csv"
     )
   }
 
