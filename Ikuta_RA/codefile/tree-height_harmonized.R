@@ -1,13 +1,20 @@
-library(tidyverse)
-library(sf)
-library(patchwork)
-library(spdep)
-library(RColorBrewer)
+pacman::p_load(
+  tidyverse,
+  sf,
+  patchwork,
+  spdep,
+  RColorBrewer,
+  furrr,
+  parallel
+)
 
 rm(list = ls())
 
 # helper for assigning colors to grouped polygons
 source("codefile/color_assignment_impl.R")
+
+n_core <- 10
+plan(multicore, workers = n_core)
 
 "%not.in%" <- Negate("%in%")
 colors <- c(RColorBrewer::brewer.pal(5, "Set2"))
@@ -37,15 +44,16 @@ czlist <- list.files(path = "output/clustered/harmonized", full.names = TRUE, re
 
 
 IMGDIR <- "output/map_image/tree-height/harmonized/"
-#### map making ####
 iwalk(czlist, ~ {
-  folder <- stringr::str_split_i(.y, "-", -1)
-  if(dir.exists(paste0(IMGDIR, folder)) == FALSE){
-    dir.create(paste0(IMGDIR, folder), recursive = TRUE)
-  }
+  folder <- dirname(.x) |> stringr::str_remove("output/clustered/harmonized/") 
+  dir.create(paste0(IMGDIR, folder), recursive = TRUE, showWarnings = FALSE)
+})
+#### map making ####
+future_iwalk(czlist, ~ {
+    folder <- dirname(.x) |> stringr::str_remove("output/clustered/harmonized/") 
   ## map data ##################################################################
   CZ.sf <- muni.sf %>%
-    dplyr::left_join(readr::read_csv(.x), by = c("JISCODE" = "i")) %>%
+    dplyr::left_join(readr::read_csv(.x, show_col_types = FALSE), by = c("JISCODE" = "i")) %>%
     move_Hokaido()
   ## color assignment ##########################################################)
   EdoCenter <- which(CZ.sf$JISCODE == 13101)
@@ -69,5 +77,7 @@ iwalk(czlist, ~ {
     device = "png",
     bg = "white"
   )
-})
+}, .options = furrr::furrr_options(seed = TRUE),
+.progress = TRUE
+)
 
