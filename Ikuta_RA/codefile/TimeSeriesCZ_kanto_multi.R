@@ -11,7 +11,7 @@ source("codefile/color_assignment_impl.R")
 
 "%not.in%" <- Negate("%in%")
 year <- seq(1980, 2020, 5)
-colors <- RColorBrewer::brewer.pal(5, "Set2")
+colors <- c(RColorBrewer::brewer.pal(5, "Set2"), "#377EB8")
 # limitation range
 kanto_y = c(34.7, 37.1)
 kanto_x = c(138, 140.9)
@@ -43,7 +43,6 @@ for (y in year){
   
   #### color assignment ####
   # To use different fill color for each CZ, we assign fill color to each CZ.
-  
   # combining all municipalities in the same CZ.
   # to process sf object with dplyr::summarise(), we switch s2 geometry engine off
 sf::sf_use_s2(FALSE)
@@ -70,20 +69,20 @@ sf::sf_use_s2(FALSE)
     ggplot2::labs(caption = y)+
     ggplot2::theme(plot.caption = ggplot2::element_text(size = 10))　-> CZmap
   maps <- append(maps, list(CZmap))
-  if (y == 1980){
-    CZ.sf %>% 
-      ggplot2::ggplot() +
-      ggplot2::geom_sf(aes(fill = color), linewidth = .1) +
-    ggplot2::scale_fill_identity() +
-      ggplot2::theme_bw() +
-      ggplot2::theme(legend.position = "none") +
-      ggplot2::coord_sf(ylim = kanto_y,
-                        xlim = kanto_x,
-                        datum = NA) +
-      ggplot2::labs(title = paste0("Commuting zone in Kanto district(", y, ")"))+
-      ggplot2::theme(plot.caption = ggplot2::element_text(size = 10))　-> CZmap
-    ggplot2::ggsave(filename = "output/map_image/CZ/master/1980_kanto_harmonized_CZmap_eng.png", plot = CZmap)
-  }
+  # if (y == 1980){
+  #   CZ.sf %>% 
+  #     ggplot2::ggplot() +
+  #     ggplot2::geom_sf(aes(fill = color), linewidth = .1) +
+  #   ggplot2::scale_fill_identity() +
+  #     ggplot2::theme_bw() +
+  #     ggplot2::theme(legend.position = "none") +
+  #     ggplot2::coord_sf(ylim = kanto_y,
+  #                       xlim = kanto_x,
+  #                       datum = NA) +
+  #     ggplot2::labs(title = paste0("Commuting zone in Kanto district(", y, ")"))+
+  #     ggplot2::theme(plot.caption = ggplot2::element_text(size = 10))　-> CZmap
+  #   maps <- append(maps, list(CZmap))
+  # }
   rm(CZmap, CZ.sf)
 }
 somemaps <- patchwork::wrap_plots(maps, nrow = 3) #+
@@ -91,4 +90,4 @@ somemaps <- patchwork::wrap_plots(maps, nrow = 3) #+
   #   title = "Commuting Zone in Kanto district(1980~2020)",
   #   theme = ggplot2::theme(plot.title = ggplot2::element_text(size=11))
   # )
-ggplot2::ggsave(plot = somemaps, filename = "output/map_image/CZ/master/1980to2020_kanto_harmonized_CZmap_eng.png", bg = "white", dpi = 900)
+ggplot2::ggsave(plot = somemaps, filename = "output/map_image/ts_CZ/1980to2020_kanto_harmonized_CZmap_eng.png", bg = "white", dpi = 900)

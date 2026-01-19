@@ -40,7 +40,7 @@ czPath <- paste0("output/2015_harmonized.csv")
 
 ## map data ##################################################################
 CZ.sf <- muni.sf %>%
-  dplyr::left_join(readr::read_csv(czPath), by = c("JISCODE" = "i")) %>% 
+  dplyr::left_join(readr::read_csv(czPath), by = c("JISCODE" = "i")) %>%
   move_Hokaido()
 
 ## color assignment ##########################################################
@@ -52,7 +52,11 @@ EdoCenter <- which(CZ.sf$JISCODE == 13101)
 Gohunai <- CZ.sf$cluster[EdoCenter]
 CZ_color <- assign_group_colors(CZ.sf, "cluster", colors = colors, fixed = list(value = Gohunai, color = RColorBrewer::brewer.pal(6, "Set2")[6]), prev_colors = prev_CZ_map)
 CZ.sf <- dplyr::left_join(CZ.sf, CZ_color, by = "cluster") %>%
-  dplyr::select(geometry, color)
+  dplyr::select(geometry, color) %>%
+  dplyr::mutate(color = dplyr::if_else(
+    is.na(color), "#a9a9a9", color
+  ))
+
 # persist and save CZ signature->color map for next iteration
 prev_CZ_map <- CZ_color %>% dplyr::select(signature, color)
 save_color_map(prev_CZ_map, "CZ", dir = color_map_dir)
@@ -65,9 +69,9 @@ CZ.sf %>%
     HokkaidoLine = TRUE
   ) -> enl
 ggplot2::ggsave(enl,
-  filename = paste0(outdir, "2015_CZmap_enlarge.svg"),
-  device = svg,
-  bg = "white"
+  filename = paste0(outdir, "2015_CZmap_enlarge.png"),
+  bg = "white",
+  create.dir = TRUE
 )
 CZ.sf %>%
   make_basic_plot(
@@ -75,8 +79,7 @@ CZ.sf %>%
     lim_y = lim$kanto$y,
   ) -> kanto
 ggplot2::ggsave(kanto,
-  filename = paste0(outdir, "2015_CZmap_kanto.svg"),
-  device = svg,
+  filename = paste0(outdir, "2015_CZmap_kanto.png"),
   bg = "white"
 )
 

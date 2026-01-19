@@ -15,7 +15,7 @@ prev_CZ_map <- load_color_map("CZ", dir = color_map_dir)
 # enlarge : displays main four islands (Hokkaido･Honshu･Shikoku･Kyushu) with Hokkaido moved to upper side
 # kanto   : displays the kanto district
 # kinki   : displays the kinki district
-
+IMGDIR <- "output/map_image/withRail/"
 "%not.in%" <- Negate("%in%")
 # year <- seq(1980, 2020, 5)
 y <- 2015
@@ -87,7 +87,11 @@ EdoCenter <- which(CZ.sf$JISCODE == 13101)
 Gohunai <- CZ.sf$cluster[EdoCenter]
 CZ_color <- assign_group_colors(CZ.sf, "cluster", colors = colors, fixed = list(value = Gohunai, color = RColorBrewer::brewer.pal(6, "Set2")[6]), prev_colors = prev_CZ_map)
 CZ.sf <- dplyr::left_join(CZ.sf, CZ_color, by = "cluster") %>%
-  dplyr::select(JISCODE, geometry, color)
+  dplyr::select(JISCODE, geometry, color) %>%
+  dplyr::mutate(color = dplyr::if_else(
+    is.na(color), "#a9a9a9", color
+  ))
+
 # persist and save CZ map
 prev_CZ_map <- CZ_color %>% dplyr::select(signature, color)
 save_color_map(prev_CZ_map, "CZ", dir = color_map_dir)
@@ -127,8 +131,8 @@ CZ.sf %>%
   ) +
   ggplot2::labs(title = paste0("CZ and railroads in Kanto district(", y, ")")) +
   ggplot2::theme(plot.title = ggplot2::element_text(size = 10)) -> CZmap
-filepath <- paste0("output/map_image/CZ/master/", y, "_kanto_CZwithRailmap_eng.png")
-ggplot2::ggsave(filename = filepath, plot = CZmap)
+filepath <- paste0(IMGDIR, y, "_kanto_CZwithRailmap_eng.png")
+ggplot2::ggsave(filename = filepath, plot = CZmap, create.dir = TRUE)
 rm(CZmap, kantoCZ)
 
 # kinki
@@ -148,7 +152,7 @@ CZ.sf %>%
   ) +
   ggplot2::labs(title = paste("CZ and railroad in Kinki district(", y, ")")) +
   ggplot2::theme(plot.title = ggplot2::element_text(size = 10)) -> CZmap
-filepath <- paste0("output/map_image/CZ/master/", y, "_kinki_CZwithRailmap_eng.png")
+filepath <- paste0(IMGDIR, y, "_kinki_CZwithRailmap_eng.png")
 ggplot2::ggsave(filename = filepath, plot = CZmap)
 rm(CZmap)
 
@@ -169,7 +173,7 @@ CZ.sf %>%
   ) +
   ggplot2::labs(title = paste("CZ and railroad in Tokai district(", y, ")")) +
   ggplot2::theme(plot.title = ggplot2::element_text(size = 10)) -> CZmap
-filepath <- paste0("output/map_image/CZ/master/", y, "_nagoya_CZwithRailmap_eng.png")
+filepath <- paste0(IMGDIR, y, "_nagoya_CZwithRailmap_eng.png")
 ggplot2::ggsave(filename = filepath, plot = CZmap)
 rm(CZmap)
 
@@ -190,7 +194,7 @@ CZ.sf %>%
   ) +
   ggplot2::labs(title = paste("CZ and railroad (", y, ")")) +
   ggplot2::theme(plot.title = ggplot2::element_text(size = 10)) -> CZmap
-filepath <- paste0("output/map_image/CZ/master/", y, "_whole_CZwithRailmap_eng.png")
+filepath <- paste0(IMGDIR, y, "_whole_CZwithRailmap_eng.png")
 ggplot2::ggsave(filename = filepath, plot = CZmap, dpi = 600)
 rm(CZmap, Rail, HSR)
 
