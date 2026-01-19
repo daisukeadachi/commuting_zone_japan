@@ -22,14 +22,16 @@ colors <- c(RColorBrewer::brewer.pal(5, "Set2"))
 # limitation range
 
 # TODO:関東地方で出す。
-lim <- list(x = c(129.3, 142.3), y = c(31.2, 42))
+lim <- list(x = c(138, 140.9), y = c(34.7, 37.1))
 width <- .1
-outdir <- "output/map_image/CZ2015/"
+
+
 
 muni.sf <- sf::read_sf("mapdata/mmm20151001/mmm20151001.shp", options = "ENCODING=CP932") %>%
   # 北方領土･小笠原諸島は解釈が難しいので、地図には出さない
   dplyr::filter(
-    JISCODE %not.in% c(1695, 1696, 1698, 13421)
+    JISCODE %not.in% c(1695, 1696, 1698, 13421),
+    JISCODE %in% (7000:23999)
   ) %>%
   dplyr::select(-NO, -DATE) %>%
   sf::st_transform(4612)
@@ -39,11 +41,11 @@ color_map_dir <- "output/color_map"
 # # load previously saved maps if any
 # prev_CZ_map <- load_color_map("CZ", dir = color_map_dir)
 
-czlist <- list.files(path = "output/clustered/harmonized", full.names = TRUE, recursive = TRUE) |>
+czlist <- list.files(path = "output/clustered/harmonized", full.names = TRUE, recursive = TRUE)  %>% 
   purrr::set_names(~ stringr::str_remove(basename(.x), "\\.csv$"))
 
 
-IMGDIR <- "output/map_image/tree-height/harmonized/"
+IMGDIR <- "output/map_image/tree-height/harmonized_kanto/"
 iwalk(czlist, ~ {
   folder <- dirname(.x) |> stringr::str_remove("output/clustered/harmonized/") 
   dir.create(paste0(IMGDIR, folder), recursive = TRUE, showWarnings = FALSE)

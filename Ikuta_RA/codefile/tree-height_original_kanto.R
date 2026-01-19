@@ -22,9 +22,8 @@ colors <- RColorBrewer::brewer.pal(5, "Set2")
 # c("#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3", "#A6D854", "#FFD92F", "#E5C494", "#B3B3B3")
 # limitation range
 
-lim <- list(x = c(129.3, 142.3), y = c(31.2, 42))
+lim <- list(x = c(138, 140.9), y = c(34.7, 37.1))
 width <- .1
-outdir <- "output/map_image/CZ2015/"
 
 
 # directory to persist signature->color maps across runs
@@ -34,7 +33,7 @@ czlist.all <- list.files(path = "output/clustered/original", full.names = TRUE, 
   purrr::set_names(~ stringr::str_remove(basename(.x), "\\.csv$"))
 year <- seq(1980, 2015, 5) |> as.character()
 
-IMGDIR <- "output/map_image/tree-height/original/"
+IMGDIR <- "output/map_image/tree-height/original_kanto/"
 iwalk(czlist.all, ~ {
   folder <- dirname(.x) |> stringr::str_remove("output/clustered/original/") 
   dir.create(paste0(IMGDIR, folder), recursive = TRUE, showWarnings = FALSE)
@@ -46,7 +45,8 @@ walk(year, function(YEAR) {
   muni.sf <- sf::read_sf(muni.path, options = "ENCODING=CP932") %>%
     # 北方領土･小笠原諸島は解釈が難しいので、地図には出さない
     dplyr::filter(
-      JISCODE %not.in% c(1695, 1696, 1698, 13421)
+      JISCODE %not.in% c(1695, 1696, 1698, 13421),
+      JISCODE %in% (7000:23999)
     ) %>%
     dplyr::select(-NO, -DATE) %>%
     sf::st_transform(4612)
