@@ -17,11 +17,12 @@ n_core <- 10
 plan(multicore, workers = n_core)
 
 "%not.in%" <- Negate("%in%")
-colors <- c(RColorBrewer::brewer.pal(5, "Set2"))
+colors <- c(RColorBrewer::brewer.pal(5, "Set2"), "#377EB8")
 # c("#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3", "#A6D854", "#FFD92F", "#E5C494", "#B3B3B3")
 # limitation range
 
 lim <- list(x = c(129.3, 142.3), y = c(31.2, 42))
+lim_kanto <- list(x = c(138, 140.9), y = c(34.7, 37.1))
 width <- .1
 outdir <- "output/map_image/CZ2015/"
 
@@ -43,10 +44,11 @@ czlist <- list.files(path = "output/clustered/harmonized", full.names = TRUE, re
 
 
 IMGDIR <- "output/map_image/tree-height/harmonized/"
-iwalk(czlist, ~ {
-  folder <- dirname(.x) |> stringr::str_remove("output/clustered/harmonized/") 
-  dir.create(paste0(IMGDIR, folder), recursive = TRUE, showWarnings = FALSE)
-})
+IMGDIR_kanto <- "output/map_image/tree-height/harmonized_kanto/"
+# iwalk(czlist, ~ {
+#   folder <- dirname(.x) |> stringr::str_remove("output/clustered/harmonized/") 
+#   dir.create(paste0(IMGDIR, folder), recursive = TRUE, showWarnings = FALSE)
+# })
 #### map making ####
 future_iwalk(czlist, ~ {
     folder <- dirname(.x) |> stringr::str_remove("output/clustered/harmonized/") 
@@ -59,7 +61,7 @@ future_iwalk(czlist, ~ {
   Gohunai <- CZ.sf$cluster[EdoCenter]
   CZ_color <- assign_group_colors(CZ.sf, "cluster", colors = colors, fixed = list(value = Gohunai, color = RColorBrewer::brewer.pal(6, "Set2")[6]))
   CZ.sf <- dplyr::left_join(CZ.sf, CZ_color, by = "cluster") %>%
-    dplyr::select(geometry, color) %>% 
+    dplyr::select(geometry, color, JISCODE) %>% 
     dplyr::mutate(color = dplyr::if_else(
       is.na(color), "#a9a9a9", color
     ))
@@ -76,6 +78,18 @@ future_iwalk(czlist, ~ {
     ) -> enl
   ggplot2::ggsave(enl,
     filename = paste0(IMGDIR, folder, "/", .y, ".png"),
+    device = "png",
+    bg = "white"
+  )
+  CZ.sf %>%
+    dplyr::filter(JISCODE %in% (7000:23999)) %>% 
+    make_basic_plot(
+      lim_x = lim_kanto$x,
+      lim_y = lim_kanto$y,
+      HokkaidoLine = FALSE
+    ) -> enl
+  ggplot2::ggsave(enl,
+    filename = paste0(IMGDIR_kanto, folder, "/", .y, ".png"),
     device = "png",
     bg = "white"
   )
