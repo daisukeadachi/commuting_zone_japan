@@ -23,40 +23,23 @@
 
 ### アルゴリズムの流れ
 
-```         
-┌─────────────────────────────────────────────────────────┐
-│ 1. メンバーシップシグネチャの計算                        │
-│    各グループの構成市町村をソートして結合                │
-└──────────────┬──────────────────────────────────────────┘
-               ↓
-┌─────────────────────────────────────────────────────────┐
-│ 2. ポリゴンの統合と隣接関係の計算                        │
-│    同じグループのポリゴンをマージ                        │
-│    → spdep::poly2nb()で隣接リスト作成                    │
-└──────────────┬──────────────────────────────────────────┘
-               ↓
-┌─────────────────────────────────────────────────────────┐
-│ 3. 前年の色を適用（Color Reuse）                         │
-│    - シグネチャが一致するグループ → 前年の色を検討      │
-│    - 隣接チェック付きで衝突回避                         │
-└──────────────┬──────────────────────────────────────────┘
-               ↓
-┌─────────────────────────────────────────────────────────┐
-│ 4. 固定色を適用                                         │
-│    特定グループ（東京など）に色を強制                  │
-│    この色は他のグループに使用されない                 │
-└──────────────┬──────────────────────────────────────────┘
-               ↓
-┌─────────────────────────────────────────────────────────┐
-│ 5. Welsh-Powell法で残りを着色                           │
-│    度の高い順にグループを処理                           │
-│    各グループに隣接グループで未使用の色を割り当て      │
-└──────────────┬──────────────────────────────────────────┘
-               ↓
-┌─────────────────────────────────────────────────────────┐
-│ 6. 検証：隣接グループの色が異なるか確認                │
-│    衝突があればエラーを投げる                           │
-└─────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    A["1️⃣ メンバーシップシグネチャの計算<br/>各グループの構成市町村をソートして結合"]
+    B["2️⃣ ポリゴンの統合と隣接関係の計算<br/>同じグループのポリゴンをマージ<br/>spdep::poly2nb で隣接リスト作成"]
+    C["3️⃣ 前年の色を適用 Color Reuse<br/>シグネチャが一致するグループ → 前年の色を検討<br/>隣接チェック付きで衝突回避"]
+    D["4️⃣ 固定色を適用<br/>特定グループ（東京など）に色を強制<br/>この色は他のグループに使用されない"]
+    E["5️⃣ Welsh-Powell法で残りを着色<br/>度の高い順にグループを処理<br/>各グループに隣接グループで未使用の色を割り当て"]
+    F["6️⃣ 検証<br/>隣接グループの色が異なるか確認<br/>衝突があればエラーを投げる"]
+    
+    A --> B --> C --> D --> E --> F
+    
+    style A fill:#e1f5ff
+    style B fill:#e1f5ff
+    style C fill:#fff3e0
+    style D fill:#fce4ec
+    style E fill:#f3e5f5
+    style F fill:#e8f5e9
 ```
 
 ## コア関数：`assign_group_colors()`
@@ -411,15 +394,361 @@ CZ.sf %>% ggplot() +
     - 新幹線（破線）
     - 在来線（実線）
 
-## 使用パラメータの推奨値
+## 必要なデータと入力ファイル
 
-| パラメータ | 用途 | 推奨値 |
-|-------------------------------|------------------|-----------------------|
-| `colors` | 基本パレット | `RColorBrewer::brewer.pal(5, "Set2")` |
-|  | 多くのグループが必要 | `c(RColorBrewer::brewer.pal(5, "Set2"), "#377EB8")` |
-| `fixed$value` | 東京都市圏の中心市町村 | `13100` |
-| `fixed$color` | 東京の固定色 | `RColorBrewer::brewer.pal(6, "Set2")[6]` |
-| `linewidth` | 市町村境界線の幅 | `0.05 ~ 0.1` |
+### 1. 市町村地図データ（必須）
+
+**ファイル位置：** `mapdata/mmm20151001/mmm20151001.shp` など
+
+**説明：** ESRI Shapeファイル形式の市町村ポリゴンデータ
+
+**構成（各年度ごと）：**
+```
+mapdata/
+├── mmm19801001/
+│   ├── mmm19801001.shp       # ポリゴンジオメトリ
+│   ├── mmm19801001.shx       # 形状インデックス
+│   ├── mmm19801001.dbf       # 属性データ（JISCODE, PNAME等）
+│   └── mmm19801001.prj       # 座標参照系（JGD2000）
+├── mmm19851001/
+├── mmm19901001/
+├── ... (5年ごと)
+└── mmm20151001/              # CZandUEA.Rで主に使用
+```
+
+**必須カラム：**
+- `JISCODE`：市町村コード（5桁、例：13101）
+- `CNAME`：市町村名
+- `PNAME`：都道府県名
+- `geometry`：ポリゴンジオメトリ
+
+**座標系：** JGD2000（EPSG:4612）
+
+### 2. 通勤圏（CZ）データ（必須）
+
+**ファイル位置：** `output/{year}_harmonized.csv`, `output/{year}_original.csv`
+
+**説明：** クラスタリング結果。各市町村がどの通勤圏に属するかを記録
+
+**CSVフォーマット：**
+```
+i,cluster
+13101,50
+13102,50
+13103,50
+14150,75
+14151,75
+...
+```
+
+**カラム説明：**
+- `i`：JISCODE（市町村コード）
+- `cluster`：属するCZのグループID
+
+**ファイル一覧（関東対応）：**
+```
+output/
+├── 1980_harmonized.csv
+├── 1985_harmonized.csv
+├── ...
+├── 2015_harmonized.csv
+├── 1980_original.csv
+├── ...
+├── 2015_original.csv
+└── addCZdata/
+    └── 2020_harmonized_small-0.001_tree_height-0.98.csv
+```
+
+### 3. 都市雇用圏（UEA）データ（必須、1980/2015のみ）
+
+**ファイル位置：** `data/UEA/`
+
+**構成：**
+```
+data/UEA/
+├── suburb/                    # 郊外部
+│   ├── McEA/
+│   │   ├── McEA80_Rev07.csv        # 1980年版
+│   │   ├── McEA2005.csv            # 2015年版
+│   │   ├── McEA2015.csv            # 2015年版（新）
+│   │   └── ...
+│   └── MEA/
+│       ├── MEA80_Rev07.csv
+│       ├── MEA2005.csv
+│       ├── MEA2015.csv
+│       └── ...
+└── center/                    # 中心部
+    ├── McEA/
+    │   ├── McEA80C_Rev07.csv
+    │   ├── McEA2005C.csv
+    │   ├── McEA2015C.csv
+    │   └── ...
+    └── MEA/
+        ├── MEA80C_Rev07.csv
+        ├── MEA2005C.csv
+        ├── MEA2015C.csv
+        └── ...
+```
+
+**CSVフォーマット例（McEA2015.csv）：**
+```
+UEA,都市圏名,UEA_Name,suburb,郊外,Suburb_Name,通勤率,suburb2,...
+13100,東京,Tokyo,11203,川口市,Kawaguchi-shi,0.439,11208,...
+13100,東京,Tokyo,14150,相模原市,Sagamihara-shi,0.259,NULL,...
+...
+```
+
+**重要カラム：**
+- `UEA`：都市雇用圏ID
+- `suburb`, `suburb2`, `suburb3`：JISCODE（郊外部の市町村）
+- `center`（center CSVのみ）：JISCODE（中心市町村）
+
+**注意：** 
+- 複数の郊外レベル（suburb, suburb2, suburb3）がある場合、全て統合して使用
+- 2015年データは`McEA2015.csv`, `MEA2015.csv`を使用（2005年版ではなく）
+
+### 4. 鉄道インフラデータ（オプション、withRail.Rで使用）
+
+**ファイル位置：** `data/N05-23_GML/N05-23_RailroadSection2.shp`
+
+**説明：** 新幹線・在来線を含む鉄道ネットワークのラインデータ
+
+**GMLディレクトリ構成：**
+```
+data/
+├── N05-23_GML/                    # 行政区画（2023年版）
+│   ├── N05-23_RailroadSection2.shp
+│   ├── N05-23_RailroadSection2.shx
+│   ├── N05-23_RailroadSection2.dbf
+│   ├── N05-23_RailroadSection2.prj
+│   └── ...
+├── N06-23_GML/                    # 別データセット（使用例に応じて）
+└── ...
+```
+
+**属性カラム：**
+- `N05_002`：路線種別（"新幹線", "在来線"等）
+- `N05_006`：路線ID
+- `N05_005s`：開通年（開始）
+- `N05_005e`：開通年（終了）
+
+### 5. 自治体コード変換テーブル（1980年使用時のみ）
+
+**ファイル位置：** `mapdata/codelist_19801001and20151001.csv` など
+
+**説明：** 1980年の市町村コードと2015年の市町村コードの対応表（合併対応）
+
+**CSVフォーマット：**
+```
+JISCODE1,JISCODE2
+13101,13101
+14150,14150
+...
+```
+
+**用途：** 1980年のUEAデータ（JISCODEが古い形式）を2015年の市町村コードに変換
+
+**ファイル一覧：**
+```
+mapdata/
+├── codelist_19801001and20151001.csv
+├── codelist_19851001and20151001.csv
+├── codelist_19901001and20151001.csv
+├── codelist_19951001and20151001.csv
+├── codelist_20001001and20151001.csv
+├── codelist_20051001and20151001.csv
+├── codelist_20101001and20151001.csv
+└── codelist_20151001and20151001.csv  # 恒等変換
+```
+
+## ディレクトリ構造の詳細
+
+### ワークスペース全体の構成
+
+```
+Ikuta_RA/
+├── Ikuta_RA.Rproj                    # RStudioプロジェクトファイル
+├── README_color_assignment.md        # このドキュメント
+├── run_tests.R                       # テストスクリプト
+│
+├── codefile/                         # Rスクリプト
+│   ├── color_assignment_impl.R       # 色分け関数の実装 ⭐
+│   ├── CZandUEA.R                    # 1980/2015年の基本地図
+│   ├── TimeSeriesCZ_kanto_multi.R    # 時系列地図（関東）
+│   ├── CZ_2015.R                     # 2015年単年の地図
+│   ├── tree-height_harmonized.R      # パラメータ比較（全国）
+│   ├── tree-height_harmonized_kanto.R # パラメータ比較（関東）
+│   ├── tree-height_original.R        # パラメータ比較（全国）
+│   ├── tree-height_original_kanto.R  # パラメータ比較（関東）
+│   ├── withRail.R                    # 鉄道付き地図
+│   └── archive/                      # 過去のスクリプト（参考用）
+│
+├── data/                             # 入力データ
+│   ├── UEA/
+│   │   ├── suburb/
+│   │   │   ├── McEA/
+│   │   │   │   ├── McEA80_Rev07.csv
+│   │   │   │   ├── McEA2005.csv
+│   │   │   │   ├── McEA2015.csv
+│   │   │   │   └── ...
+│   │   │   └── MEA/
+│   │   │       ├── MEA80_Rev07.csv
+│   │   │       ├── MEA2005.csv
+│   │   │       ├── MEA2015.csv
+│   │   │       └── ...
+│   │   └── center/
+│   │       ├── McEA/
+│   │       │   ├── McEA80C_Rev07.csv
+│   │       │   ├── McEA2015C.csv
+│   │       │   └── ...
+│   │       └── MEA/
+│   │           ├── MEA80C_Rev07.csv
+│   │           ├── MEA2015C.csv
+│   │           └── ...
+│   ├── addCZdata/
+│   │   ├── 2020_harmonized_small-0.001_tree_height-0.98.csv
+│   │   └── ...
+│   ├── N05-23_GML/                   # 鉄道データ
+│   │   ├── N05-23_RailroadSection2.*
+│   │   └── ...
+│   ├── N06-23_GML/
+│   │   └── ...
+│   ├── mmm20051001/
+│   │   └── mmm20051001.dbf
+│   └── ...
+│
+├── mapdata/                          # 市町村地図データ
+│   ├── mmm19801001/
+│   │   ├── mmm19801001.shp
+│   │   ├── mmm19801001.shx
+│   │   ├── mmm19801001.dbf
+│   │   ├── mmm19801001.prj
+│   │   └── ...
+│   ├── mmm19851001/
+│   ├── mmm19901001/
+│   ├── ... (5年ごと)
+│   ├── mmm20151001/                  # CZandUEA.Rで主に使用
+│   └── mmm20191001/
+│
+├── output/                           # 出力ディレクトリ
+│   ├── *_harmonized.csv              # CZデータ（統一版）
+│   ├── *_original.csv                # CZデータ（元版）
+│   ├── color_map/                    # ⭐ 色マップの永続化
+│   │   ├── CZ_signature_color.csv    # CZ: シグネチャ→色
+│   │   └── UEA_signature_color.csv   # UEA: シグネチャ→色
+│   ├── clustered/
+│   │   ├── harmonized/
+│   │   │   ├── 0.5/
+│   │   │   ├── 0.8/
+│   │   │   └── ...
+│   │   └── original/
+│   │       └── ...
+│   └── map_image/                    # 出力画像
+│       ├── CZandUEA/
+│       │   ├── 1980_UEAandCZmap_eng.png
+│       │   └── 2015_UEAandCZmap_eng.png
+│       ├── ts_CZ/
+│       │   └── 1980to2020_kanto_harmonized_CZmap_eng.png
+│       ├── CZ2015/
+│       │   ├── 2015_CZmap_enlarge.png
+│       │   └── 2015_CZmap_kanto.png
+│       ├── tree-height/
+│       │   ├── harmonized/
+│       │   │   ├── 0.5/
+│       │   │   ├── 0.8/
+│       │   │   └── ...
+│       │   ├── harmonized_kanto/
+│       │   ├── original/
+│       │   └── original_kanto/
+│       └── withRail/
+│           ├── 2015_kanto_CZwithRailmap_eng.png
+│           ├── 2015_kinki_CZwithRailmap_eng.png
+│           ├── 2015_nagoya_CZwithRailmap_eng.png
+│           └── 2015_whole_CZwithRailmap_eng.png
+│
+└── tests/                            # テストディレクトリ
+    └── testthat/
+```
+
+### データフロー図
+
+```mermaid
+flowchart TD
+    subgraph input["📥 入力データ"]
+        A["市町村地図データ<br/>mmm*.shp"]
+        B["CZデータ<br/>*_harmonized.csv"]
+        C["UEAデータ<br/>McEA, MEA CSV"]
+    end
+    
+    D["CZandUEA.R など<br/>- sfオブジェクト作成<br/>- assign_group_colors() 実行"]
+    
+    E["⭐ 色マップ保存<br/>output/color_map/<br/>- CZ_signature_color.csv<br/>- UEA_signature_color.csv"]
+    
+    subgraph output["📤 出力"]
+        F["🗺️ 地図画像生成<br/>output/map_image/<br/>に保存"]
+    end
+    
+    A --> D
+    B --> D
+    C --> D
+    D --> E
+    E --> F
+    
+    style input fill:#e3f2fd
+    style output fill:#e8f5e9
+    style E fill:#fff9c4
+```
+
+### 色マップファイルの詳細
+
+**ファイル位置：** `output/color_map/`
+
+**CZ_signature_color.csv の例：**
+```
+signature,color
+"13101,13102,13103",#66C2A5
+"14201,14202",#FC8D62
+"15101,15102,15103,15104",#8DA0CB
+...
+```
+
+**UEA_signature_color.csv の例：**
+```
+signature,color
+"11201,11202,11203,...,11350",#66C2A5
+"12203,12204,...,12350",#FC8D62
+...
+```
+
+**役割：**
+- 年を跨いで同じシグネチャを持つグループに同じ色を割り当てるための参照テーブル
+- 複数回スクリプトを実行する際に、一貫性のある色分けを保証
+- `load_color_map()`で自動的に読み込まれる
+
+### 実行順序と依存関係
+
+**推奨実行順序：**
+
+1. **CZandUEA.R** ✅
+   - 最初に実行（基本的な1980/2015年マップを生成）
+   - `output/color_map/`を自動作成
+   - `CZ_signature_color.csv`, `UEA_signature_color.csv`を作成
+
+2. **TimeSeriesCZ_kanto_multi.R** ✅
+   - CZ_signature_color.csvを読み込んで色を再利用
+   - 1980-2020年の時系列マップを生成
+
+3. **CZ_2015.R** ✅
+   - 2015年単一年度の複数ビューマップを生成
+
+4. **tree-height_*.R** ✅
+   - パラメータ比較用（色マップ依存なし）
+   - 並列実行可能
+
+5. **withRail.R** ✅
+   - 鉄道データを使用（CZ_signature_color.csv読み込み）
+
+**重要：** CZandUEA.Rを最初に実行して色マップを作成する必要があります。
 
 
 ## トラブルシューティング
