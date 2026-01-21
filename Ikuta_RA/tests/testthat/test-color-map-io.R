@@ -1,0 +1,18 @@
+library(testthat)
+source("../../codefile/color_assignment_impl.R")
+
+test_that("save and load color map works", {
+  td <- tempdir()
+  map_df <- tibble::tibble(signature = c("a","b"), color = c("#001122","#AABBCC"))
+  save_color_map(map_df, kind = "TEST", dir = td)
+  loaded <- load_color_map("TEST", dir = td)
+  expect_equal(nrow(loaded), 2)
+  expect_true(all(map_df$signature %in% loaded$signature))
+  # save again with an overlapping signature but different color should keep the first one (existing precedence)
+  map_df2 <- tibble::tibble(signature = c("b","c"), color = c("#DDDDDD","#FFFFFF"))
+  save_color_map(map_df2, kind = "TEST", dir = td)
+  loaded2 <- load_color_map("TEST", dir = td)
+  # 'b' should remain the original color (#AABBCC)
+  expect_equal(loaded2$color[loaded2$signature=="b"], "#AABBCC")
+  expect_true("c" %in% loaded2$signature)
+})
