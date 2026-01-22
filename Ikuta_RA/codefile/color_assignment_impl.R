@@ -248,7 +248,7 @@ gen_prefectual_boundary <- function(muni_sf, linewidth = .3, linecolor = "black"
     sf::st_make_valid() %>% 
     # sf::st_transform(crs = 6677) %>%
     dplyr::mutate(JISCODE = trunc(.data$JISCODE / 1000)) %>%
-    # sf::st_buffer(dist = 1000) %>%
+    sf::st_buffer(dist = .001) %>%
     dplyr::group_by(.data$JISCODE) %>%
     dplyr::summarise()  %>% 
     sf::st_cast("MULTILINESTRING") 
