@@ -167,6 +167,7 @@ save_color_map <- function(map_df, kind, dir = "output/color_map") {
 #' @param sf_obj sf object including municipalities in Hokkaido
 #' @param jis_col the name containing JISCODE
 #' @param shift Numeric vec to adjust position. Default:c(10,4)
+#' @return sf object with Hokkaido moved
 move_Hokaido <- function(sf_obj, jis_col = "JISCODE", shift = c(10, 4)) {
   #### moving Hokkaido ####
   require(dplyr)
@@ -189,6 +190,10 @@ move_Hokaido <- function(sf_obj, jis_col = "JISCODE", shift = c(10, 4)) {
 #' @param lim_y limitation of y coordinate
 #' @param linewidth width of lines of munis
 #' @param caption caption text
+#' @param HokkaidoLine logical, whether to draw Hokkaido separation line
+#' @param color_col name of the color column in sf_obj
+#' @param caption_size size of caption text
+#' @return ggplot2 object
 make_basic_plot <- function(
     sf_obj,
     lim_x,
@@ -236,7 +241,8 @@ make_basic_plot <- function(
   }
 }
 
-#' @description genarate Line
+#' @description genarate sprit Line between Hokkaido and others
+#' @return ggplot2 layer of Hokkaido separation line
 gen_Hokkaidoline <- function() {
   HokkaidoLine <- rbind(c(137.5, 45), c(137.5, 40), c(134, 37), c(120, 37)) %>%
     sf::st_linestring() %>%
