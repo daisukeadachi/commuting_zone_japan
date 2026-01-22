@@ -236,7 +236,7 @@ gen_Hokkaidoline <- function() {
 }
 
 #' @description generate prefectural boundary lines
-#' @param muni_sf sf object of municipalities
+#' @param muni_sf sf object of municipalities with JISCODE column
 #' @param linewidth width of lines of prefectural boundaries
 #' @param linecolor color of the lines
 #' @return ggplot2 layer of prefectural boundary lines
