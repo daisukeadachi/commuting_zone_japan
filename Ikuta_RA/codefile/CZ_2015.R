@@ -52,7 +52,7 @@ EdoCenter <- which(CZ.sf$JISCODE == 13101)
 Gohunai <- CZ.sf$cluster[EdoCenter]
 CZ_color <- assign_group_colors(CZ.sf, "cluster", colors = colors, fixed = list(value = Gohunai, color = RColorBrewer::brewer.pal(6, "Set2")[6]), prev_colors = prev_CZ_map)
 CZ.sf <- dplyr::left_join(CZ.sf, CZ_color, by = "cluster") %>%
-  dplyr::select(geometry, color) %>%
+  dplyr::select(geometry, color, JISCODE) %>%
   dplyr::mutate(color = dplyr::if_else(
     is.na(color), "#a9a9a9", color
   ))
@@ -66,7 +66,8 @@ CZ.sf %>%
   make_basic_plot(
     lim_x = lim$enlarge$x,
     lim_y = lim$enlarge$y,
-    HokkaidoLine = TRUE
+    HokkaidoLine = TRUE,
+    pref_boundary = 0.3
   ) -> enl
 ggplot2::ggsave(enl,
   filename = paste0(outdir, "2015_CZmap_enlarge.png"),
@@ -74,9 +75,11 @@ ggplot2::ggsave(enl,
   create.dir = TRUE
 )
 CZ.sf %>%
+  dplyr::filter(JISCODE %in% (7000:23999)) %>%
   make_basic_plot(
     lim_x = lim$kanto$x,
     lim_y = lim$kanto$y,
+    pref_boundary = 0.3
   ) -> kanto
 ggplot2::ggsave(kanto,
   filename = paste0(outdir, "2015_CZmap_kanto.png"),

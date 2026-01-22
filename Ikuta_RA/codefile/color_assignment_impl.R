@@ -191,6 +191,7 @@ move_Hokaido <- function(sf_obj, jis_col = "JISCODE", shift = c(10, 4)) {
 #' @param linewidth width of lines of munis
 #' @param caption caption text
 #' @param HokkaidoLine logical, whether to draw Hokkaido separation line
+#' @param pref_boundary numeric, width of prefectural boundary lines; 0 to disable
 #' @param color_col name of the color column in sf_obj
 #' @param caption_size size of caption text
 #' @return ggplot2 object
@@ -200,14 +201,15 @@ make_basic_plot <- function(
     lim_y,
     caption = NULL,
     HokkaidoLine = FALSE,
+    pref_boundary = 0,
     linewidth = .1,
     color_col = "color",
     caption_size = 10) {
-  if (HokkaidoLine) {
     sf_obj %>%
       ggplot2::ggplot() +
       ggplot2::geom_sf(ggplot2::aes(fill = .data[[color_col]]), linewidth = linewidth) +
-      gen_Hokkaidoline() +
+      (if (HokkaidoLine) {gen_Hokkaidoline()} else NULL) +
+      (if (pref_boundary != 0) {gen_prefectual_boundary(sf_obj, linewidth = pref_boundary)} else NULL) +
       ggplot2::scale_fill_identity() +
       ggplot2::theme_bw() +
       ggplot2::theme(
@@ -221,24 +223,6 @@ make_basic_plot <- function(
       ) +
       ggplot2::labs(caption = caption) -> out
     return(out)
-  } else {
-    sf_obj %>%
-      ggplot2::ggplot() +
-      ggplot2::geom_sf(ggplot2::aes(fill = .data[[color_col]]), linewidth = linewidth) +
-      ggplot2::scale_fill_identity() +
-      ggplot2::theme_bw() +
-      ggplot2::theme(
-        legend.position = "none",
-        plot.caption    = ggplot2::element_text(size = caption_size)
-      ) +
-      ggplot2::coord_sf(
-        ylim = lim_y,
-        xlim = lim_x,
-        datum = NA
-      ) +
-      ggplot2::labs(caption = caption) -> out
-    return(out)
-  }
 }
 
 #' @description genarate sprit Line between Hokkaido and others
@@ -250,3 +234,26 @@ gen_Hokkaidoline <- function() {
     sf::st_sf()
   return(ggplot2::geom_sf(data = HokkaidoLine, linewidth = .1))
 }
+
+#' @description generate prefectural boundary lines
+#' @param muni_sf sf object of municipalities
+#' @param linewidth width of lines of prefectural boundaries
+#' @param linecolor color of the lines
+#' @return ggplot2 layer of prefectural boundary lines
+gen_prefectual_boundary <- function(muni_sf, linewidth = .3, linecolor = "black") {
+  if (!"JISCODE" %in% names(muni_sf) || !is.numeric(muni_sf$JISCODE)) {
+    stop("muni_sf must contain 'JISCODE' column of numeric type")
+  }
+  pref_sf <- muni_sf %>%
+    sf::st_make_valid() %>% 
+    # sf::st_transform(crs = 6677) %>%
+    dplyr::mutate(JISCODE = trunc(.data$JISCODE / 1000)) %>%
+    # sf::st_buffer(dist = 1000) %>%
+    dplyr::group_by(.data$JISCODE) %>%
+    dplyr::summarise()  %>% 
+    sf::st_cast("MULTILINESTRING") 
+    # sf::st_transform(crs = sf::st_crs(muni_sf))
+  return(ggplot2::geom_sf(data = pref_sf, color = linecolor, linewidth = linewidth))
+}
+
+
