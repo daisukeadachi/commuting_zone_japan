@@ -86,7 +86,8 @@ future_iwalk(czlist, ~ {
     make_basic_plot(
       lim_x = lim_kanto$x,
       lim_y = lim_kanto$y,
-      HokkaidoLine = FALSE
+      HokkaidoLine = FALSE,
+      pref_boundary = .3
     ) -> enl
   ggplot2::ggsave(enl,
     filename = paste0(IMGDIR_kanto, folder, "/", .y, ".png"),
