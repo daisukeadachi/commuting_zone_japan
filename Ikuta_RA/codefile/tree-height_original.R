@@ -75,7 +75,8 @@ walk(year, function(YEAR) {
       make_basic_plot(
         lim_x = lim$x,
         lim_y = lim$y,
-        HokkaidoLine = TRUE
+        HokkaidoLine = TRUE,
+        pref_boundary = .3
       ) -> enl
     ggplot2::ggsave(enl,
       filename = paste0(IMGDIR, folder, "/", .y, ".png"),
