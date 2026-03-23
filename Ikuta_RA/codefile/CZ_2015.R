@@ -16,8 +16,8 @@ colors <- RColorBrewer::brewer.pal(5, "Set2")
 lim <- list(
   enlarge = list(x = c(129.3, 142.3), y = c(31.2, 42)),
   kanto = list(x = c(138, 140.9), y = c(34.7, 37.1)),
-  kinki_x = list(x = c(134.7, 134.7+2.5), y = c(34.1, 35.5)),
-  nagoya_x = list(x = c(134.7 + 2 - 0.5, 138 + 0.5), y = c(34.1 + .2, 35.5 + .5))
+  kinki = list(x = c(134.7, 137.2), y = c(33.75, 35.85)),
+  nagoya = list(x = c(134.7 + 2 - 0.5, 138 + 0.5), y = c(34.1 + .1, 35.5 + .6))
 )
 
 width <- .1
@@ -108,7 +108,7 @@ ggplot2::ggsave(kinki,
 
 # Nagoya
 CZ.sf %>%
-  dplyr::filter(JISCODE %in% (16000:25999)) %>%
+  dplyr::filter(JISCODE %in% (16000:29999)) %>%
   make_basic_plot(
     lim_x = lim$nagoya$x,
     lim_y = lim$nagoya$y,
