@@ -48,19 +48,23 @@ PREFS = [f"{i:02d}" for i in range(1, 48)]
 # treatment already used to build the commuting matrices. The special wards of
 # Tokyo are deliberately absent: they stay separate.
 WARD_RANGES = [
-    (1100, 1199, 1100), (4100, 4199, 4100), (11100, 11199, 11100),
-    (12100, 12199, 12100), (14100, 14129, 14100), (14130, 14149, 14130),
-    (14150, 14199, 14150), (15100, 15199, 15100), (22100, 22129, 22100),
-    (22130, 22199, 22130), (23100, 23199, 23100), (26100, 26199, 26100),
-    (27100, 27139, 27100), (27140, 27199, 27140), (28100, 28199, 28100),
-    (33100, 33199, 33100), (34100, 34199, 34100), (40100, 40129, 40100),
-    (40130, 40199, 40130), (43100, 43199, 43100),
+    (1100, 1199, 1100, "札幌市"), (4100, 4199, 4100, "仙台市"),
+    (11100, 11199, 11100, "さいたま市"), (12100, 12199, 12100, "千葉市"),
+    (14100, 14129, 14100, "横浜市"), (14130, 14149, 14130, "川崎市"),
+    (14150, 14199, 14150, "相模原市"), (15100, 15199, 15100, "新潟市"),
+    (22100, 22129, 22100, "静岡市"), (22130, 22199, 22130, "浜松市"),
+    (23100, 23199, 23100, "名古屋市"), (26100, 26199, 26100, "京都市"),
+    (27100, 27139, 27100, "大阪市"), (27140, 27199, 27140, "堺市"),
+    (28100, 28199, 28100, "神戸市"), (33100, 33199, 33100, "岡山市"),
+    (34100, 34199, 34100, "広島市"), (40100, 40129, 40100, "北九州市"),
+    (40130, 40199, 40130, "福岡市"), (43100, 43199, 43100, "熊本市"),
 ]
+CITY_NAME = {f"{t:05d}": n for _, _, t, n in WARD_RANGES}
 
 
 def collapse_wards(code):
     n = int(code)
-    for lo, hi, target in WARD_RANGES:
+    for lo, hi, target, _ in WARD_RANGES:
         if lo <= n <= hi:
             return f"{target:05d}"
     return f"{n:05d}"
@@ -214,7 +218,10 @@ def main():
         code = collapse_wards(raw_code)
         k = (year, code)
         if k not in agg:
-            agg[k] = {"year": year, "muni_code": code, "muni_name": r.get("A16_003", ""),
+            # A collapsed city would otherwise inherit the name of whichever
+            # ward happened to be read first.
+            agg[k] = {"year": year, "muni_code": code,
+                      "muni_name": CITY_NAME.get(code, r.get("A16_003", "")),
                       "did_population": 0, "did_area_km2": 0.0, "n_districts": 0}
         agg[k]["did_population"] += num(r.get("A16_005"), int)
         agg[k]["did_area_km2"] += num(r.get("A16_006"))
