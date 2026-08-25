@@ -8,3 +8,6 @@ Ikuta_RA/mapdata/*
 Ikuta_RA/output/*
 Ikuta_RA/out/*
 !Ikuta_RA/output/map_image
+
+# Bulk source archives re-downloadable by validation/code/build_did_table.py
+validation/data/a16_cache/
