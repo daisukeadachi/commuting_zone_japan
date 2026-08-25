@@ -15,8 +15,11 @@ colors <- RColorBrewer::brewer.pal(5, "Set2")
 # limitation range
 lim <- list(
   enlarge = list(x = c(129.3, 142.3), y = c(31.2, 42)),
-  kanto = list(x = c(138, 140.9), y = c(34.7, 37.1))
+  kanto = list(x = c(138, 140.9), y = c(34.7, 37.1)),
+  kinki = list(x = c(134.7, 137.2), y = c(33.75, 35.85)),
+  nagoya = list(x = c(134.7 + 2 - 0.5, 138 + 0.5), y = c(34.1 + .1, 35.5 + .6))
 )
+
 width <- .1
 outdir <- "output/map_image/CZ2015/"
 
@@ -62,6 +65,8 @@ prev_CZ_map <- CZ_color %>% dplyr::select(signature, color)
 save_color_map(prev_CZ_map, "CZ", dir = color_map_dir)
 rm(CZ_color, EdoCenter, Gohunai)
 ## ggplot zone(for double) #################################################
+
+# All Japan
 CZ.sf %>%
   make_basic_plot(
     lim_x = lim$enlarge$x,
@@ -74,6 +79,8 @@ ggplot2::ggsave(enl,
   bg = "white",
   create.dir = TRUE
 )
+
+# Kanto
 CZ.sf %>%
   dplyr::filter(JISCODE %in% (7000:23999)) %>%
   make_basic_plot(
@@ -85,6 +92,35 @@ ggplot2::ggsave(kanto,
   filename = paste0(outdir, "2015_CZmap_kanto.png"),
   bg = "white"
 )
+
+# Kinki
+CZ.sf %>%
+  dplyr::filter(JISCODE %in% (18000:31999)) %>%
+  make_basic_plot(
+    lim_x = lim$kinki$x,
+    lim_y = lim$kinki$y,
+    pref_boundary = 0.3
+  ) -> kinki
+ggplot2::ggsave(kinki,
+  filename = paste0(outdir, "2015_CZmap_kinki.png"),
+  bg = "white"
+)
+
+# Nagoya
+CZ.sf %>%
+  dplyr::filter(JISCODE %in% (16000:29999)) %>%
+  make_basic_plot(
+    lim_x = lim$nagoya$x,
+    lim_y = lim$nagoya$y,
+    pref_boundary = 0.3
+  ) -> nagoya
+ggplot2::ggsave(nagoya,
+  filename = paste0(outdir, "2015_CZmap_nagoya.png"),
+  bg = "white"
+)
+
+
+
 
 # doubleMap <- enl + UEAmap +
 #   patchwork::plot_annotation(
