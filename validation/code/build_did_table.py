@@ -17,7 +17,10 @@ wards of ordinance-designated cities. The designated-city wards are collapsed
 to their city, and the Tokyo wards are left alone, which is the convention the
 commuting matrices use.
 
-The dataset stops at 2015. The 2020 figures have to come from elsewhere.
+The dataset stops at 2015. The 2020 figures come instead from table 1-2 of the
+basic tabulation of the 2020 census, saved alongside as
+did_municipality_2020_raw.xlsx, which reports the same two quantities for the
+same units.
 """
 import csv
 import os
@@ -26,10 +29,16 @@ import time
 import urllib.request
 import zipfile
 
+try:
+    import openpyxl
+except ImportError:
+    openpyxl = None
+
 BASE = "https://nlftp.mlit.go.jp/ksj/gml/data/A16"
 HERE = os.path.dirname(os.path.abspath(__file__))
 CACHE = os.path.join(HERE, os.pardir, "data", "a16_cache")
 OUT = os.path.join(HERE, os.pardir, "data", "did_municipality.csv")
+XLSX_2020 = os.path.join(HERE, os.pardir, "data", "did_municipality_2020_raw.xlsx")
 
 NATIONAL = ["10", "15"]
 PER_PREF = ["80", "85", "90", "95", "00", "05"]
@@ -110,6 +119,55 @@ def num(v, cast=float, default=0):
         return default
 
 
+def rows_2020():
+    """Read the 2020 figures from table 1-2 of the basic tabulation.
+
+    The sheet carries one row per district plus a total row per unit, marked
+    DID00 in the district-symbol column, and lists the wards of designated
+    cities both individually and aggregated to the city. The city-level row is
+    taken and the ward rows dropped, except for Tokyo, where the wards are kept
+    and the aggregate row for the special wards is dropped instead.
+    """
+    if openpyxl is None:
+        print("openpyxl missing; skipping 2020")
+        return
+    if not os.path.exists(XLSX_2020):
+        print(f"{XLSX_2020} not present; skipping 2020")
+        return
+    ws = openpyxl.load_workbook(XLSX_2020, read_only=True)["b01_02"]
+    totals, counts = [], {}
+    for r in ws.iter_rows(min_row=16, values_only=True):
+        kind, area_name, symbol = r[0], r[2], r[3]
+        if kind not in ("0", "1", "2", "3"):
+            continue
+        raw_code = str(area_name).split("_")[0].zfill(5)
+        if raw_code == "13100":        # aggregate of the special wards
+            continue
+        code = collapse_wards(raw_code)
+        pop = num(r[4], int)
+        if pop <= 0:
+            continue
+        if str(symbol).startswith("DID00"):
+            # The population and area totals are read at city level for a
+            # designated city, so its ward rows are skipped here.
+            if kind == "0" and code != raw_code:
+                continue
+            totals.append((code, str(area_name).split("_", 1)[-1], pop, num(r[11])))
+        elif kind not in ("0", "1"):
+            # Districts are listed individually only for units that are not
+            # wards. For a designated city and for the special wards of Tokyo
+            # the listing is per ward, and a district spanning two wards is
+            # listed under both, so the count is left missing there rather than
+            # reported wrong. The population and area totals are unaffected.
+            counts[code] = counts.get(code, 0) + 1
+
+    for code, name, pop, area in totals:
+        yield {"year": "2020", "muni_code": code, "muni_name": name,
+               "did_population": pop, "did_area_km2": area,
+               "n_districts": counts.get(code, "")}
+    print(f"2020: {len(totals)} municipalities with a district")
+
+
 def main():
     seen = {}          # (year, district id) -> record, deduplicating polygon pieces
     duplicates = 0
@@ -161,6 +219,9 @@ def main():
         agg[k]["did_population"] += num(r.get("A16_005"), int)
         agg[k]["did_area_km2"] += num(r.get("A16_006"))
         agg[k]["n_districts"] += 1
+
+    for row in rows_2020():
+        agg[(row["year"], row["muni_code"])] = row
 
     with open(OUT, "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=["year", "muni_code", "muni_name",

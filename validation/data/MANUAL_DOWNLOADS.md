@@ -1,20 +1,18 @@
-# Data that could not be fetched automatically
+# Provenance of the external data
 
-Everything else listed in issue #13 was downloaded by script and is either committed here or rebuildable with `validation/code/build_did_table.py`. What follows is the remainder, which needs a browser.
+Everything listed in issue #13 is here. Most of it was downloaded by script and is either committed or rebuildable with `validation/code/build_did_table.py`; one file had to be fetched through a browser and is recorded below.
 
 ## Outstanding
 
-| # | What | Year | Where | Why it needs a browser | Save as |
-| --- | --- | --- | --- | --- | --- |
-| 1 | Densely inhabited district population and area, by municipality | 2020 | e-Stat, 令和2年国勢調査, 人口等基本集計, table 1-2 「男女別人口，世帯数及び面積－全国，都道府県，市区町村（人口集中地区）」. Entry point: <https://www.e-stat.go.jp/stat-search/files?toukei=00200521&tstat=000001136464> | The National Land Numerical Information series that supplied 1980 to 2015 stops at 2015. On e-Stat the equivalent table is reachable only through a JavaScript-driven result list, so no stable file URL could be derived. | `validation/data/did_municipality_2020_raw.xlsx` |
+Nothing. The one item that needed a browser has been supplied.
 
-Check figures for that file once it is in hand, from the Statistics Bureau summary of the 2020 round: 1,276 districts, set in 793 of the 1,719 municipalities, holding 88,285,927 residents, which is 70.0 percent of the national population of 126,146,099.
+## Resolved
 
-The same three quantities computed from the 1980 to 2015 table already built here give 825 municipalities and 86,985,899 residents in 2015, so the 2020 figures should sit slightly below on municipality count and slightly above on population.
+| What | Year | Source | File | How it was checked |
+| --- | --- | --- | --- | --- |
+| Densely inhabited district population and area, by municipality | 2020 | e-Stat, 2020 census, basic tabulation, table 1-2 「男女別人口，世帯の種類別世帯数及び面積－全国，都道府県，市区町村（人口集中地区）」 | `validation/data/did_municipality_2020_raw.xlsx` | District population sums to 88,285,927, matching the published national figure exactly. Counting the special wards of Tokyo as one unit gives 793 municipalities with a district, again an exact match. District area sums to 13,245.8 against a published 13,250.4, a gap of 0.03 percent arising from rounding the ward figures. |
 
-## Scope of the gap
-
-This blocks only the secondary version of the Core measures, the mechanical rule on district population, and only in 2020. The primary version, which reads the Urban Employment Area, is unaffected: the 2020 central-city files carry the district population of every central city, so the Core block and the map of split areas can be produced for every year in the sample without this file.
+The National Land Numerical Information series that supplied 1980 to 2015 stops at 2015, and on e-Stat the equivalent table sits behind a JavaScript-driven result list from which no stable file URL could be derived, so this one file was fetched by hand.
 
 ## Already collected, for contrast
 
@@ -24,7 +22,8 @@ This blocks only the secondary version of the Core measures, the mechanical rule
 | Metropolitan Employment Area, central-city lists | same | `validation/data/uea/MEA*C*.csv` | same |
 | Micropolitan Employment Area, suburb lists | same | `validation/data/uea/M[Cc]EA*.csv` | same |
 | Micropolitan Employment Area, central-city lists | same | `validation/data/uea/M[Cc]EA*C*.csv` | same |
-| Densely inhabited district population and area, by municipality | 1980, 1985, 1990, 1995, 2000, 2005, 2010, 2015 | `validation/data/did_municipality.csv` | National Land Numerical Information dataset A16, <https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A16.html> |
+| Densely inhabited district population and area, by municipality | 1980 to 2015 at five-year intervals | `validation/data/did_municipality.csv` | National Land Numerical Information dataset A16, <https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A16.html> |
+| Densely inhabited district population and area, by municipality | 2020 | same file, appended | e-Stat table 1-2 of the 2020 basic tabulation |
 
 There is no 1985 Urban Employment Area delineation; the series runs 1980 then 1990. This does not affect the present design, since 1985 appears in none of the comparison pairs.
 
