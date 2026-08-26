@@ -169,14 +169,14 @@ rows <- vapply(seq_len(nrow(grid)), function(k) {
   c2 <- containment %>% filter(year == y, abs(cutoff - cut) < 1e-9)
   k2 <- core %>% filter(year == y, abs(cutoff - cut) < 1e-9)
   sprintf("%d & %s & %s & %s & %s & %s & %s & %s%s", y, format(cut, nsmall = 3),
-          count(d$commuting_zones), count(d$single_municipality_zones),
-          count(d$noncontiguous_zones_paper_test), share(c2$mean_contained),
+          count(d$commuting_zones), count(d$noncontiguous_zones_paper_test),
+          share(c2$min_contained), share(c2$mean_contained),
           share(c2$share_of_labour_force_contained),
           count(k2$urban_areas_split_across_zones), br)
 }, character(1))
 write_table(rows, "appendix_cutoff_comparison.tex", "llrrrrrr",
-            paste0("Year & Cutoff & Commuting & Single- & Non- & Mean & Share of the & Areas", br,
-                   "& & zones & municipality & contiguous & contained & labour force & split", br))
+            paste0("Year & Cutoff & Commuting & Non- & Minimum & Mean & Share of the & Areas", br,
+                   "& & zones & contiguous & contained & contained & labour force & split", br))
 
 pairs_all <- read_csv(file.path(output_dir, "similarity_table.csv"), show_col_types = FALSE) %>%
   filter(abs(cutoff_earlier - slide_cutoff) < 1e-9) %>%
