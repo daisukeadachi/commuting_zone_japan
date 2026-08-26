@@ -162,10 +162,11 @@ for (later in unique(profile$later_year)) {
 }
 
 # The detail map is drawn at both cutoffs and the two are meant to be read against each
-# other, so both use one extent and one set of municipalities: the union of what each
-# cutoff would have shown on its own. Only the zone boundaries and the shading differ
-# between them. Without this the two maps sit at different scales, and the zone that grows
-# from one cutoff to the next does not look as though it has grown at all.
+# other, so both share one extent and one basemap, taken from the union of what each
+# cutoff would have shown on its own. Each map still draws only its own selection, the
+# zone with the lowest containment together with the zones adjacent to it. Without the
+# shared extent the two sit at different scales, and the zone that grows from one cutoff
+# to the next does not look as though it has grown at all.
 detail_selection <- function(cutoff) {
   zones <- read_csv(file.path(derived_dir, sprintf("zones_%d_cut%s.csv", headline_later, cut_label(cutoff))),
                     col_types = cols(code = col_character(), zone = col_integer()))
@@ -180,6 +181,7 @@ detail_selection <- function(cutoff) {
 }
 detail_codes <- unique(unlist(lapply(cutoff_anchors, detail_selection)))
 detail_frame <- st_bbox(st_transform(geometry[geometry$code %in% detail_codes, ], 3857))
+detail_basemap <- fetch_basemap(st_transform(geometry[geometry$code %in% detail_codes, ], 3857))
 
 for (headline_cutoff in cutoff_anchors) {
   zones <- read_csv(file.path(derived_dir, sprintf("zones_%d_cut%s.csv", headline_later,
@@ -243,7 +245,7 @@ for (headline_cutoff in cutoff_anchors) {
 
   detail <- geometry %>%
     inner_join(zones, by = "code") %>%
-    filter(code %in% detail_codes) %>%
+    filter(code %in% detail_selection(headline_cutoff)) %>%
     left_join(containment_by_municipality %>%
                 filter(year == headline_later, abs(cutoff - headline_cutoff) < 1e-9) %>%
                 select(code, contained), by = "code") %>%
@@ -267,10 +269,8 @@ for (headline_cutoff in cutoff_anchors) {
   zone_outlines <- st_transform(zone_outlines, 3857)
   zone_labels <- st_transform(zone_labels, 3857)
   named <- st_transform(named, 3857)
-  basemap <- fetch_basemap(detail)
-
   ggplot() +
-    basemap +
+    detail_basemap +
     geom_sf(data = detail, aes(fill = containment_class), colour = "grey70",
             linewidth = 0.1, alpha = 0.65) +
     geom_sf(data = zone_outlines, fill = NA, colour = "black", linewidth = 0.7) +
@@ -278,7 +278,7 @@ for (headline_cutoff in cutoff_anchors) {
     geom_sf_text(data = zone_labels, aes(label = zone), size = 6.0, fontface = "bold", colour = "grey15") +
     ggrepel::geom_text_repel(data = named, aes(geometry = geometry, label = label),
                              stat = "sf_coordinates", size = 4.6, colour = "grey10",
-                             nudge_x = -42000, nudge_y = -28000, hjust = 1,
+                             nudge_x = -20000, nudge_y = -16000, hjust = 1,
                              min.segment.length = 0, segment.colour = "grey40", segment.size = 0.3,
                              box.padding = 0.3, max.overlaps = Inf, seed = 20260826) +
     scale_fill_manual(name = "Share of residents working\ninside their own commuting zone",
