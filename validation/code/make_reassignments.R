@@ -43,7 +43,10 @@ describe <- function(year, cutoff, cases) {
       mutate(zone = zone_of[j]) %>%
       group_by(zone) %>%
       summarise(commuters = sum(pop), .groups = "drop")
-    adjacent <- by_zone %>% filter(zone %in% neighbour_zones) %>% slice_max(commuters, n = 1)
+    adjacent <- by_zone %>%
+      filter(zone %in% neighbour_zones) %>%
+      arrange(zone) %>%
+      slice_max(commuters, n = 1, with_ties = FALSE)
     own <- by_zone %>% filter(zone == own_zone)
 
     unit_shape <- geometry %>% filter(code == unit)

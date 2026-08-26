@@ -115,7 +115,7 @@ for (pair in baseline_pairs) {
   for (anchor_value in cutoff_anchors) {
     panel <- sweep %>%
       filter(earlier_year == pair[1], later_year == pair[2], abs(anchor - anchor_value) < 1e-9)
-    best <- panel %>% slice_max(mean_similarity, n = 1)
+    best <- panel %>% arrange(cutoff_later) %>% slice_max(mean_similarity, n = 1, with_ties = FALSE)
     top <- max(panel$mean_similarity + panel$sd_similarity)
     bottom <- min(panel$mean_similarity - panel$sd_similarity)
     ggplot(panel, aes(x = cutoff_later, y = mean_similarity)) +

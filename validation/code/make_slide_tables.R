@@ -197,7 +197,7 @@ similarity <- read_csv(file.path(output_dir, "similarity_table.csv"), show_col_t
 sweep <- read_csv(file.path(output_dir, "cutoff_sweep.csv"), show_col_types = FALSE) %>%
   filter(earlier_year == !!earlier_year, later_year == !!later_year,
          abs(anchor - slide_cutoff) < 1e-9)
-best <- sweep %>% slice_max(mean_similarity, n = 1)
+best <- sweep %>% arrange(cutoff_later) %>% slice_max(mean_similarity, n = 1, with_ties = FALSE)
 plateau <- sweep %>% filter(mean_similarity >= best$mean_similarity - 0.005)
 macros <- c(
   sprintf("\\newcommand{\\meanSimilarity}{%s}", ratio(similarity$mean_similarity)),
