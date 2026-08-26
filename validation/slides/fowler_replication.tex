@@ -1,6 +1,7 @@
 \documentclass[aspectratio=169,11pt]{beamer}
 
 \usetheme{default}
+\setbeamertemplate{navigation symbols}{}
 
 \usepackage{booktabs}
 \usepackage{graphicx}
@@ -46,7 +47,7 @@
   \footnotesize Source paper: \url{https://doi.org/10.1038/s41597-024-03829-5}
 \end{frame}
 
-\begin{frame}{The delineation}{Methods section of Fowler (2024)}
+\begin{frame}{The delineation}
   For municipalities $i$ and $j$ with commuting flows $f_{ij}$ and resident labour forces $W_i$, the proportional flow is
   \[
     p_{ij} = \frac{f_{ij} + f_{ji}}{\min(W_i, W_j)}, \qquad p_{ij} \le 0.999 ,
@@ -87,7 +88,7 @@
   \footnotesize Five western Tokyo suburbs at 0.36, wedged between the Tokyo zone and the zones west of it.
 \end{frame}
 
-\begin{frame}{Technical validation}{Technical Validation section of Fowler (2024)}
+\begin{frame}{Technical validation}
   \begin{itemize}
     \item The cutoff. It is inherited rather than derived. Does the similarity between delineations pick out a better value?
     \vfill
@@ -127,7 +128,7 @@
 
 \appendix
 
-\begin{frame}[label=appdiagcounts]{Diagnostic statistics, 1980 to 2020}{No counterpart in Fowler (2024)}
+\begin{frame}[label=appdiagcounts]{Diagnostic statistics, 1980 to 2020}
   \centering
   \input{tables/appendix_diagnostics_counts}
   \\[4pt]
@@ -135,7 +136,7 @@
   \hfill\hyperlink{appdiagsize}{\beamergotobutton{Size and shape}}\hspace{1em}\hyperlink{diagnostics}{\beamerreturnbutton{Back}}
 \end{frame}
 
-\begin{frame}[label=appdiagsize]{Zone size and shape, 1980 to 2020}{No counterpart in Fowler (2024)}
+\begin{frame}[label=appdiagsize]{Zone size and shape, 1980 to 2020}
   \centering
   {\setlength{\tabcolsep}{4pt}\input{tables/appendix_diagnostics_size}}
   \\[4pt]
@@ -143,15 +144,14 @@
   \backto{diagnostics}{Back}
 \end{frame}
 
-\begin{frame}[label=appcontainment]{Containment, 1980 to 2020}{No counterpart in Fowler (2024)}
-  \centering
+\begin{frame}[label=appcontainment]{Containment, 1980 to 2020}
   \input{tables/appendix_containment}
   \\[4pt]
   \footnotesize The minimum and the mean are taken over commuting zones; the share of the labour force is a single national ratio.
   \hfill\hyperlink{appcore}{\beamergotobutton{Core measures}}\hspace{1em}\hyperlink{fit}{\beamerreturnbutton{Back}}
 \end{frame}
 
-\begin{frame}[label=appcore]{Core measures, 1980 to 2020}{No counterpart in Fowler (2024)}
+\begin{frame}[label=appcore]{Core measures, 1980 to 2020}
   \centering
   {\setlength{\tabcolsep}{3.5pt}\input{tables/appendix_core}}
   \\[4pt]
@@ -159,7 +159,7 @@
   \backto{fit}{Back}
 \end{frame}
 
-\begin{frame}[label=appcutoff]{The two cutoff anchors compared}{No counterpart in Fowler (2024)}
+\begin{frame}[label=appcutoff]{The two cutoff anchors compared}
   \centering
   {\setlength{\tabcolsep}{4pt}\input{tables/appendix_cutoff_comparison}}
   \\[4pt]
@@ -167,7 +167,7 @@
   \backto{sweep}{Back}
 \end{frame}
 
-\begin{frame}[label=apppairs]{Every comparison pair}{No counterpart in Fowler (2024)}
+\begin{frame}[label=apppairs]{Every comparison pair}
   \centering
   \input{tables/appendix_pairs}
   \\[4pt]
@@ -175,21 +175,21 @@
   \hfill\hyperlink{appcurvea}{\beamergotobutton{Control-pair curves}}\hspace{1em}\hyperlink{similaritymap}{\beamerreturnbutton{Back}}
 \end{frame}
 
-\begin{frame}[label=appcurvea]{Similarity against the cutoff, 2010 against 2015}{No counterpart in Fowler (2024)}
+\begin{frame}[label=appcurvea]{Similarity against the cutoff, 2010 against 2015}
   \centering
   \includegraphics[height=0.68\textheight]{similarity_vs_cutoff_2010_2015_anchor0.977.png}
   \\[2pt]
   \hfill\hyperlink{appcurveb}{\beamergotobutton{2005 against 2015}}\hspace{1em}\hyperlink{sweep}{\beamerreturnbutton{Back}}
 \end{frame}
 
-\begin{frame}[label=appcurveb]{Similarity against the cutoff, 2005 against 2015}{No counterpart in Fowler (2024)}
+\begin{frame}[label=appcurveb]{Similarity against the cutoff, 2005 against 2015}
   \centering
   \includegraphics[height=0.68\textheight]{similarity_vs_cutoff_2005_2015_anchor0.977.png}
   \\[2pt]
   \backto{sweep}{Back}
 \end{frame}
 
-\begin{frame}{One departure from the existing pipeline}{No counterpart in Fowler (2024)}
+\begin{frame}{One departure from the existing pipeline}
   The existing Japanese pipeline joins the flow file to its own transpose in a way that keeps a pair only when the flow from $i$ to $j$ is recorded, so a pair connected only in the reverse direction enters as unconnected.
   \vfill
   \begin{itemize}
@@ -199,7 +199,7 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Where everything lives}{No counterpart in Fowler (2024)}
+\begin{frame}{Where everything lives}
   \begin{itemize}
     \item \filelink{validation/notes/replication\_results.md} --- the written results, with every number in this deck in context.
     \item \filelink{validation/notes/method\_crosscheck.md} --- the delineation formula across four implementations.

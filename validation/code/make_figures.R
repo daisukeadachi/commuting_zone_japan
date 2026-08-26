@@ -170,15 +170,16 @@ for (headline_cutoff in cutoff_anchors) {
       inner_join(zones, by = "code") %>%
       filter(zone %in% detached_here$zone) %>%
       mutate(role = ifelse(code %in% detached_here$code, "detached municipality",
-                           "rest of its commuting zone"))
+                           "its commuting zone"))
     ggplot() +
       geom_sf(data = land, fill = "grey35", colour = "grey20", linewidth = 0.15, alpha = 0.4) +
       geom_sf(data = affected, aes(fill = role), colour = "grey40", linewidth = 0.1) +
       geom_sf(data = okinawa_frame, fill = NA, colour = "grey55", linewidth = 0.2) +
       scale_fill_manual(name = NULL, values = c("detached municipality" = "maroon",
-                                                "rest of its commuting zone" = "blue")) +
+                                                "its commuting zone" = "blue")) +
       national_map_theme +
-      theme(legend.position.inside = c(0.27, 0.30))
+      theme(legend.position.inside = c(0.79, 0.15),
+            legend.key.height = unit(0.7, "cm"), legend.key.width = unit(0.7, "cm"))
     ggsave(file.path(figure_dir, sprintf("noncontiguous_municipalities_%d_cut%s.png", headline_later,
                                          cut_label(headline_cutoff))),
            width = 7.5, height = 7.5, dpi = 300, bg = "white")

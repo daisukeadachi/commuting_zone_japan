@@ -23,3 +23,7 @@ validation/slides/*.nav
 validation/slides/*.out
 validation/slides/*.snm
 validation/slides/*.toc
+validation/slides/*.fls
+validation/slides/*.fdb_latexmk
+validation/slides/*.synctex.gz
+validation/slides/build/
