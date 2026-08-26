@@ -23,7 +23,7 @@ The existing Japanese pipeline builds the bilateral flow table by joining the fl
 
 The resulting matrix is not symmetric. The cell for (i, j) keeps the reverse flow while the cell for (j, i) does not, or the other way round, depending on which direction the file records. Clustering then reads the matrix through `as.dist`, which retains the lower triangle, so for about half of the affected pairs the recorded commuting link is erased before the tree is built.
 
-The size of the effect, measured on the harmonized municipality universe with the "mainly working" matrices:
+The size of the effect, measured on the harmonized municipality universe of the existing pipeline, which counts the twenty-three special wards of Tokyo as twenty-three units, with the "mainly working" matrices. The replication merges those wards, so its own delineation is not the one tabulated here; the point of the table is what the asymmetry does to the pipeline that carries it.
 
 | Year | Pairs entering the clustering | Pairs altered | Share | Largest discarded proportional flow | Commuting zones at 0.980, corrected | Existing pipeline | Municipalities changing zone |
 | --- | --- | --- | --- | --- | --- | --- | --- |
