@@ -12,7 +12,7 @@ suppressMessages({
 })
 source("validation/code/config.R")
 
-slide_cutoff <- 0.977
+slide_cutoff <- baseline_cutoff
 earlier_year <- 2010
 later_year <- 2020
 table_dir <- file.path("validation/slides", "tables")
@@ -162,7 +162,8 @@ write_table(rows, "appendix_core.tex", "lrrrrrrr",
                    "\\cmidrule(lr){2-5} \\cmidrule(lr){6-8} ",
                    "& With core & Work in & Live in & Split & With core & Work in & Live in", br))
 
-grid <- expand.grid(year = c(earlier_year, later_year), cutoff = rev(cutoff_anchors))
+grid <- expand.grid(year = c(earlier_year, later_year),
+                    cutoff = c(baseline_cutoff, setdiff(cutoff_anchors, baseline_cutoff)))
 rows <- vapply(seq_len(nrow(grid)), function(k) {
   y <- grid$year[k]; cut <- grid$cutoff[k]
   d <- diagnostics %>% filter(year == y, abs(cutoff - cut) < 1e-9)
