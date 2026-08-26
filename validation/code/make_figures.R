@@ -74,6 +74,30 @@ romanized <- c(
 
 cut_label <- function(cutoff) format(cutoff, nsmall = 3)
 
+# Basemap tiles for the detail map. The source paper draws a light Mapbox style, which
+# needs an access token; this is the closest equivalent served without one. The
+# label-free version is used because every label in this project is written in English
+# and a tiled basemap of Japan carries Japanese place names. Attribution is required
+# and sits in the caption. Where the tiles cannot be reached the map still draws.
+basemap_credit <- "Basemap: Esri, HERE, Garmin and OpenStreetMap contributors"
+basemap_provider <- "Esri.WorldGrayCanvas"
+
+fetch_basemap <- function(layer, zoom = 10) {
+  tiles <- tryCatch(maptiles::get_tiles(layer, provider = basemap_provider, zoom = zoom,
+                                        crop = TRUE, forceDownload = FALSE),
+                    error = function(e) NULL)
+  if (is.null(tiles)) {
+    message("basemap tiles unavailable; drawing the detail map without one")
+    return(NULL)
+  }
+  channels <- terra::as.array(tiles)
+  image <- matrix(grDevices::rgb(channels[, , 1], channels[, , 2], channels[, , 3],
+                                 maxColorValue = 255),
+                  nrow = nrow(tiles), ncol = ncol(tiles))
+  box <- terra::ext(tiles)
+  annotation_raster(image, xmin = box[1], xmax = box[2], ymin = box[3], ymax = box[4])
+}
+
 # Colour scales follow the source paper. The similarity map bins the score at its breaks
 # and shades the classes with a five-class BuPu ramp. The containment detail map uses the
 # same ramp over its own six classes; the Japanese data reaches below the floor of those
@@ -189,9 +213,9 @@ for (headline_cutoff in cutoff_anchors) {
   # Figure 3. Every municipality drawn is shaded by its own containment, the extent is the
   # zone together with every commuting zone adjacent to it drawn whole, zone boundaries are
   # drawn heavy and labelled by zone number, and the municipalities of the zone itself are
-  # named. The source paper lays its equivalent over a Mapbox basemap; that needs an access
-  # token and a network call at render time, so the surrounding zones supply the context
-  # here instead.
+  # named, and the whole thing sits on a basemap as the source paper's does. That paper
+  # draws Mapbox tiles, which need an access token; the tiles here come from the
+  # Geospatial Information Authority of Japan, which serves them without one.
   worst <- containment_by_zone %>%
     filter(year == headline_later, abs(cutoff - headline_cutoff) < 1e-9) %>%
     slice_min(mean_contained, n = 1)
@@ -225,20 +249,33 @@ for (headline_cutoff in cutoff_anchors) {
     mutate(label = ifelse(code %in% names(romanized), romanized[code], code))
   named <- suppressWarnings(st_point_on_surface(named))
 
+  # Tiles arrive in Web Mercator, so this one map leaves the equal-area projection the
+  # rest of the work uses. Nothing measured is read off it.
+  detail <- st_transform(detail, 3857)
+  zone_outlines <- st_transform(zone_outlines, 3857)
+  zone_labels <- st_transform(zone_labels, 3857)
+  named <- st_transform(named, 3857)
+  basemap <- fetch_basemap(detail)
+
   ggplot() +
-    geom_sf(data = detail, aes(fill = containment_class), colour = "grey70", linewidth = 0.1) +
+    basemap +
+    geom_sf(data = detail, aes(fill = containment_class), colour = "grey70",
+            linewidth = 0.1, alpha = 0.65) +
     geom_sf(data = zone_outlines, fill = NA, colour = "black", linewidth = 0.7) +
     geom_sf_text(data = zone_labels, aes(label = zone), size = 6.6, fontface = "bold", colour = "white") +
     geom_sf_text(data = zone_labels, aes(label = zone), size = 6.0, fontface = "bold", colour = "grey15") +
     ggrepel::geom_text_repel(data = named, aes(geometry = geometry, label = label),
                              stat = "sf_coordinates", size = 4.6, colour = "grey10",
-                             nudge_x = -95000, nudge_y = -55000, hjust = 1,
+                             nudge_x = -42000, nudge_y = -28000, hjust = 1,
                              min.segment.length = 0, segment.colour = "grey40", segment.size = 0.3,
                              box.padding = 0.3, max.overlaps = Inf, seed = 20260826) +
     scale_fill_manual(name = "Share of residents working\ninside their own commuting zone",
                       values = containment_palette, drop = FALSE) +
+    labs(caption = basemap_credit) +
+    coord_sf(expand = FALSE) +
     theme_void(base_size = 16) +
     theme(legend.position = "right", legend.key.height = unit(0.9, "cm"),
+          plot.caption = element_text(size = 9, colour = "grey35", hjust = 0.98),
           plot.background = element_rect(fill = "white", colour = NA))
   ggsave(file.path(figure_dir, sprintf("lowest_containment_zone_%d_cut%s.png", headline_later,
                                        cut_label(headline_cutoff))),
