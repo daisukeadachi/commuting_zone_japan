@@ -1,0 +1,188 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+
+\usetheme{default}
+\usecolortheme{dove}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}[frame number]
+\setbeamercolor{frametitle}{fg=black}
+\setbeamerfont{frametitle}{series=\bfseries}
+\setbeamercolor{alerted text}{fg=blue!55!black}
+
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{url}
+\hypersetup{hidelinks}
+
+\renewcommand{\arraystretch}{1.05}
+\graphicspath{{../output/figures/}}
+\input{tables/numbers}
+
+\newcommand{\repo}{https://github.com/daisukeadachi/commuting_zone_japan/blob/11-fowler-replication}
+\newcommand{\filelink}[1]{\href{\repo/#1}{\texttt{#1}}}
+
+\title{Fowler (2024) on the Japanese commuting zones}
+\subtitle{2010 against 2020, at a cutoff of 0.977}
+\author{}
+\date{\today}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{What this deck reports}
+  \begin{itemize}
+    \item Every table and figure of Fowler (2024) that the Japanese data supports, in the order that paper presents them.
+    \vfill
+    \item Delineations for 1980 to 2020; this deck shows the 2010 against 2020 comparison, the same decade spacing as the source paper.
+    \vfill
+    \item The wage-correlation block, that paper's Figure 2 and the Connection rows of its Table 2, waits on the Basic Survey on Wage Structure microdata.
+    \vfill
+    \item Full tables for all nine census years and both cutoffs are in the appendix.
+  \end{itemize}
+  \vfill
+  \footnotesize Source paper: \url{https://doi.org/10.1038/s41597-024-03829-5}
+\end{frame}
+
+\begin{frame}{The delineation}
+  For municipalities $i$ and $j$ with commuting flows $f_{ij}$ and resident labour forces $W_i$, the \alert{proportional flow} is
+  \[
+    p_{ij} = \frac{f_{ij} + f_{ji}}{\min(W_i, W_j)}, \qquad p_{ij} \le 0.999 ,
+  \]
+  and the dissimilarity is $1 - p_{ij}$ with a zero diagonal.
+  \vfill
+  \begin{itemize}
+    \item Average-linkage hierarchical clustering, cut at a fixed tree height of 0.977.
+    \item Commuting matrix: residents mainly working, ordinary households, the only definition available for 2020.
+    \item 1{,}678 municipalities: the four main islands and the Okinawa main island, plus every municipality joined to one by a permanent road link.
+    \item Cores and urban areas for the fit statistics: the Urban Employment Area central cities and their areas.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Similarity between the 2010 and the 2020 delineations}
+  \centering
+  \includegraphics[height=0.78\textheight]{similarity_map_2010_2020_cut0.977.png}
+  \\[2pt]
+  \footnotesize Jaccard similarity: the overlap of a municipality's two commuting zones over their union. Mean \meanSimilarity{}.
+\end{frame}
+
+\begin{frame}{Diagnostic statistics}
+  \centering
+  \input{tables/diagnostics}
+  \\[4pt]
+  \footnotesize Compactness is the Polsby--Popper ratio, $4\pi A / P^2$ of the dissolved zone, averaged across zones.
+\end{frame}
+
+\begin{frame}{Fit statistics}
+  \centering
+  \input{tables/fit}
+\end{frame}
+
+\begin{frame}{The commuting zone with the lowest mean containment}
+  \centering
+  \includegraphics[height=0.76\textheight]{lowest_containment_zone_2020_cut0.977.png}
+  \\[2pt]
+  \footnotesize Five western Tokyo suburbs at 0.36, wedged between the Tokyo zone and the zones west of it.
+\end{frame}
+
+\begin{frame}{Technical validation}
+  \begin{itemize}
+    \item \alert{The cutoff.} It is inherited rather than derived. Does the similarity between delineations pick out a better value?
+    \vfill
+    \item \alert{Non-contiguity.} Zones that hold a municipality sharing its zone with none of its neighbours.
+    \vfill
+    \item \alert{Split urban areas.} Externally defined urban areas cut across more than one commuting zone.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Similarity as a function of the cutoff}
+  \centering
+  \includegraphics[height=0.72\textheight]{similarity_vs_cutoff_2010_2020.png}
+  \\[2pt]
+  \footnotesize Holding 2010 at 0.977, the peak is \bestSimilarity{} at \bestCutoff{}, and the curve stays within 0.005 of it from \plateauLow{} to \plateauHigh{}, spanning \plateauZonesHigh{} down to \plateauZonesLow{} zones.
+\end{frame}
+
+\begin{frame}{Non-contiguous municipalities}
+  \centering
+  \includegraphics[height=0.76\textheight]{noncontiguous_municipalities_2020_cut0.977.png}
+  \\[2pt]
+  \footnotesize One municipality in 2020, Shimukappu in Hokkaido, 991 metres from the nearest part of its own zone.
+\end{frame}
+
+\begin{frame}{Reassignments that would remove non-contiguity}
+  \centering
+  \input{tables/reassignments}
+  \\[6pt]
+  \footnotesize The assigned zone takes 96 percent of its commuters against 3 percent for the adjacent zone, so reassignment would fit the flows worse.
+\end{frame}
+
+\begin{frame}{Urban areas split across commuting zones}
+  \centering
+  \includegraphics[height=0.74\textheight]{split_urban_areas_2020_cut0.977.png}
+  \\[2pt]
+  \footnotesize 33 of the 208 Urban Employment Areas in 2020, concentrated along the Pacific corridor.
+\end{frame}
+
+\appendix
+
+\begin{frame}{Appendix: the full tables}
+  Every table below covers all nine census years at both cutoff anchors. Links point at the branch \texttt{11-fowler-replication}.
+  \vfill
+  \begin{itemize}
+    \item \filelink{validation/output/diagnostics\_table.csv} --- the diagnostic statistics, with both non-contiguity tests.
+    \item \filelink{validation/output/containment\_table.csv} --- containment, including the labour-force weighted mean.
+    \item \filelink{validation/output/core\_table.csv} --- the Core measures on the Urban Employment Area and on two densely inhabited district thresholds.
+    \item \filelink{validation/output/reassignment\_table.csv} --- all 35 non-contiguity cases across the delineations.
+    \item \filelink{validation/output/similarity\_table.csv} --- every comparison pair, including the pre-pandemic controls.
+    \item \filelink{validation/output/cutoff\_sweep.csv} --- the sweep behind the similarity curve, with the diagnostic profile.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Appendix: the cutoff traded against the diagnostics}
+  \centering
+  \includegraphics[height=0.62\textheight]{zone_count_vs_cutoff_2020.png}
+  \\[2pt]
+  \footnotesize \filelink{validation/output/figures/zone\_count\_vs\_cutoff\_2020.png}
+\end{frame}
+
+\begin{frame}{Appendix: containment across the cutoff range}
+  \centering
+  \includegraphics[height=0.62\textheight]{containment_vs_cutoff_2020.png}
+  \\[2pt]
+  \footnotesize \filelink{validation/output/figures/containment\_vs\_cutoff\_2020.png}
+\end{frame}
+
+\begin{frame}{Appendix: the other comparison pairs}
+  \begin{itemize}
+    \item The headline 2010 to 2020 comparison gives a mean similarity of \meanSimilarity{}, below both pre-pandemic controls.
+    \vfill
+    \item 2010 against 2015 gives 0.87 and 2005 against 2015 gives 0.85, at the same cutoff.
+    \vfill
+    \item Decade churn was larger before: 1980 against 1990 gives 0.76 and 1990 against 2000 gives 0.83.
+    \vfill
+    \item Curves for the two control pairs: \filelink{validation/output/figures/similarity\_vs\_cutoff\_2010\_2015.png} and \filelink{validation/output/figures/similarity\_vs\_cutoff\_2005\_2015.png}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Appendix: one departure from the existing pipeline}
+  The existing Japanese pipeline joins the flow file to its own transpose in a way that keeps a pair only when the flow from $i$ to $j$ is recorded, so a pair connected only in the reverse direction enters as unconnected.
+  \vfill
+  \begin{itemize}
+    \item The matrix it clusters is asymmetric; this replication uses the symmetric numerator the source method specifies.
+    \item Between 1.2 and 4.4 percent of pairs are affected in each year, moving up to four zones and up to 108 municipalities.
+    \item Measured year by year in \filelink{validation/notes/method\_crosscheck.md}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Appendix: where everything lives}
+  \begin{itemize}
+    \item \filelink{validation/notes/replication\_results.md} --- the written results, with every number in this deck in context.
+    \item \filelink{validation/notes/method\_crosscheck.md} --- the delineation formula across four implementations.
+    \item \filelink{validation/notes/core\_definition.md} --- why the Urban Employment Area supplies the cores.
+    \item \filelink{validation/code} --- the nine scripts, run in the order they are numbered in the results note.
+  \end{itemize}
+\end{frame}
+
+\end{document}

@@ -35,3 +35,29 @@ baseline_pairs <- list(c(2010, 2020), c(2010, 2015), c(2005, 2015))
 
 # Decade pairs reported in the appendix for completeness.
 appendix_pairs <- list(c(1980, 1990), c(1990, 2000), c(2000, 2010), c(2010, 2020))
+
+# National maps carry Okinawa far to the southwest of the main islands, which stretches
+# the frame and leaves most of it empty. The source paper meets the same problem with
+# Alaska and Hawaii and answers it by repositioning them; this does the same for Okinawa,
+# moving the block into the empty sea northwest of the main islands and returning the
+# rectangle to draw around it.
+inset_okinawa <- function(layer, okinawa_codes, margin = 60000) {
+  is_okinawa <- layer$code %in% okinawa_codes
+  if (!any(is_okinawa)) return(list(layer = layer, frame = NULL))
+  main_box <- sf::st_bbox(layer[!is_okinawa, ])
+  okinawa_box <- sf::st_bbox(layer[is_okinawa, ])
+  offset <- c(
+    unname(main_box["xmin"] + margin - okinawa_box["xmin"]),
+    unname(main_box["ymax"] - margin - okinawa_box["ymax"])
+  )
+  moved <- sf::st_geometry(layer)[is_okinawa] + offset
+  geometry <- sf::st_geometry(layer)
+  geometry[is_okinawa] <- moved
+  sf::st_geometry(layer) <- geometry
+  sf::st_crs(layer) <- crs_equal_area
+  frame <- sf::st_as_sfc(sf::st_bbox(
+    sf::st_buffer(sf::st_union(layer[is_okinawa, ]), margin / 3)
+  ))
+  sf::st_crs(frame) <- crs_equal_area
+  list(layer = layer, frame = frame)
+}

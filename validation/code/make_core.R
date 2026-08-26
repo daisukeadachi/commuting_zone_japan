@@ -176,9 +176,10 @@ core_table <- bind_rows(results)
 write_csv(core_table, file.path(output_dir, "core_table.csv"))
 print(as.data.frame(core_table %>% filter(cutoff == 0.980)))
 
-# The map of urban areas split across commuting zones, the counterpart of Figure 6.
+# The map of urban areas split across commuting zones, the counterpart of Figure 6,
+# drawn at each cutoff anchor.
 headline_year <- 2020
-headline_cutoff <- 0.980
+for (headline_cutoff in cutoff_anchors) {
 zones <- read_csv(file.path(derived_dir, sprintf("zones_%d_cut%s.csv", headline_year,
                                                  format(headline_cutoff, nsmall = 3))),
                   col_types = cols(code = col_character(), zone = col_integer()))
@@ -188,7 +189,9 @@ split_status <- areas %>%
   group_by(area) %>%
   mutate(is_split = n_distinct(zone) > 1) %>%
   ungroup()
-write_csv(split_status, file.path(output_dir, "core_area_splits.csv"))
+if (abs(headline_cutoff - 0.977) < 1e-9) {
+  write_csv(split_status, file.path(output_dir, "core_area_splits.csv"))
+}
 
 scope <- read_csv(file.path(data_dir, "municipality_scope.csv"), col_types = cols(code = col_character())) %>%
   filter(in_scope)
@@ -198,6 +201,10 @@ geometry <- st_read(boundary_shp, quiet = TRUE, options = "ENCODING=CP932") %>%
   filter(code %in% scope$code) %>%
   st_transform(crs_equal_area) %>%
   select(code)
+okinawa_codes <- scope$code[scope$block == "Okinawa main island"]
+placed <- inset_okinawa(geometry, okinawa_codes)
+geometry <- placed$layer
+okinawa_frame <- placed$frame
 
 # Two dissolved layers laid over each other, as in the source paper: the urban areas
 # that are split, and the commuting zones that split them. Unsplit areas are not drawn.
@@ -228,18 +235,24 @@ ggplot() +
   geom_sf(data = split_areas, aes(fill = "Urban areas split across commuting zones",
                                   colour = "Urban areas split across commuting zones"),
           alpha = 0.25, linewidth = 0.2) +
+  geom_sf(data = okinawa_frame, fill = NA, colour = "grey55", linewidth = 0.2) +
   scale_fill_manual(name = NULL, values = c(
     "Commuting zones that split an urban area" = zone_colour,
     "Urban areas split across commuting zones" = area_colour)) +
   scale_colour_manual(name = NULL, values = c(
     "Commuting zones that split an urban area" = zone_colour,
     "Urban areas split across commuting zones" = area_colour)) +
-  theme_void(base_size = 11) +
-  theme(legend.position = "bottom", legend.direction = "vertical",
+  theme_void(base_size = 19) +
+  theme(legend.position = "inside", legend.position.inside = c(0.68, 0.14),
+        legend.direction = "vertical", legend.background = element_blank(),
+        legend.key.size = unit(0.9, "cm"),
+        plot.margin = margin(2, 2, 2, 2),
         plot.background = element_rect(fill = "white", colour = NA))
 ggsave(file.path(figure_dir, sprintf("split_urban_areas_%d_cut%s.png", headline_year,
                                      format(headline_cutoff, nsmall = 3))),
-       width = 7, height = 8.5, dpi = 300, bg = "white")
+       width = 7.5, height = 7.5, dpi = 300, bg = "white")
 
-message("urban areas in ", headline_year, ": ", n_distinct(split_status$area),
-        "; split across zones: ", n_distinct(split_status$area[split_status$is_split]))
+message("cutoff ", format(headline_cutoff, nsmall = 3), ": urban areas in ", headline_year, ": ",
+        n_distinct(split_status$area), "; split across zones: ",
+        n_distinct(split_status$area[split_status$is_split]))
+}
