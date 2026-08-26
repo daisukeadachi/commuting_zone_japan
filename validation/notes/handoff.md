@@ -14,7 +14,7 @@ The first deliverable is material for a coauthor meeting, not a draft.
 
 Issue #13, collecting the external data the Core measures need, is closed and merged. Everything it produced is on `main`.
 
-Issue #11, the replication, has a branch `11-fowler-replication` with `main` merged into it. It carries one commit of its own, the note on choosing a Japanese counterpart to the U.S. core-based statistical area. No analysis code has been written yet.
+Issue #11, the replication, is done and merged. It produced the pipeline under `validation/code`, the tables and figures under `validation/output`, the coauthor deck under `validation/slides`, and three notes: the results, the cross-check of the delineation formula, and the choice of a Japanese counterpart to the U.S. core-based statistical area.
 
 Issue #12, the constrained clustering, has not been started. It is sequenced after #11 because it reuses the adjacency construction and the diagnostic code written there.
 
