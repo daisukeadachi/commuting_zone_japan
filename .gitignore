@@ -11,3 +11,6 @@ Ikuta_RA/out/*
 
 # Bulk source archives re-downloadable by validation/code/build_did_table.py
 validation/data/a16_cache/
+
+# Derived objects rebuilt by validation/code (dissimilarity matrices, trees, cuts)
+validation/derived/
