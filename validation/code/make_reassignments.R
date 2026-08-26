@@ -24,11 +24,11 @@ neighbours <- split(c(edges$code_j, edges$code_i), c(edges$code_i, edges$code_j)
 
 geometry <- read_boundaries(scope$code)
 
-detached <- read_csv(file.path(output_dir, "noncontiguous_municipalities.csv"),
+detached <- read_csv(output_path("noncontiguous_municipalities.csv"),
                      col_types = cols(code = col_character()))
 
 describe <- function(year, cutoff, cases) {
-  zones <- read_csv(file.path(derived_dir, sprintf("zones_%d_cut%s.csv", year, format(cutoff, nsmall = 3))),
+  zones <- read_csv(zone_path(year, cutoff),
                     col_types = cols(code = col_character(), zone = col_integer()))
   zone_of <- setNames(zones$zone, zones$code)
   flows <- read_commuting(year) %>% filter(i %in% zones$code, j %in% zones$code)
@@ -78,5 +78,5 @@ rows <- lapply(seq_len(nrow(cases)), function(k) {
 })
 
 table <- bind_rows(rows)
-write_csv(table, file.path(output_dir, "reassignment_table.csv"))
+write_csv(table, output_path("reassignment_table.csv"))
 print(as.data.frame(table))

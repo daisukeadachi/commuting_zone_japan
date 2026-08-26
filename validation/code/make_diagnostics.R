@@ -27,7 +27,7 @@ geometry <- read_boundaries(scope$code)
 neighbours <- split(c(edges$code_j, edges$code_i), c(edges$code_i, edges$code_j))
 
 diagnose <- function(year, cutoff) {
-  zones <- read_csv(file.path(derived_dir, sprintf("zones_%d_cut%s.csv", year, format(cutoff, nsmall = 3))),
+  zones <- read_csv(zone_path(year, cutoff),
                     col_types = cols(code = col_character(), zone = col_integer()))
   labour <- read_csv(file.path(derived_dir, sprintf("labour_force_%d.csv", year)),
                      col_types = cols(code = col_character()))
@@ -102,6 +102,6 @@ for (year in census_years) {
 }
 
 dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
-write_csv(bind_rows(lapply(results, `[[`, "row")), file.path(output_dir, "diagnostics_table.csv"))
-write_csv(bind_rows(lapply(results, `[[`, "detached")), file.path(output_dir, "noncontiguous_municipalities.csv"))
+write_csv(bind_rows(lapply(results, `[[`, "row")), output_path("diagnostics_table.csv"))
+write_csv(bind_rows(lapply(results, `[[`, "detached")), output_path("noncontiguous_municipalities.csv"))
 print(as.data.frame(bind_rows(lapply(results, `[[`, "row"))[, 1:10]))

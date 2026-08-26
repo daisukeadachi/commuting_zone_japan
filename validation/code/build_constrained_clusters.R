@@ -56,38 +56,6 @@ component_tree <- function(dissim_matrix, units) {
   tree
 }
 
-#' Zones obtained by stopping the agglomeration at a cutoff.
-#'
-#' The merges are accepted in the order the algorithm made them, up to the first one
-#' whose height exceeds the cutoff. Under the constraint the heights need not increase:
-#' when a cluster is adjacent to one half of a merging pair and not to the other, only
-#' the adjacent half is known to lie above the merge height, and the average of the two
-#' can fall below it. A later merge cheaper than the cutoff is nevertheless refused,
-#' because it became available only through the merge that stopped the agglomeration.
-#' Where the heights do increase this is exactly cutree at that height.
-#'
-#' @param tree an object returned by constr.hclust
-#' @param cutoff tree height at which to stop
-#' @return named integer vector, one zone label per municipality
-cut_at_height <- function(tree, cutoff) {
-  n <- length(tree$labels)
-  parent <- seq_len(n)
-  root <- function(i) { while (parent[i] != i) i <- parent[i]; i }
-  above <- which(tree$height > cutoff)
-  accepted <- if (length(above)) seq_len(above[1] - 1L) else seq_len(nrow(tree$merge))
-  representative <- integer(nrow(tree$merge))
-  for (s in accepted) {
-    side <- vapply(1:2, function(j) {
-      if (tree$merge[s, j] < 0) -tree$merge[s, j] else representative[tree$merge[s, j]]
-    }, integer(1))
-    a <- root(side[1]); b <- root(side[2])
-    parent[b] <- a
-    representative[s] <- a
-  }
-  roots <- vapply(seq_len(n), root, integer(1))
-  setNames(match(roots, unique(roots)), tree$labels)
-}
-
 inversion_rows <- list()
 
 build_year <- function(year) {
@@ -124,14 +92,13 @@ build_year <- function(year) {
     offset <- 0
     assignments <- lapply(names(trees), function(k) {
       members <- names(membership)[membership == as.integer(k)]
-      zone <- if (is.null(trees[[k]])) setNames(1L, members) else cut_at_height(trees[[k]], cutoff)
+      zone <- if (is.null(trees[[k]])) setNames(1L, members) else cut_tree_at_height(trees[[k]], cutoff)
       out <- tibble(code = names(zone), zone = unname(zone) + offset)
       offset <<- offset + length(unique(zone))
       out
     })
     assigned <- bind_rows(assignments) %>% arrange(code)
-    write_csv(assigned, file.path(derived_dir,
-                                  sprintf("zones_constrained_%d_cut%s.csv", year, format(cutoff, nsmall = 3))))
+    write_csv(assigned, zone_path(year, cutoff, "constrained"))
     sizes <- table(assigned$zone)
     tibble(year = year, cutoff = cutoff, components = length(trees),
            municipalities = nrow(assigned), zones = length(sizes),

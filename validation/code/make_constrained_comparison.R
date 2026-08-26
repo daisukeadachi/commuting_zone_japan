@@ -95,8 +95,7 @@ rows <- bind_rows(lapply(census_years, function(year) {
   all_flows <- read_commuting(year)
 
   bind_rows(lapply(cutoff_anchors, function(cutoff) {
-    tag <- format(cutoff, nsmall = 3)
-    constrained <- read_csv(file.path(derived_dir, sprintf("zones_constrained_%d_cut%s.csv", year, tag)),
+    constrained <- read_csv(zone_path(year, cutoff, "constrained"),
                             col_types = cols(code = col_character(), zone = col_integer()))
     units <- constrained$code
     free <- cutree(tree, h = cutoff)[units]

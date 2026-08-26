@@ -26,8 +26,6 @@ scope <- read_csv(file.path(data_dir, "municipality_scope.csv"), col_types = col
 edges <- read_csv(file.path(data_dir, "adjacency_edges.csv"), col_types = cols(.default = col_character()))
 neighbours <- split(c(edges$code_j, edges$code_i), c(edges$code_i, edges$code_j))
 
-trees <- setNames(lapply(census_years, function(y) readRDS(file.path(derived_dir, sprintf("hclust_%d.rds", y)))),
-                  as.character(census_years))
 labour <- setNames(lapply(census_years, function(y) {
   read_csv(file.path(derived_dir, sprintf("labour_force_%d.csv", y)), col_types = cols(code = col_character()))
 }), as.character(census_years))
@@ -44,13 +42,13 @@ jaccard <- function(zone_a, zone_b) {
 }
 
 common_units <- function(earlier, later) {
-  intersect(trees[[as.character(earlier)]]$labels, trees[[as.character(later)]]$labels)
+  intersect(delineation_units(earlier), delineation_units(later))
 }
 
 similarity <- function(earlier, later, cut_earlier, cut_later) {
   units <- common_units(earlier, later)
-  a <- cutree(trees[[as.character(earlier)]], h = cut_earlier)[units]
-  b <- cutree(trees[[as.character(later)]], h = cut_later)[units]
+  a <- zone_assignment(earlier, cut_earlier)[units]
+  b <- zone_assignment(later, cut_later)[units]
   score <- jaccard(a, b)
   weight_earlier <- labour[[as.character(earlier)]]$rlf_in_scope[match(units, labour[[as.character(earlier)]]$code)]
   weight_later <- labour[[as.character(later)]]$rlf_in_scope[match(units, labour[[as.character(later)]]$code)]
@@ -85,8 +83,8 @@ for (pair in pairs) {
 }
 
 dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
-write_csv(bind_rows(pair_rows), file.path(output_dir, "similarity_table.csv"))
-write_csv(bind_rows(municipality_rows), file.path(output_dir, "similarity_by_municipality.csv"))
+write_csv(bind_rows(pair_rows), output_path("similarity_table.csv"))
+write_csv(bind_rows(municipality_rows), output_path("similarity_by_municipality.csv"))
 print(as.data.frame(bind_rows(pair_rows)))
 
 # The sweep. The earlier year sits at the anchor and the later year's cutoff runs over
@@ -96,12 +94,12 @@ sweep_rows <- list()
 for (pair in baseline_pairs) {
   later <- pair[2]
   flows <- read_commuting(later) %>%
-    filter(i %in% trees[[as.character(later)]]$labels, j %in% trees[[as.character(later)]]$labels)
+    filter(i %in% delineation_units(later), j %in% delineation_units(later))
   for (anchor in cutoff_anchors) {
     message("sweeping ", pair[1], " against ", later, " anchored at ", anchor)
     for (cut_later in sweep_grid) {
       result <- similarity(pair[1], later, anchor, cut_later)
-      zone_all <- cutree(trees[[as.character(later)]], h = cut_later)
+      zone_all <- zone_assignment(later, cut_later)
       sizes <- table(zone_all)
       zone_of <- zone_all
       detached <- vapply(names(zone_of), function(m) {
@@ -126,5 +124,5 @@ for (pair in baseline_pairs) {
     }
   }
 }
-write_csv(bind_rows(sweep_rows), file.path(output_dir, "cutoff_sweep.csv"))
+write_csv(bind_rows(sweep_rows), output_path("cutoff_sweep.csv"))
 message("sweep rows: ", length(sweep_rows))

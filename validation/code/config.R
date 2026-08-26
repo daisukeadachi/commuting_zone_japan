@@ -13,6 +13,116 @@ data_dir <- "validation/data"
 derived_dir <- "validation/derived"
 output_dir <- "validation/output"
 
+# Which delineation the diagnostics are computed on. The unconstrained one is the
+# baseline and is what every committed table and figure reports. The
+# contiguity-constrained delineation of Guenard and Legendre (2022) is an option: set
+# the environment variable CZ_DELINEATION to "constrained" before running, having built
+# its zones first with build_constrained_clusters.R. Under the option every script reads
+# the constrained zones and writes its tables and figures under names of their own, so a
+# constrained run stands beside the baseline rather than on top of it.
+delineation <- Sys.getenv("CZ_DELINEATION", "unconstrained")
+stopifnot(delineation %in% c("unconstrained", "constrained"))
+
+# The cutoff as it appears in a file name, at three decimals.
+cut_label <- function(cutoff) format(cutoff, nsmall = 3)
+
+#' Path of a zone assignment written by the build step.
+#'
+#' @param year census year
+#' @param cutoff tree height the assignment was cut at
+#' @param which "unconstrained" or "constrained"; defaults to the selected delineation
+zone_path <- function(year, cutoff, which = delineation) {
+  prefix <- if (which == "constrained") "zones_constrained" else "zones"
+  file.path(derived_dir, sprintf("%s_%d_cut%s.csv", prefix, year, cut_label(cutoff)))
+}
+
+#' Destination of a diagnostic table.
+#'
+#' Under the constrained option the delineation is written into the file name, which is
+#' what keeps a constrained run from overwriting the baseline tables.
+output_path <- function(name) {
+  if (delineation == "unconstrained") return(file.path(output_dir, name))
+  file.path(output_dir, sub("([.][^.]+)$", "_constrained\\1", name))
+}
+
+#' Directory the figures are written to, one per delineation.
+figure_path <- function() {
+  file.path(output_dir, if (delineation == "constrained") "figures_constrained" else "figures")
+}
+
+#' Zones obtained by stopping an agglomeration at a cutoff.
+#'
+#' The merges are accepted in the order the algorithm made them, up to the first one
+#' whose height exceeds the cutoff. This matters only for a constrained tree, whose
+#' heights need not increase: when a cluster is adjacent to one half of a merging pair
+#' and not to the other, only the adjacent half is known to lie above the merge height,
+#' and the average of the two can fall below it. A later merge cheaper than the cutoff is
+#' nevertheless refused, because it became available only through the merge that stopped
+#' the agglomeration. Where the heights do increase this is exactly cutree.
+#'
+#' @param tree an object of class hclust or constr.hclust
+#' @param cutoff tree height at which to stop
+#' @return named integer vector, one zone label per unit
+cut_tree_at_height <- function(tree, cutoff) {
+  n <- length(tree$labels)
+  parent <- seq_len(n)
+  root <- function(i) { while (parent[i] != i) i <- parent[i]; i }
+  above <- which(tree$height > cutoff)
+  accepted <- if (length(above)) seq_len(above[1] - 1L) else seq_len(nrow(tree$merge))
+  representative <- integer(nrow(tree$merge))
+  for (s in accepted) {
+    side <- vapply(1:2, function(j) {
+      if (tree$merge[s, j] < 0) -tree$merge[s, j] else representative[tree$merge[s, j]]
+    }, integer(1))
+    a <- root(side[1]); b <- root(side[2])
+    parent[b] <- a
+    representative[s] <- a
+  }
+  roots <- vapply(seq_len(n), root, integer(1))
+  setNames(match(roots, unique(roots)), tree$labels)
+}
+
+# Trees are read from disk once per session. The cutoff sweep asks for dozens of cuts of
+# the same year, and reading the saved tree each time dominates the cost of cutting it.
+.tree_cache <- new.env(parent = emptyenv())
+
+load_tree <- function(year) {
+  key <- sprintf("%s_%d", delineation, year)
+  if (!exists(key, envir = .tree_cache)) {
+    file <- if (delineation == "constrained") "constrained_hclust_%d.rds" else "hclust_%d.rds"
+    assign(key, readRDS(file.path(derived_dir, sprintf(file, year))), envir = .tree_cache)
+  }
+  get(key, envir = .tree_cache)
+}
+
+#' Municipalities the delineation covers in one census year.
+delineation_units <- function(year) {
+  tree <- load_tree(year)
+  if (delineation == "constrained") names(tree$membership) else tree$labels
+}
+
+#' Zone assignment for one year at any cutoff, under the selected delineation.
+#'
+#' The constrained delineation is clustered separately on each connected component of the
+#' adjacency graph, so its assignment is assembled component by component with the zone
+#' labels offset. A component holding one municipality is its own zone.
+#'
+#' @return named integer vector, one zone label per municipality
+zone_assignment <- function(year, cutoff) {
+  tree <- load_tree(year)
+  if (delineation != "constrained") return(cutree(tree, h = cutoff))
+  offset <- 0
+  out <- integer(0)
+  for (k in names(tree$trees)) {
+    members <- names(tree$membership)[tree$membership == as.integer(k)]
+    zone <- if (is.null(tree$trees[[k]])) setNames(1L, members) else
+      cut_tree_at_height(tree$trees[[k]], cutoff)
+    out <- c(out, zone + offset)
+    offset <- offset + length(unique(zone))
+  }
+  out[order(names(out))]
+}
+
 # Japan-wide equal-area conic projection, the counterpart of the NAD83 / Conus Albers
 # system (EPSG:5070) that Fowler (2024) uses before computing area and compactness.
 # No EPSG code can serve: every Japanese projected system in the registry is
