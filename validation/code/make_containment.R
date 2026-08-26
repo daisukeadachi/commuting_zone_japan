@@ -7,8 +7,8 @@
 # municipalities, as the source paper does, and weighted by resident labour force, which
 # issue #11 asks for alongside.
 #
-# Writes validation/output/containment_table.csv and
-# validation/output/containment_by_zone.csv.
+# Writes validation/output/containment_table.csv, validation/output/containment_by_zone.csv
+# and validation/output/containment_by_municipality.csv.
 
 suppressMessages({
   library(dplyr)
@@ -58,6 +58,9 @@ containment <- function(year, cutoff) {
     mutate(year = year, cutoff = cutoff, .before = 1)
 
   list(
+    by_municipality = municipalities %>%
+      transmute(year = year, cutoff = cutoff, code, zone, residents,
+                contained, jobs, work_contained),
     row = tibble(
       year = year,
       cutoff = cutoff,
@@ -85,4 +88,6 @@ for (year in census_years) {
 dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
 write_csv(bind_rows(lapply(results, `[[`, "row")), file.path(output_dir, "containment_table.csv"))
 write_csv(bind_rows(lapply(results, `[[`, "by_zone")), file.path(output_dir, "containment_by_zone.csv"))
+write_csv(bind_rows(lapply(results, `[[`, "by_municipality")),
+          file.path(output_dir, "containment_by_municipality.csv"))
 print(as.data.frame(bind_rows(lapply(results, `[[`, "row"))))
