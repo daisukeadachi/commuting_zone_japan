@@ -184,7 +184,7 @@ zones <- read_csv(file.path(derived_dir, sprintf("zones_%d_cut%s.csv", headline_
                   col_types = cols(code = col_character(), zone = col_integer()))
 areas <- read_uea(headline_year) %>% filter(code %in% zones$code)
 split_status <- areas %>%
-  mutate(zone = setNames(zones$zone, zones$code)[code]) %>%
+  mutate(zone = unname(setNames(zones$zone, zones$code)[code])) %>%
   group_by(area) %>%
   mutate(is_split = n_distinct(zone) > 1) %>%
   ungroup()
@@ -199,25 +199,47 @@ geometry <- st_read(boundary_shp, quiet = TRUE, options = "ENCODING=CP932") %>%
   st_transform(crs_equal_area) %>%
   select(code)
 
-mapped <- geometry %>%
-  left_join(split_status %>% distinct(code, is_split), by = "code") %>%
-  mutate(status = case_when(
-    is.na(is_split) ~ "outside every urban area",
-    is_split ~ "urban area split across commuting zones",
-    TRUE ~ "urban area inside one commuting zone"
-  ))
-ggplot(mapped) +
-  geom_sf(aes(fill = status), colour = "grey85", linewidth = 0.05) +
+# Two dissolved layers laid over each other, as in the source paper: the urban areas
+# that are split, and the commuting zones that split them. Unsplit areas are not drawn.
+# The overlap is what carries the figure, so both layers are translucent and outlined in
+# their own colour, and a split area is read as lying across a zone boundary.
+split_areas <- geometry %>%
+  inner_join(split_status %>% filter(is_split) %>% distinct(area, code), by = "code") %>%
+  group_by(area) %>%
+  summarise(.groups = "drop") %>%
+  st_make_valid()
+
+splitting_zones <- geometry %>%
+  inner_join(zones, by = "code") %>%
+  filter(zone %in% unique(split_status$zone[split_status$is_split])) %>%
+  group_by(zone) %>%
+  summarise(.groups = "drop") %>%
+  st_make_valid()
+
+land <- st_union(geometry)
+
+area_colour <- "red"
+zone_colour <- "blue"
+ggplot() +
+  geom_sf(data = land, fill = "white", colour = "grey60", linewidth = 0.15) +
+  geom_sf(data = splitting_zones, aes(fill = "Commuting zones that split an urban area",
+                                      colour = "Commuting zones that split an urban area"),
+          alpha = 0.25, linewidth = 0.2) +
+  geom_sf(data = split_areas, aes(fill = "Urban areas split across commuting zones",
+                                  colour = "Urban areas split across commuting zones"),
+          alpha = 0.25, linewidth = 0.2) +
   scale_fill_manual(name = NULL, values = c(
-    "outside every urban area" = "grey93",
-    "urban area inside one commuting zone" = "#2c6fa8",
-    "urban area split across commuting zones" = "#7b1d3a"
-  )) +
+    "Commuting zones that split an urban area" = zone_colour,
+    "Urban areas split across commuting zones" = area_colour)) +
+  scale_colour_manual(name = NULL, values = c(
+    "Commuting zones that split an urban area" = zone_colour,
+    "Urban areas split across commuting zones" = area_colour)) +
   theme_void(base_size = 11) +
-  theme(legend.position = "bottom", legend.direction = "vertical")
+  theme(legend.position = "bottom", legend.direction = "vertical",
+        plot.background = element_rect(fill = "white", colour = NA))
 ggsave(file.path(figure_dir, sprintf("split_urban_areas_%d_cut%s.png", headline_year,
                                      format(headline_cutoff, nsmall = 3))),
-       width = 7, height = 8.5, dpi = 300)
+       width = 7, height = 8.5, dpi = 300, bg = "white")
 
 message("urban areas in ", headline_year, ": ", n_distinct(split_status$area),
         "; split across zones: ", n_distinct(split_status$area[split_status$is_split]))

@@ -44,7 +44,7 @@ The adjacency graph itself was checked for the generalization artifacts that wou
 
 The two definitions agree on direction and on time trend but not on level, and the gap is informative rather than troubling. The Urban Employment Area marks a single central city per area and excludes any municipality that is already a suburb of another, so its core set is smaller and more concentrated than a threshold rule that marks every municipality with a large enough dense population. Reading the two together is the point: the district rule cannot be re-reading the commuting flows the delineation was built from, and it moves the same way over time, so the Core measures are picking up urban structure rather than the delineation's own inputs.
 
-`split_urban_areas_2020_cut0.980.png` maps the fourth measure. Of the 208 Urban Employment Areas in 2020, 32 are split across more than one commuting zone. The count fell from 51 in 2000 to 28 in 2010 and has been roughly flat since, which tracks the consolidation of the zones themselves.
+`split_urban_areas_2020_cut0.980.png` maps the fourth measure, laying the split urban areas over the commuting zones that split them so that each area is seen straddling a zone boundary; areas that fall inside one zone are not drawn. Of the 208 Urban Employment Areas in 2020, 32 are split across more than one commuting zone. The count fell from 51 in 2000 to 28 in 2010 and has been roughly flat since, which tracks the consolidation of the zones themselves.
 
 ## What is not here
 
