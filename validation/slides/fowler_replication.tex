@@ -1,6 +1,7 @@
 \documentclass[aspectratio=169,11pt]{beamer}
 
 \usetheme{default}
+\usepackage[absolute,overlay]{textpos}
 \setbeamertemplate{navigation symbols}{}
 
 \usepackage{booktabs}
@@ -9,7 +10,7 @@
 \usepackage{url}
 \hypersetup{hidelinks}
 
-\renewcommand{\arraystretch}{0.95}
+\renewcommand{\arraystretch}{0.85}
 \graphicspath{{../output/figures/}}
 \input{tables/numbers}
 
@@ -20,8 +21,16 @@
 % carries the fuller table or figure; that slide points back to where it came from.
 
 
-\newcommand{\seemore}[2]{\hfill\textnormal{\footnotesize\hyperlink{#1}{#2 $\rightarrow$}}}
-\newcommand{\backto}[2]{\hfill\hyperlink{#1}{\beamerreturnbutton{#2}}}
+\setbeamertemplate{footline}{\vspace{0.78cm}}
+% The buttons sit in the strip the footline reserves, so they never run into the
+% content above them.
+\newcommand{\slidebuttons}[1]{%
+  \begin{textblock*}{9cm}(\dimexpr\paperwidth-9.35cm\relax,\dimexpr\paperheight-0.66cm\relax)
+    \raggedleft #1%
+  \end{textblock*}}
+\newcommand{\gotoslide}[2]{\slidebuttons{\hyperlink{#1}{\beamergotobutton{#2}}}}
+\newcommand{\backslide}[1]{\slidebuttons{\hyperlink{#1}{\beamerreturnbutton{Back}}}}
+\newcommand{\gotoandback}[3]{\slidebuttons{\hyperlink{#1}{\beamergotobutton{#2}}\hspace{0.6em}\hyperlink{#3}{\beamerreturnbutton{Back}}}}
 
 \title{Fowler (2024) on the Japanese commuting zones}
 \author{}
@@ -62,28 +71,31 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}[label=similaritymap]{Similarity between the 2010 and the 2020 delineations}{Figure 1 of Fowler (2024)\seemore{apppairs}{every comparison pair}}
+\begin{frame}[label=similaritymap]{Similarity between the 2010 and the 2020 delineations}{Figure 1 of Fowler (2024)}
   \centering
-  \includegraphics[height=0.78\textheight]{similarity_map_2010_2020_cut0.977.png}
+  \gotoslide{apppairs}{Every comparison pair}
+  \includegraphics[height=0.72\textheight]{similarity_map_2010_2020_cut0.977.png}
   \\[2pt]
   \footnotesize Jaccard similarity: the overlap of a municipality's two commuting zones over their union. Mean \meanSimilarity{}.
 \end{frame}
 
-\begin{frame}[label=diagnostics]{Diagnostic statistics}{Table 1 of Fowler (2024)\seemore{appdiagcounts}{all nine census years}}
+\begin{frame}[label=diagnostics]{Diagnostic statistics}{Table 1 of Fowler (2024)}
   \centering
+  \gotoslide{appdiagcounts}{All nine census years}
   \input{tables/diagnostics}
   \\[4pt]
   \footnotesize Compactness is the Polsby--Popper ratio, $4\pi A / P^2$ of the dissolved zone, averaged across zones.
 \end{frame}
 
-\begin{frame}[label=fit]{Fit statistics}{Table 2 of Fowler (2024)\seemore{appcontainment}{all nine census years}}
+\begin{frame}[label=fit]{Fit statistics}{Table 2 of Fowler (2024)}
   \centering
+  \gotoslide{appcontainment}{All nine census years}
   \input{tables/fit}
 \end{frame}
 
 \begin{frame}{The commuting zone with the lowest mean containment}{Figure 3 of Fowler (2024)}
   \centering
-  \includegraphics[width=0.84\textwidth]{lowest_containment_zone_2020_cut0.977.png}
+  \includegraphics[width=0.73\textwidth]{lowest_containment_zone_2020_cut0.977.png}
   \\[2pt]
   \footnotesize Five western Tokyo suburbs at 0.36, wedged between the Tokyo zone and the zones west of it.
 \end{frame}
@@ -98,16 +110,17 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}[label=sweep]{Similarity as a function of the cutoff}{Figure 4 of Fowler (2024)\seemore{appcutoff}{the two cutoffs compared}}
+\begin{frame}[label=sweep]{Similarity as a function of the cutoff}{Figure 4 of Fowler (2024)}
   \centering
-  \includegraphics[height=0.68\textheight]{similarity_vs_cutoff_2010_2020_anchor0.977.png}
+  \gotoslide{appcutoff}{The two cutoffs compared}
+  \includegraphics[height=0.63\textheight]{similarity_vs_cutoff_2010_2020_anchor0.977.png}
   \\[2pt]
   \footnotesize Holding 2010 at 0.977, the peak is \bestSimilarity{} at \bestCutoff{}, and the curve stays within 0.005 of it from \plateauLow{} to \plateauHigh{}, spanning \plateauZonesHigh{} down to \plateauZonesLow{} zones.
 \end{frame}
 
 \begin{frame}{Non-contiguous municipalities}{Figure 5 of Fowler (2024)}
   \centering
-  \includegraphics[height=0.78\textheight]{noncontiguous_municipalities_2020_cut0.977.png}
+  \includegraphics[height=0.72\textheight]{noncontiguous_municipalities_2020_cut0.977.png}
   \\[2pt]
   \footnotesize One municipality in 2020, Shimukappu in Hokkaido, 991 metres from the nearest part of its own zone.
 \end{frame}
@@ -119,21 +132,29 @@
   \footnotesize Its own zone takes 96 percent of its commuters, the adjacent zone 3 percent.
 \end{frame}
 
-\begin{frame}[label=split]{Urban areas split across commuting zones}{Figure 6 of Fowler (2024)\seemore{appcore}{all nine census years}}
+\begin{frame}[label=split]{Urban areas split across commuting zones}{Figure 6 of Fowler (2024)}
   \centering
-  \includegraphics[height=0.78\textheight]{split_urban_areas_2020_cut0.977.png}
+  \gotoslide{appcore}{All nine census years}
+  \includegraphics[height=0.72\textheight]{split_urban_areas_2020_cut0.977.png}
   \\[2pt]
   \footnotesize 33 of the 208 Urban Employment Areas in 2020, concentrated along the Pacific corridor.
 \end{frame}
 
 \appendix
 
+\begin{frame}[plain]
+  \vfill
+  \centering
+  {\Huge Appendix}
+  \vfill
+\end{frame}
+
 \begin{frame}[label=appdiagcounts]{Diagnostic statistics, 1980 to 2020}
   \centering
   \input{tables/appendix_diagnostics_counts}
   \\[4pt]
   \footnotesize Counts at the 0.977 cutoff. Non-contiguous zones are those holding a municipality with no neighbour in its own zone.
-  \hfill\hyperlink{appdiagsize}{\beamergotobutton{Size and shape}}\hspace{1em}\hyperlink{diagnostics}{\beamerreturnbutton{Back}}
+  \gotoandback{appdiagsize}{Size and shape}{diagnostics}
 \end{frame}
 
 \begin{frame}[label=appdiagsize]{Zone size and shape, 1980 to 2020}
@@ -141,14 +162,14 @@
   {\setlength{\tabcolsep}{4pt}\input{tables/appendix_diagnostics_size}}
   \\[4pt]
   \footnotesize Population is the resident labour force carried in the commuting matrix. Compactness is the Polsby--Popper ratio.
-  \backto{diagnostics}{Back}
+  \backslide{diagnostics}
 \end{frame}
 
 \begin{frame}[label=appcontainment]{Containment, 1980 to 2020}
   \input{tables/appendix_containment}
   \\[4pt]
   \footnotesize The minimum and the mean are taken over commuting zones; the share of the labour force is a single national ratio.
-  \hfill\hyperlink{appcore}{\beamergotobutton{Core measures}}\hspace{1em}\hyperlink{fit}{\beamerreturnbutton{Back}}
+  \gotoandback{appcore}{Core measures}{fit}
 \end{frame}
 
 \begin{frame}[label=appcore]{Core measures, 1980 to 2020}
@@ -156,7 +177,7 @@
   {\setlength{\tabcolsep}{3.5pt}\input{tables/appendix_core}}
   \\[4pt]
   \footnotesize The district rule marks a municipality as a core on its densely inhabited district population alone, using no commuting data. There is no 1985 Urban Employment Area delineation.
-  \backto{fit}{Back}
+  \backslide{fit}
 \end{frame}
 
 \begin{frame}[label=appcutoff]{The two cutoff anchors compared}
@@ -164,7 +185,7 @@
   {\setlength{\tabcolsep}{4pt}\input{tables/appendix_cutoff_comparison}}
   \\[4pt]
   \footnotesize Moving from 0.977 to 0.980 removes sixteen commuting zones in 2010 and fifteen in 2020, and moves containment by half a point.
-  \backto{sweep}{Back}
+  \backslide{sweep}
 \end{frame}
 
 \begin{frame}[label=apppairs]{Every comparison pair}
@@ -172,21 +193,21 @@
   \input{tables/appendix_pairs}
   \\[4pt]
   \footnotesize The 2010 to 2020 comparison sits below both pre-pandemic controls but above the decade pairs of the 1980s and 1990s.
-  \hfill\hyperlink{appcurvea}{\beamergotobutton{Control-pair curves}}\hspace{1em}\hyperlink{similaritymap}{\beamerreturnbutton{Back}}
+  \gotoandback{appcurvea}{Control-pair curves}{similaritymap}
 \end{frame}
 
 \begin{frame}[label=appcurvea]{Similarity against the cutoff, 2010 against 2015}
   \centering
-  \includegraphics[height=0.68\textheight]{similarity_vs_cutoff_2010_2015_anchor0.977.png}
+  \includegraphics[height=0.63\textheight]{similarity_vs_cutoff_2010_2015_anchor0.977.png}
   \\[2pt]
-  \hfill\hyperlink{appcurveb}{\beamergotobutton{2005 against 2015}}\hspace{1em}\hyperlink{sweep}{\beamerreturnbutton{Back}}
+  \gotoandback{appcurveb}{2005 against 2015}{sweep}
 \end{frame}
 
 \begin{frame}[label=appcurveb]{Similarity against the cutoff, 2005 against 2015}
   \centering
-  \includegraphics[height=0.68\textheight]{similarity_vs_cutoff_2005_2015_anchor0.977.png}
+  \includegraphics[height=0.63\textheight]{similarity_vs_cutoff_2005_2015_anchor0.977.png}
   \\[2pt]
-  \backto{sweep}{Back}
+  \backslide{sweep}
 \end{frame}
 
 \begin{frame}{One departure from the existing pipeline}
@@ -200,6 +221,8 @@
 \end{frame}
 
 \begin{frame}{Where everything lives}
+  On the repo: \url{https://github.com/daisukeadachi/commuting_zone_japan/}
+  \vfill
   \begin{itemize}
     \item \filelink{validation/notes/replication\_results.md} --- the written results, with every number in this deck in context.
     \item \filelink{validation/notes/method\_crosscheck.md} --- the delineation formula across four implementations.
