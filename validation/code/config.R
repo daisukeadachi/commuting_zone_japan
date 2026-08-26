@@ -89,3 +89,19 @@ read_commuting <- function(year, code_type = "harmonized") {
     dplyr::group_by(i, j) |>
     dplyr::summarise(pop = sum(pop), .groups = "drop")
 }
+
+# The boundary layer on the same municipality universe as everything else. Reading the
+# shapefile directly leaves the twenty-three ward codes in place; they then fail the
+# scope filter and the wards vanish from every map and from every area computed off one.
+read_boundaries <- function(codes = NULL) {
+  layer <- sf::st_read(boundary_shp, quiet = TRUE, options = "ENCODING=CP932")
+  layer <- sf::st_make_valid(layer)
+  layer$code <- merge_tokyo_wards(sprintf("%05d", as.integer(as.character(layer$JISCODE))))
+  layer <- layer[, "code"]
+  layer <- layer |>
+    dplyr::group_by(code) |>
+    dplyr::summarise(.groups = "drop") |>
+    sf::st_make_valid()
+  if (!is.null(codes)) layer <- layer[layer$code %in% codes, ]
+  sf::st_transform(layer, crs_equal_area)
+}

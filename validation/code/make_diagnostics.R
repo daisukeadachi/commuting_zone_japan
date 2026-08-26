@@ -22,12 +22,7 @@ scope <- read_csv(file.path(data_dir, "municipality_scope.csv"), col_types = col
   filter(in_scope)
 edges <- read_csv(file.path(data_dir, "adjacency_edges.csv"), col_types = cols(.default = col_character()))
 
-geometry <- st_read(boundary_shp, quiet = TRUE, options = "ENCODING=CP932") %>%
-  st_make_valid() %>%
-  mutate(code = sprintf("%05d", as.integer(as.character(JISCODE)))) %>%
-  filter(code %in% scope$code) %>%
-  st_transform(crs_equal_area) %>%
-  select(code)
+geometry <- read_boundaries(scope$code)
 
 neighbours <- split(c(edges$code_j, edges$code_i), c(edges$code_i, edges$code_j))
 

@@ -198,12 +198,7 @@ if (abs(headline_cutoff - 0.977) < 1e-9) {
 
 scope <- read_csv(file.path(data_dir, "municipality_scope.csv"), col_types = cols(code = col_character())) %>%
   filter(in_scope)
-geometry <- st_read(boundary_shp, quiet = TRUE, options = "ENCODING=CP932") %>%
-  st_make_valid() %>%
-  mutate(code = pad(as.character(JISCODE))) %>%
-  filter(code %in% scope$code) %>%
-  st_transform(crs_equal_area) %>%
-  select(code)
+geometry <- read_boundaries(scope$code)
 okinawa_codes <- scope$code[scope$block == "Okinawa main island"]
 placed <- inset_okinawa(geometry, okinawa_codes)
 geometry <- placed$layer
