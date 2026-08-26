@@ -144,7 +144,7 @@ profile <- sweep %>% distinct(later_year, cutoff_later, commuting_zones,
 profile_panel <- function(panel, later, y, y_label, file) {
   ggplot(panel, aes(x = cutoff_later, y = .data[[y]])) +
     geom_line() +
-    geom_vline(xintercept = 0.977, linetype = "dashed") +
+    geom_vline(xintercept = baseline_cutoff, linetype = "dashed") +
     labs(x = "Cutoff value", y = y_label) +
     sweep_theme
   ggsave(file.path(figure_dir, sprintf(file, later)), width = 8, height = 5, dpi = 300, bg = "white")
