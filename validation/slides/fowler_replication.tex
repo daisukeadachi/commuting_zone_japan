@@ -21,14 +21,8 @@
 % carries the fuller table or figure; that slide points back to where it came from.
 
 
-% The strip at the foot of every slide holds the page number on the left and, where a
-% slide has one, the cross-reference button on the right.
-\setbeamertemplate{footline}{%
-  \vspace{0.18cm}%
-  \hspace*{2.5ex}{\tiny\color{black!45}\insertframenumber\,/\,\inserttotalframenumber}%
-  \hfill\vspace{0.42cm}}
-% The buttons sit in the strip the footline reserves, so they never run into the
-% content above them.
+\setbeamertemplate{footline}[frame number]
+\setbeamertemplate{page number in head/foot}[appendixframenumber]
 \newcommand{\slidebuttons}[1]{%
   \begin{textblock*}{9cm}(\dimexpr\paperwidth-9.35cm\relax,\dimexpr\paperheight-0.66cm\relax)
     \raggedleft #1%
