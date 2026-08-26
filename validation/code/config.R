@@ -136,8 +136,15 @@ census_years <- seq(1980, 2020, by = 5)
 # 0.999 that Fowler places on the proportional flow.
 dissimilarity_floor <- 0.001
 
-# Cutoff anchors for the earlier year of each comparison pair.
-cutoff_anchors <- c(0.980, 0.977)
+# The baseline cutoff, the value the source paper uses. It is the one the prose, the
+# slides and the headline figures report. Every table and figure carries both anchors,
+# so the alternative value always sits alongside the baseline rather than replacing it.
+baseline_cutoff <- 0.977
+
+# Cutoff anchors for the earlier year of each comparison pair. The order fixes the row
+# order of the output tables and is left as it is, so that a rebuild reproduces the
+# committed files unchanged.
+cutoff_anchors <- c(0.980, baseline_cutoff)
 
 # Baseline comparison pairs. The first is the headline; the other two are
 # pre-pandemic controls.

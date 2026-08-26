@@ -177,7 +177,7 @@ for (year in census_years) {
 }
 core_table <- bind_rows(results)
 write_csv(core_table, output_path("core_table.csv"))
-print(as.data.frame(core_table %>% filter(cutoff == 0.980)))
+print(as.data.frame(core_table %>% filter(abs(cutoff - baseline_cutoff) < 1e-9)))
 
 # The map of urban areas split across commuting zones, the counterpart of Figure 6,
 # drawn at each cutoff anchor.
@@ -191,7 +191,7 @@ split_status <- areas %>%
   group_by(area) %>%
   mutate(is_split = n_distinct(zone) > 1) %>%
   ungroup()
-if (abs(headline_cutoff - 0.977) < 1e-9) {
+if (abs(headline_cutoff - baseline_cutoff) < 1e-9) {
   write_csv(split_status, output_path("core_area_splits.csv"))
 }
 
