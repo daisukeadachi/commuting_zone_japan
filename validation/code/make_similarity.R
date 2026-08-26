@@ -30,17 +30,6 @@ labour <- setNames(lapply(census_years, function(y) {
   read_csv(file.path(derived_dir, sprintf("labour_force_%d.csv", y)), col_types = cols(code = col_character()))
 }), as.character(census_years))
 
-# Jaccard similarity for every municipality, from the cross-tabulation of the two
-# partitions: the intersection of the two co-membership sets is the count of
-# municipalities sharing both zones, and the union follows from the two zone sizes.
-jaccard <- function(zone_a, zone_b) {
-  counts <- table(zone_a, zone_b)
-  size_a <- rowSums(counts)
-  size_b <- colSums(counts)
-  both <- counts[cbind(match(zone_a, rownames(counts)), match(zone_b, colnames(counts)))]
-  both / (size_a[match(zone_a, names(size_a))] + size_b[match(zone_b, names(size_b))] - both)
-}
-
 common_units <- function(earlier, later) {
   intersect(delineation_units(earlier), delineation_units(later))
 }
@@ -102,10 +91,7 @@ for (pair in baseline_pairs) {
       zone_all <- zone_assignment(later, cut_later)
       sizes <- table(zone_all)
       zone_of <- zone_all
-      detached <- vapply(names(zone_of), function(m) {
-        if (sizes[as.character(zone_of[m])] == 1) return(FALSE)
-        !any(zone_of[neighbours[[m]]] == zone_of[m], na.rm = TRUE)
-      }, logical(1))
+      detached <- detached_municipalities(zone_of, neighbours)
       contained <- flows %>%
         mutate(same = zone_of[i] == zone_of[j]) %>%
         summarise(share = sum(pop[same]) / sum(pop)) %>%

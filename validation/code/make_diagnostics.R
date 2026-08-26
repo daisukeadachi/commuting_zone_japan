@@ -40,12 +40,7 @@ diagnose <- function(year, cutoff) {
   # zone, following the source paper's test. A municipality alone in its zone counts as
   # contiguous by construction.
   zone_of <- setNames(units$zone, units$code)
-  detached <- vapply(units$code, function(m) {
-    if (zone_size[as.character(zone_of[m])] == 1) return(FALSE)
-    nb <- neighbours[[m]]
-    !any(zone_of[nb] == zone_of[m], na.rm = TRUE)
-  }, logical(1))
-  units$detached <- unname(detached)
+  units$detached <- unname(detached_municipalities(zone_of, neighbours))
 
   # The stricter reading: a zone is non-contiguous when its municipalities do not form a
   # connected subgraph of the adjacency graph.

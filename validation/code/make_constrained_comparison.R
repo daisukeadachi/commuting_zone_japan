@@ -32,32 +32,13 @@ edges <- read_csv(file.path(data_dir, "adjacency_edges.csv"),
                   col_types = cols(.default = col_character()))
 neighbours <- split(c(edges$code_j, edges$code_i), c(edges$code_i, edges$code_j))
 
-#' Jaccard similarity of two partitions, municipality by municipality.
-#'
-#' For each municipality it is the size of the intersection of the two sets of
-#' municipalities sharing its zone, over the size of their union, each set including the
-#' municipality itself. This is the measure the year-to-year comparison uses.
-jaccard <- function(zone_a, zone_b) {
-  counts <- table(zone_a, zone_b)
-  size_a <- rowSums(counts)
-  size_b <- colSums(counts)
-  both <- counts[cbind(match(zone_a, rownames(counts)), match(zone_b, colnames(counts)))]
-  both / (size_a[match(zone_a, names(size_a))] + size_b[match(zone_b, names(size_b))] - both)
-}
-
 #' Non-contiguity of a partition, on the two tests the diagnostics table carries.
 #'
-#' The first is the source paper's: a municipality is detached when no neighbour of its
-#' own shares its commuting zone, and a municipality alone in its zone counts as
-#' contiguous. The second is stricter: a zone is broken when its municipalities do not
-#' form a connected subgraph of the adjacency graph.
+#' The first is the source paper's test, shared with the diagnostics table. The second is
+#' stricter: a zone is broken when its municipalities do not form a connected subgraph of
+#' the adjacency graph.
 noncontiguity <- function(zone) {
-  sizes <- table(zone)
-  detached <- vapply(names(zone), function(code) {
-    if (sizes[as.character(zone[code])] == 1) return(FALSE)
-    nb <- intersect(neighbours[[code]], names(zone))
-    length(nb) > 0 && !any(zone[nb] == zone[code])
-  }, logical(1))
+  detached <- detached_municipalities(zone, neighbours)
   year_edges <- edges %>% filter(code_i %in% names(zone), code_j %in% names(zone))
   g <- graph_from_data_frame(year_edges[, c("code_i", "code_j")], directed = FALSE,
                              vertices = data.frame(name = names(zone)))

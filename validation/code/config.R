@@ -123,6 +123,39 @@ zone_assignment <- function(year, cutoff) {
   out[order(names(out))]
 }
 
+#' Jaccard similarity of two partitions, municipality by municipality.
+#'
+#' For each municipality it is the size of the intersection of the two sets of
+#' municipalities sharing its zone, over the size of their union, each set including the
+#' municipality itself. It is read from the cross-tabulation of the two partitions: the
+#' intersection is the count of municipalities sharing both zones, and the union follows
+#' from the two zone sizes.
+jaccard <- function(zone_a, zone_b) {
+  counts <- table(zone_a, zone_b)
+  size_a <- rowSums(counts)
+  size_b <- colSums(counts)
+  both <- counts[cbind(match(zone_a, rownames(counts)), match(zone_b, colnames(counts)))]
+  both / (size_a[match(zone_a, names(size_a))] + size_b[match(zone_b, names(size_b))] - both)
+}
+
+#' Municipalities that share their commuting zone with none of their neighbours.
+#'
+#' This is the source paper's non-contiguity test. A municipality alone in its zone counts
+#' as contiguous by construction. A neighbour absent from the delineation, which happens
+#' where a municipality is missing from a census year, counts as not sharing the zone, so
+#' a municipality all of whose neighbours are absent reads as detached.
+#'
+#' @param zone named vector of zone labels, one per municipality
+#' @param neighbours list of adjacent municipality codes, keyed by municipality code
+#' @return logical vector in the order of names(zone)
+detached_municipalities <- function(zone, neighbours) {
+  sizes <- table(zone)
+  vapply(names(zone), function(m) {
+    if (sizes[as.character(zone[m])] == 1) return(FALSE)
+    !any(zone[neighbours[[m]]] == zone[m], na.rm = TRUE)
+  }, logical(1))
+}
+
 # Japan-wide equal-area conic projection, the counterpart of the NAD83 / Conus Albers
 # system (EPSG:5070) that Fowler (2024) uses before computing area and compactness.
 # No EPSG code can serve: every Japanese projected system in the registry is
