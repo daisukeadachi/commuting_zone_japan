@@ -15,6 +15,13 @@
 \newcommand{\repo}{https://github.com/daisukeadachi/commuting_zone_japan/blob/11-fowler-replication}
 \newcommand{\filelink}[1]{\href{\repo/#1}{\texttt{#1}}}
 
+% Links between the body and the appendix. A body slide points forward to the slide that
+% carries the fuller table or figure; that slide points back to where it came from.
+
+
+\newcommand{\seemore}[2]{\hfill\textnormal{\footnotesize\hyperlink{#1}{#2 $\rightarrow$}}}
+\newcommand{\backto}[2]{\hfill\hyperlink{#1}{\beamerreturnbutton{#2}}}
+
 \title{Fowler (2024) on the Japanese commuting zones}
 \author{}
 \date{\today}
@@ -33,14 +40,14 @@
     \vfill
     \item The wage-correlation block, that paper's Figure 2 and the Connection rows of its Table 2, waits on the Basic Survey on Wage Structure microdata.
     \vfill
-    \item Full tables for all nine census years and both cutoffs are in the appendix.
+    \item Every body slide carries a button to the appendix slide that shows all nine census years.
   \end{itemize}
   \vfill
   \footnotesize Source paper: \url{https://doi.org/10.1038/s41597-024-03829-5}
 \end{frame}
 
 \begin{frame}{The delineation}{Methods section of Fowler (2024)}
-  For municipalities $i$ and $j$ with commuting flows $f_{ij}$ and resident labour forces $W_i$, the \alert{proportional flow} is
+  For municipalities $i$ and $j$ with commuting flows $f_{ij}$ and resident labour forces $W_i$, the proportional flow is
   \[
     p_{ij} = \frac{f_{ij} + f_{ji}}{\min(W_i, W_j)}, \qquad p_{ij} \le 0.999 ,
   \]
@@ -54,52 +61,52 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Similarity between the 2010 and the 2020 delineations}{Figure 1 of Fowler (2024)}
+\begin{frame}[label=similaritymap]{Similarity between the 2010 and the 2020 delineations}{Figure 1 of Fowler (2024)\seemore{apppairs}{every comparison pair}}
   \centering
   \includegraphics[height=0.78\textheight]{similarity_map_2010_2020_cut0.977.png}
   \\[2pt]
   \footnotesize Jaccard similarity: the overlap of a municipality's two commuting zones over their union. Mean \meanSimilarity{}.
 \end{frame}
 
-\begin{frame}{Diagnostic statistics}{Table 1 of Fowler (2024)}
+\begin{frame}[label=diagnostics]{Diagnostic statistics}{Table 1 of Fowler (2024)\seemore{appdiagcounts}{all nine census years}}
   \centering
   \input{tables/diagnostics}
   \\[4pt]
   \footnotesize Compactness is the Polsby--Popper ratio, $4\pi A / P^2$ of the dissolved zone, averaged across zones.
 \end{frame}
 
-\begin{frame}{Fit statistics}{Table 2 of Fowler (2024)}
+\begin{frame}[label=fit]{Fit statistics}{Table 2 of Fowler (2024)\seemore{appcontainment}{all nine census years}}
   \centering
   \input{tables/fit}
 \end{frame}
 
 \begin{frame}{The commuting zone with the lowest mean containment}{Figure 3 of Fowler (2024)}
   \centering
-  \includegraphics[height=0.76\textheight]{lowest_containment_zone_2020_cut0.977.png}
+  \includegraphics[width=0.84\textwidth]{lowest_containment_zone_2020_cut0.977.png}
   \\[2pt]
   \footnotesize Five western Tokyo suburbs at 0.36, wedged between the Tokyo zone and the zones west of it.
 \end{frame}
 
 \begin{frame}{Technical validation}{Technical Validation section of Fowler (2024)}
   \begin{itemize}
-    \item \alert{The cutoff.} It is inherited rather than derived. Does the similarity between delineations pick out a better value?
+    \item The cutoff. It is inherited rather than derived. Does the similarity between delineations pick out a better value?
     \vfill
-    \item \alert{Non-contiguity.} Zones that hold a municipality sharing its zone with none of its neighbours.
+    \item Non-contiguity. Zones that hold a municipality sharing its zone with none of its neighbours.
     \vfill
-    \item \alert{Split urban areas.} Externally defined urban areas cut across more than one commuting zone.
+    \item Split urban areas. Externally defined urban areas cut across more than one commuting zone.
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Similarity as a function of the cutoff}{Figure 4 of Fowler (2024)}
+\begin{frame}[label=sweep]{Similarity as a function of the cutoff}{Figure 4 of Fowler (2024)\seemore{appcutoff}{the two cutoffs compared}}
   \centering
-  \includegraphics[height=0.72\textheight]{similarity_vs_cutoff_2010_2020_anchor0.977.png}
+  \includegraphics[height=0.68\textheight]{similarity_vs_cutoff_2010_2020_anchor0.977.png}
   \\[2pt]
   \footnotesize Holding 2010 at 0.977, the peak is \bestSimilarity{} at \bestCutoff{}, and the curve stays within 0.005 of it from \plateauLow{} to \plateauHigh{}, spanning \plateauZonesHigh{} down to \plateauZonesLow{} zones.
 \end{frame}
 
 \begin{frame}{Non-contiguous municipalities}{Figure 5 of Fowler (2024)}
   \centering
-  \includegraphics[height=0.76\textheight]{noncontiguous_municipalities_2020_cut0.977.png}
+  \includegraphics[height=0.78\textheight]{noncontiguous_municipalities_2020_cut0.977.png}
   \\[2pt]
   \footnotesize One municipality in 2020, Shimukappu in Hokkaido, 991 metres from the nearest part of its own zone.
 \end{frame}
@@ -108,59 +115,81 @@
   \centering
   \input{tables/reassignments}
   \\[6pt]
-  \footnotesize The assigned zone takes 96 percent of its commuters against 3 percent for the adjacent zone, so reassignment would fit the flows worse.
+  \footnotesize Its own zone takes 96 percent of its commuters, the adjacent zone 3 percent.
 \end{frame}
 
-\begin{frame}{Urban areas split across commuting zones}{Figure 6 of Fowler (2024)}
+\begin{frame}[label=split]{Urban areas split across commuting zones}{Figure 6 of Fowler (2024)\seemore{appcore}{all nine census years}}
   \centering
-  \includegraphics[height=0.74\textheight]{split_urban_areas_2020_cut0.977.png}
+  \includegraphics[height=0.78\textheight]{split_urban_areas_2020_cut0.977.png}
   \\[2pt]
   \footnotesize 33 of the 208 Urban Employment Areas in 2020, concentrated along the Pacific corridor.
 \end{frame}
 
 \appendix
 
-\begin{frame}{Appendix: the full tables}{No counterpart in Fowler (2024)}
-  Every table below covers all nine census years at both cutoff anchors. Links point at the branch \texttt{11-fowler-replication}.
-  \vfill
-  \begin{itemize}
-    \item \filelink{validation/output/diagnostics\_table.csv} --- the diagnostic statistics, with both non-contiguity tests.
-    \item \filelink{validation/output/containment\_table.csv} --- containment, including the labour-force weighted mean.
-    \item \filelink{validation/output/core\_table.csv} --- the Core measures on the Urban Employment Area and on two densely inhabited district thresholds.
-    \item \filelink{validation/output/reassignment\_table.csv} --- all 35 non-contiguity cases across the delineations.
-    \item \filelink{validation/output/similarity\_table.csv} --- every comparison pair, including the pre-pandemic controls.
-    \item \filelink{validation/output/cutoff\_sweep.csv} --- the sweep behind the similarity curve, with the diagnostic profile.
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{Appendix: the cutoff traded against the diagnostics}{No counterpart in Fowler (2024)}
+\begin{frame}[label=appdiagcounts]{Diagnostic statistics, 1980 to 2020}{No counterpart in Fowler (2024)}
   \centering
-  \includegraphics[height=0.62\textheight]{zone_count_vs_cutoff_2020.png}
-  \\[2pt]
-  \footnotesize \filelink{validation/output/figures/zone\_count\_vs\_cutoff\_2020.png}
+  \input{tables/appendix_diagnostics_counts}
+  \\[4pt]
+  \footnotesize Counts at the 0.977 cutoff. Non-contiguous zones are those holding a municipality with no neighbour in its own zone.
+  \hfill\hyperlink{appdiagsize}{\beamergotobutton{Size and shape}}\hspace{1em}\hyperlink{diagnostics}{\beamerreturnbutton{Back}}
 \end{frame}
 
-\begin{frame}{Appendix: containment across the cutoff range}{No counterpart in Fowler (2024)}
+\begin{frame}[label=appdiagsize]{Zone size and shape, 1980 to 2020}{No counterpart in Fowler (2024)}
   \centering
-  \includegraphics[height=0.62\textheight]{containment_vs_cutoff_2020.png}
+  {\setlength{\tabcolsep}{4pt}\input{tables/appendix_diagnostics_size}}
+  \\[4pt]
+  \footnotesize Population is the resident labour force carried in the commuting matrix. Compactness is the Polsby--Popper ratio.
+  \backto{diagnostics}{Back}
+\end{frame}
+
+\begin{frame}[label=appcontainment]{Containment, 1980 to 2020}{No counterpart in Fowler (2024)}
+  \centering
+  \input{tables/appendix_containment}
+  \\[4pt]
+  \footnotesize The minimum and the mean are taken over commuting zones; the share of the labour force is a single national ratio.
+  \hfill\hyperlink{appcore}{\beamergotobutton{Core measures}}\hspace{1em}\hyperlink{fit}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}[label=appcore]{Core measures, 1980 to 2020}{No counterpart in Fowler (2024)}
+  \centering
+  {\setlength{\tabcolsep}{3.5pt}\input{tables/appendix_core}}
+  \\[4pt]
+  \footnotesize The district rule marks a municipality as a core on its densely inhabited district population alone, using no commuting data. There is no 1985 Urban Employment Area delineation.
+  \backto{fit}{Back}
+\end{frame}
+
+\begin{frame}[label=appcutoff]{The two cutoff anchors compared}{No counterpart in Fowler (2024)}
+  \centering
+  {\setlength{\tabcolsep}{4pt}\input{tables/appendix_cutoff_comparison}}
+  \\[4pt]
+  \footnotesize Moving from 0.977 to 0.980 removes sixteen commuting zones in 2010 and fifteen in 2020, and moves containment by half a point.
+  \backto{sweep}{Back}
+\end{frame}
+
+\begin{frame}[label=apppairs]{Every comparison pair}{No counterpart in Fowler (2024)}
+  \centering
+  \input{tables/appendix_pairs}
+  \\[4pt]
+  \footnotesize The 2010 to 2020 comparison sits below both pre-pandemic controls but above the decade pairs of the 1980s and 1990s.
+  \hfill\hyperlink{appcurvea}{\beamergotobutton{Control-pair curves}}\hspace{1em}\hyperlink{similaritymap}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}[label=appcurvea]{Similarity against the cutoff, 2010 against 2015}{No counterpart in Fowler (2024)}
+  \centering
+  \includegraphics[height=0.68\textheight]{similarity_vs_cutoff_2010_2015_anchor0.977.png}
   \\[2pt]
-  \footnotesize \filelink{validation/output/figures/containment\_vs\_cutoff\_2020.png}
+  \hfill\hyperlink{appcurveb}{\beamergotobutton{2005 against 2015}}\hspace{1em}\hyperlink{sweep}{\beamerreturnbutton{Back}}
 \end{frame}
 
-\begin{frame}{Appendix: the other comparison pairs}{No counterpart in Fowler (2024)}
-  \begin{itemize}
-    \item The headline 2010 to 2020 comparison gives a mean similarity of \meanSimilarity{}, below both pre-pandemic controls.
-    \vfill
-    \item 2010 against 2015 gives 0.87 and 2005 against 2015 gives 0.85, at the same cutoff.
-    \vfill
-    \item Decade churn was larger before: 1980 against 1990 gives 0.76 and 1990 against 2000 gives 0.83.
-    \vfill
-    \item Curve for 2010 against 2015: \href{\repo/validation/output/figures/similarity_vs_cutoff_2010_2015_anchor0.977.png}{\texttt{similarity\_vs\_cutoff\_2010\_2015\_anchor0.977.png}}
-    \item Curve for 2005 against 2015: \href{\repo/validation/output/figures/similarity_vs_cutoff_2005_2015_anchor0.977.png}{\texttt{similarity\_vs\_cutoff\_2005\_2015\_anchor0.977.png}}
-  \end{itemize}
+\begin{frame}[label=appcurveb]{Similarity against the cutoff, 2005 against 2015}{No counterpart in Fowler (2024)}
+  \centering
+  \includegraphics[height=0.68\textheight]{similarity_vs_cutoff_2005_2015_anchor0.977.png}
+  \\[2pt]
+  \backto{sweep}{Back}
 \end{frame}
 
-\begin{frame}{Appendix: one departure from the existing pipeline}{No counterpart in Fowler (2024)}
+\begin{frame}{One departure from the existing pipeline}{No counterpart in Fowler (2024)}
   The existing Japanese pipeline joins the flow file to its own transpose in a way that keeps a pair only when the flow from $i$ to $j$ is recorded, so a pair connected only in the reverse direction enters as unconnected.
   \vfill
   \begin{itemize}
@@ -170,12 +199,13 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Appendix: where everything lives}{No counterpart in Fowler (2024)}
+\begin{frame}{Where everything lives}{No counterpart in Fowler (2024)}
   \begin{itemize}
     \item \filelink{validation/notes/replication\_results.md} --- the written results, with every number in this deck in context.
     \item \filelink{validation/notes/method\_crosscheck.md} --- the delineation formula across four implementations.
     \item \filelink{validation/notes/core\_definition.md} --- why the Urban Employment Area supplies the cores.
-    \item \filelink{validation/code} --- the nine scripts, run in the order they are numbered in the results note.
+    \item \filelink{validation/output} --- the tables behind every slide, as comma-separated files.
+    \item \filelink{validation/code} --- the nine scripts, run in the order they are listed in the results note.
   \end{itemize}
 \end{frame}
 
