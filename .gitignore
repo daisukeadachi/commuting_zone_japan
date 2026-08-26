@@ -11,3 +11,19 @@ Ikuta_RA/out/*
 
 # Bulk source archives re-downloadable by validation/code/build_did_table.py
 validation/data/a16_cache/
+
+# Derived objects rebuilt by validation/code (dissimilarity matrices, trees, cuts)
+validation/derived/
+Rplots.pdf
+
+# LaTeX build artefacts of the slide deck
+validation/slides/*.aux
+validation/slides/*.log
+validation/slides/*.nav
+validation/slides/*.out
+validation/slides/*.snm
+validation/slides/*.toc
+validation/slides/*.fls
+validation/slides/*.fdb_latexmk
+validation/slides/*.synctex.gz
+validation/slides/build/
