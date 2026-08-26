@@ -26,7 +26,7 @@ source("validation/code/config.R")
 sf_use_s2(FALSE)
 
 uea_dir <- file.path(data_dir, "uea")
-figure_dir <- file.path(output_dir, "figures")
+figure_dir <- figure_path()
 dir.create(figure_dir, showWarnings = FALSE, recursive = TRUE)
 
 # File names differ by year in both the suffix and the capitalisation of the micropolitan
@@ -114,7 +114,7 @@ districts <- read_csv(file.path(data_dir, "did_municipality_harmonized.csv"),
   summarise(did_population = sum(did_population), .groups = "drop")
 
 core_measures <- function(year, cutoff) {
-  zones <- read_csv(file.path(derived_dir, sprintf("zones_%d_cut%s.csv", year, format(cutoff, nsmall = 3))),
+  zones <- read_csv(zone_path(year, cutoff),
                     col_types = cols(code = col_character(), zone = col_integer()))
   flows <- read_commuting(year) %>% filter(i %in% zones$code, j %in% zones$code)
   zone_of <- setNames(zones$zone, zones$code)
@@ -176,15 +176,14 @@ for (year in census_years) {
   }
 }
 core_table <- bind_rows(results)
-write_csv(core_table, file.path(output_dir, "core_table.csv"))
+write_csv(core_table, output_path("core_table.csv"))
 print(as.data.frame(core_table %>% filter(abs(cutoff - baseline_cutoff) < 1e-9)))
 
 # The map of urban areas split across commuting zones, the counterpart of Figure 6,
 # drawn at each cutoff anchor.
 headline_year <- 2020
 for (headline_cutoff in cutoff_anchors) {
-zones <- read_csv(file.path(derived_dir, sprintf("zones_%d_cut%s.csv", headline_year,
-                                                 format(headline_cutoff, nsmall = 3))),
+zones <- read_csv(zone_path(headline_year, headline_cutoff),
                   col_types = cols(code = col_character(), zone = col_integer()))
 areas <- read_uea(headline_year) %>% filter(code %in% zones$code)
 split_status <- areas %>%
@@ -193,7 +192,7 @@ split_status <- areas %>%
   mutate(is_split = n_distinct(zone) > 1) %>%
   ungroup()
 if (abs(headline_cutoff - baseline_cutoff) < 1e-9) {
-  write_csv(split_status, file.path(output_dir, "core_area_splits.csv"))
+  write_csv(split_status, output_path("core_area_splits.csv"))
 }
 
 scope <- read_csv(file.path(data_dir, "municipality_scope.csv"), col_types = cols(code = col_character())) %>%

@@ -21,7 +21,7 @@ counts <- lapply(census_years, function(year) {
   bind_rows(lapply(cutoff_anchors, function(cutoff) {
     zone <- cutree(tree, h = cutoff)
     write_csv(tibble(code = names(zone), zone = unname(zone)),
-              file.path(derived_dir, sprintf("zones_%d_cut%s.csv", year, format(cutoff, nsmall = 3))))
+              zone_path(year, cutoff, "unconstrained"))
     tibble(year = year, cutoff = cutoff, municipalities = length(zone),
            zones = length(unique(zone)),
            singleton_zones = sum(table(zone) == 1),

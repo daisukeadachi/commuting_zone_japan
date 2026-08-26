@@ -20,7 +20,7 @@ scope <- read_csv(file.path(data_dir, "municipality_scope.csv"), col_types = col
   filter(in_scope)
 
 containment <- function(year, cutoff) {
-  zones <- read_csv(file.path(derived_dir, sprintf("zones_%d_cut%s.csv", year, format(cutoff, nsmall = 3))),
+  zones <- read_csv(zone_path(year, cutoff),
                     col_types = cols(code = col_character(), zone = col_integer()))
   flows <- read_commuting(year) %>% filter(i %in% zones$code, j %in% zones$code)
 
@@ -83,8 +83,8 @@ for (year in census_years) {
 }
 
 dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
-write_csv(bind_rows(lapply(results, `[[`, "row")), file.path(output_dir, "containment_table.csv"))
-write_csv(bind_rows(lapply(results, `[[`, "by_zone")), file.path(output_dir, "containment_by_zone.csv"))
+write_csv(bind_rows(lapply(results, `[[`, "row")), output_path("containment_table.csv"))
+write_csv(bind_rows(lapply(results, `[[`, "by_zone")), output_path("containment_by_zone.csv"))
 write_csv(bind_rows(lapply(results, `[[`, "by_municipality")),
-          file.path(output_dir, "containment_by_municipality.csv"))
+          output_path("containment_by_municipality.csv"))
 print(as.data.frame(bind_rows(lapply(results, `[[`, "row"))))

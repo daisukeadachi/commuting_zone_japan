@@ -27,7 +27,7 @@ geometry <- read_boundaries(scope$code)
 neighbours <- split(c(edges$code_j, edges$code_i), c(edges$code_i, edges$code_j))
 
 diagnose <- function(year, cutoff) {
-  zones <- read_csv(file.path(derived_dir, sprintf("zones_%d_cut%s.csv", year, format(cutoff, nsmall = 3))),
+  zones <- read_csv(zone_path(year, cutoff),
                     col_types = cols(code = col_character(), zone = col_integer()))
   labour <- read_csv(file.path(derived_dir, sprintf("labour_force_%d.csv", year)),
                      col_types = cols(code = col_character()))
@@ -40,12 +40,7 @@ diagnose <- function(year, cutoff) {
   # zone, following the source paper's test. A municipality alone in its zone counts as
   # contiguous by construction.
   zone_of <- setNames(units$zone, units$code)
-  detached <- vapply(units$code, function(m) {
-    if (zone_size[as.character(zone_of[m])] == 1) return(FALSE)
-    nb <- neighbours[[m]]
-    !any(zone_of[nb] == zone_of[m], na.rm = TRUE)
-  }, logical(1))
-  units$detached <- unname(detached)
+  units$detached <- unname(detached_municipalities(zone_of, neighbours))
 
   # The stricter reading: a zone is non-contiguous when its municipalities do not form a
   # connected subgraph of the adjacency graph.
@@ -102,6 +97,6 @@ for (year in census_years) {
 }
 
 dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
-write_csv(bind_rows(lapply(results, `[[`, "row")), file.path(output_dir, "diagnostics_table.csv"))
-write_csv(bind_rows(lapply(results, `[[`, "detached")), file.path(output_dir, "noncontiguous_municipalities.csv"))
+write_csv(bind_rows(lapply(results, `[[`, "row")), output_path("diagnostics_table.csv"))
+write_csv(bind_rows(lapply(results, `[[`, "detached")), output_path("noncontiguous_municipalities.csv"))
 print(as.data.frame(bind_rows(lapply(results, `[[`, "row"))[, 1:10]))

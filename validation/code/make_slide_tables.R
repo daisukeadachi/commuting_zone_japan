@@ -49,9 +49,9 @@ write_rows <- function(rows, path) {
   message("wrote ", path, " (", length(rows), " lines)")
 }
 
-diagnostics <- read_csv(file.path(output_dir, "diagnostics_table.csv"), show_col_types = FALSE)
-containment <- read_csv(file.path(output_dir, "containment_table.csv"), show_col_types = FALSE)
-core_table <- read_csv(file.path(output_dir, "core_table.csv"), show_col_types = FALSE)
+diagnostics <- read_csv(output_path("diagnostics_table.csv"), show_col_types = FALSE)
+containment <- read_csv(output_path("containment_table.csv"), show_col_types = FALSE)
+core_table <- read_csv(output_path("core_table.csv"), show_col_types = FALSE)
 core <- core_table %>% filter(core_definition == "Urban Employment Area central city")
 
 # ---------------------------------------------------------------------------
@@ -94,7 +94,7 @@ rows <- c(
 )
 write_table(rows, "fit.tex", "lrr", paste0("& 2010 & 2020", br))
 
-reassignments <- read_csv(file.path(output_dir, "reassignment_table.csv"),
+reassignments <- read_csv(output_path("reassignment_table.csv"),
                           col_types = cols(code = col_character(), .default = col_guess())) %>%
   filter(year == later_year, abs(cutoff - slide_cutoff) < 1e-9)
 rows <- vapply(seq_len(nrow(reassignments)), function(k) {
@@ -179,7 +179,7 @@ write_table(rows, "appendix_cutoff_comparison.tex", "llrrrrrr",
             paste0("Year & Cutoff & Commuting & Non- & Minimum & Mean & Share of the & Areas", br,
                    "& & zones & contiguous & contained & contained & labour force & split", br))
 
-pairs_all <- read_csv(file.path(output_dir, "similarity_table.csv"), show_col_types = FALSE) %>%
+pairs_all <- read_csv(output_path("similarity_table.csv"), show_col_types = FALSE) %>%
   filter(abs(cutoff_earlier - slide_cutoff) < 1e-9) %>%
   arrange(earlier_year, later_year)
 rows <- sprintf("%d against %d & %s & %s & %s & %s%s",
@@ -192,10 +192,10 @@ write_table(rows, "appendix_pairs.tex", "llrrr",
 # ---------------------------------------------------------------------------
 # Numbers quoted in the deck's own prose.
 
-similarity <- read_csv(file.path(output_dir, "similarity_table.csv"), show_col_types = FALSE) %>%
+similarity <- read_csv(output_path("similarity_table.csv"), show_col_types = FALSE) %>%
   filter(earlier_year == !!earlier_year, later_year == !!later_year,
          abs(cutoff_earlier - slide_cutoff) < 1e-9)
-sweep <- read_csv(file.path(output_dir, "cutoff_sweep.csv"), show_col_types = FALSE) %>%
+sweep <- read_csv(output_path("cutoff_sweep.csv"), show_col_types = FALSE) %>%
   filter(earlier_year == !!earlier_year, later_year == !!later_year,
          abs(anchor - slide_cutoff) < 1e-9)
 best <- sweep %>% arrange(cutoff_later) %>% slice_max(mean_similarity, n = 1, with_ties = FALSE)

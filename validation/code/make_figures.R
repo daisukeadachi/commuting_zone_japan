@@ -18,7 +18,7 @@ suppressMessages({
 source("validation/code/config.R")
 sf_use_s2(FALSE)
 
-figure_dir <- file.path(output_dir, "figures")
+figure_dir <- figure_path()
 dir.create(figure_dir, showWarnings = FALSE, recursive = TRUE)
 
 headline_earlier <- 2010
@@ -50,14 +50,14 @@ sweep_theme <- theme_bw(base_size = 16) +
   theme(legend.position = "none", panel.grid.minor = element_blank(),
         plot.background = element_rect(fill = "white", colour = NA))
 
-similarity_by_municipality <- read_csv(file.path(output_dir, "similarity_by_municipality.csv"),
+similarity_by_municipality <- read_csv(output_path("similarity_by_municipality.csv"),
                                        col_types = cols(code = col_character()))
-containment_by_zone <- read_csv(file.path(output_dir, "containment_by_zone.csv"), show_col_types = FALSE)
-containment_by_municipality <- read_csv(file.path(output_dir, "containment_by_municipality.csv"),
+containment_by_zone <- read_csv(output_path("containment_by_zone.csv"), show_col_types = FALSE)
+containment_by_municipality <- read_csv(output_path("containment_by_municipality.csv"),
                                         col_types = cols(code = col_character(), .default = col_guess()))
-detached <- read_csv(file.path(output_dir, "noncontiguous_municipalities.csv"),
+detached <- read_csv(output_path("noncontiguous_municipalities.csv"),
                      col_types = cols(code = col_character()))
-sweep <- read_csv(file.path(output_dir, "cutoff_sweep.csv"), show_col_types = FALSE)
+sweep <- read_csv(output_path("cutoff_sweep.csv"), show_col_types = FALSE)
 
 # Romanized names for the municipalities the detail map labels. The boundary layer
 # carries Japanese names only, and figure labels are written in English throughout the
@@ -72,7 +72,6 @@ romanized <- c(
   "13222" = "Higashikurume", "13229" = "Nishitokyo"
 )
 
-cut_label <- function(cutoff) format(cutoff, nsmall = 3)
 
 # Basemap tiles for the detail map. The source paper draws a light Mapbox style, which
 # needs an access token; this is the closest equivalent served without one. The
@@ -168,7 +167,7 @@ for (later in unique(profile$later_year)) {
 # shared extent the two sit at different scales, and the zone that grows from one cutoff
 # to the next does not look as though it has grown at all.
 detail_selection <- function(cutoff) {
-  zones <- read_csv(file.path(derived_dir, sprintf("zones_%d_cut%s.csv", headline_later, cut_label(cutoff))),
+  zones <- read_csv(zone_path(headline_later, cutoff),
                     col_types = cols(code = col_character(), zone = col_integer()))
   worst <- containment_by_zone %>%
     filter(year == headline_later, abs(cutoff - !!cutoff) < 1e-9) %>%
@@ -184,8 +183,7 @@ detail_frame <- st_bbox(st_transform(geometry[geometry$code %in% detail_codes, ]
 detail_basemap <- fetch_basemap(st_transform(geometry[geometry$code %in% detail_codes, ], 3857))
 
 for (headline_cutoff in cutoff_anchors) {
-  zones <- read_csv(file.path(derived_dir, sprintf("zones_%d_cut%s.csv", headline_later,
-                                                   cut_label(headline_cutoff))),
+  zones <- read_csv(zone_path(headline_later, headline_cutoff),
                     col_types = cols(code = col_character(), zone = col_integer()))
 
   # Map of between-delineation similarity, the counterpart of Figure 1.
