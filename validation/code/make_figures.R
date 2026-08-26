@@ -161,6 +161,26 @@ for (later in unique(profile$later_year)) {
                 "noncontiguous_zones_vs_cutoff_%d.png")
 }
 
+# The detail map is drawn at both cutoffs and the two are meant to be read against each
+# other, so both use one extent and one set of municipalities: the union of what each
+# cutoff would have shown on its own. Only the zone boundaries and the shading differ
+# between them. Without this the two maps sit at different scales, and the zone that grows
+# from one cutoff to the next does not look as though it has grown at all.
+detail_selection <- function(cutoff) {
+  zones <- read_csv(file.path(derived_dir, sprintf("zones_%d_cut%s.csv", headline_later, cut_label(cutoff))),
+                    col_types = cols(code = col_character(), zone = col_integer()))
+  worst <- containment_by_zone %>%
+    filter(year == headline_later, abs(cutoff - !!cutoff) < 1e-9) %>%
+    slice_min(mean_contained, n = 1)
+  members <- zones$code[zones$zone == worst$zone]
+  adjacent <- unique(c(edges$code_j[edges$code_i %in% members],
+                       edges$code_i[edges$code_j %in% members]))
+  shown <- unique(c(worst$zone, zones$zone[zones$code %in% adjacent]))
+  zones$code[zones$zone %in% shown]
+}
+detail_codes <- unique(unlist(lapply(cutoff_anchors, detail_selection)))
+detail_frame <- st_bbox(st_transform(geometry[geometry$code %in% detail_codes, ], 3857))
+
 for (headline_cutoff in cutoff_anchors) {
   zones <- read_csv(file.path(derived_dir, sprintf("zones_%d_cut%s.csv", headline_later,
                                                    cut_label(headline_cutoff))),
@@ -221,17 +241,9 @@ for (headline_cutoff in cutoff_anchors) {
     slice_min(mean_contained, n = 1)
   worst_units <- zones %>% filter(zone == worst$zone)
 
-  # The extent is a set of whole commuting zones, not a distance buffer: the zone itself
-  # plus every zone holding a municipality adjacent to one of its members.
-  adjacent_codes <- unique(c(
-    edges$code_j[edges$code_i %in% worst_units$code],
-    edges$code_i[edges$code_j %in% worst_units$code]
-  ))
-  shown_zones <- unique(c(worst$zone, zones$zone[zones$code %in% adjacent_codes]))
-
   detail <- geometry %>%
     inner_join(zones, by = "code") %>%
-    filter(zone %in% shown_zones) %>%
+    filter(code %in% detail_codes) %>%
     left_join(containment_by_municipality %>%
                 filter(year == headline_later, abs(cutoff - headline_cutoff) < 1e-9) %>%
                 select(code, contained), by = "code") %>%
@@ -272,7 +284,8 @@ for (headline_cutoff in cutoff_anchors) {
     scale_fill_manual(name = "Share of residents working\ninside their own commuting zone",
                       values = containment_palette, drop = FALSE) +
     labs(caption = basemap_credit) +
-    coord_sf(expand = FALSE) +
+    coord_sf(xlim = detail_frame[c("xmin", "xmax")], ylim = detail_frame[c("ymin", "ymax")],
+             expand = FALSE) +
     theme_void(base_size = 16) +
     theme(legend.position = "right", legend.key.height = unit(0.9, "cm"),
           plot.caption = element_text(size = 9, colour = "grey35", hjust = 0.98),
@@ -284,5 +297,5 @@ for (headline_cutoff in cutoff_anchors) {
   message("cutoff ", cut_label(headline_cutoff), ": lowest mean containment in ", headline_later,
           " is zone ", worst$zone, " at ", round(worst$mean_contained, 3),
           " over ", worst$municipalities, " municipalities; detail map shows ",
-          length(shown_zones), " zones and ", nrow(detail), " municipalities")
+          n_distinct(detail$zone), " zones and ", nrow(detail), " municipalities")
 }
