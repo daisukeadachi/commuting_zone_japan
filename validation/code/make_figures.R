@@ -68,6 +68,8 @@ sweep <- read_csv(file.path(output_dir, "cutoff_sweep.csv"), show_col_types = FA
 # carries Japanese names only, and figure labels are written in English throughout the
 # project. Anything absent falls back to its municipality code.
 romanized <- c(
+  "11227" = "Asaka", "11228" = "Shiki", "11230" = "Niiza", "11235" = "Fujimi",
+  "11245" = "Fujimino", "11324" = "Miyoshi", "13100" = "Tokyo special wards",
   "13211" = "Kodaira", "13213" = "Higashimurayama", "13221" = "Kiyose",
   "13222" = "Higashikurume", "13229" = "Nishitokyo"
 )

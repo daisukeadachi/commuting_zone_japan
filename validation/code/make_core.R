@@ -104,16 +104,19 @@ read_uea <- function(year) {
     summarise(is_core = any(is_core), .groups = "drop")
 }
 
+# The district table is on ward codes, so its ward rows are added together into the
+# merged unit before the mechanical core rule reads it.
 districts <- read_csv(file.path(data_dir, "did_municipality_harmonized.csv"),
                       col_types = cols(muni_code = col_character(), year = col_integer(),
-                                       did_population = col_double(), .default = col_guess()))
+                                       did_population = col_double(), .default = col_guess())) %>%
+  mutate(muni_code = merge_tokyo_wards(muni_code)) %>%
+  group_by(year, muni_code) %>%
+  summarise(did_population = sum(did_population), .groups = "drop")
 
 core_measures <- function(year, cutoff) {
   zones <- read_csv(file.path(derived_dir, sprintf("zones_%d_cut%s.csv", year, format(cutoff, nsmall = 3))),
                     col_types = cols(code = col_character(), zone = col_integer()))
-  flows <- read_csv(file.path(commute_dir, sprintf("commute_%d_harmonized.csv", year)), show_col_types = FALSE) %>%
-    transmute(i = pad(living_mun), j = pad(commute_mun), pop) %>%
-    filter(i %in% zones$code, j %in% zones$code)
+  flows <- read_commuting(year) %>% filter(i %in% zones$code, j %in% zones$code)
   zone_of <- setNames(zones$zone, zones$code)
 
   measure <- function(core_codes, label, areas = NULL) {

@@ -22,10 +22,7 @@ scope <- read_csv(file.path(data_dir, "municipality_scope.csv"), col_types = col
 containment <- function(year, cutoff) {
   zones <- read_csv(file.path(derived_dir, sprintf("zones_%d_cut%s.csv", year, format(cutoff, nsmall = 3))),
                     col_types = cols(code = col_character(), zone = col_integer()))
-  flows <- read_csv(file.path(commute_dir, sprintf("commute_%d_harmonized.csv", year)), show_col_types = FALSE) %>%
-    transmute(i = sprintf("%05d", as.integer(living_mun)),
-              j = sprintf("%05d", as.integer(commute_mun)), pop) %>%
-    filter(i %in% zones$code, j %in% zones$code)
+  flows <- read_commuting(year) %>% filter(i %in% zones$code, j %in% zones$code)
 
   zone_of <- setNames(zones$zone, zones$code)
   flows <- flows %>% mutate(zone_i = zone_of[i], zone_j = zone_of[j], same = zone_i == zone_j)

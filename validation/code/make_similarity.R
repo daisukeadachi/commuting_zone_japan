@@ -95,9 +95,7 @@ sweep_grid <- seq(0.925, 0.999, by = 0.001)
 sweep_rows <- list()
 for (pair in baseline_pairs) {
   later <- pair[2]
-  flows <- read_csv(file.path(commute_dir, sprintf("commute_%d_harmonized.csv", later)), show_col_types = FALSE) %>%
-    transmute(i = sprintf("%05d", as.integer(living_mun)),
-              j = sprintf("%05d", as.integer(commute_mun)), pop) %>%
+  flows <- read_commuting(later) %>%
     filter(i %in% trees[[as.character(later)]]$labels, j %in% trees[[as.character(later)]]$labels)
   for (anchor in cutoff_anchors) {
     message("sweeping ", pair[1], " against ", later, " anchored at ", anchor)

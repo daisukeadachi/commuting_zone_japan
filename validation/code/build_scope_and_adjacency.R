@@ -42,7 +42,14 @@ water_boundary_artifacts <- c("37364")
 message("reading the boundary layer")
 shape <- st_read(boundary_shp, quiet = TRUE, options = "ENCODING=CP932") %>%
   st_make_valid() %>%
-  mutate(code = sprintf("%05d", as.integer(as.character(JISCODE))))
+  mutate(code = merge_tokyo_wards(sprintf("%05d", as.integer(as.character(JISCODE)))))
+
+# Dissolve the special wards into the single unit the rest of the pipeline expects.
+shape <- shape %>%
+  group_by(code) %>%
+  summarise(NAME = ifelse(first(code) == tokyo_merged_code, tokyo_merged_name, first(NAME)),
+            PNAME = first(PNAME), .groups = "drop") %>%
+  st_make_valid()
 
 # Queen contiguity. Two municipalities are neighbours when their polygons share any
 # boundary point.

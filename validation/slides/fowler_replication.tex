@@ -21,7 +21,12 @@
 % carries the fuller table or figure; that slide points back to where it came from.
 
 
-\setbeamertemplate{footline}{\vspace{0.78cm}}
+% The strip at the foot of every slide holds the page number on the left and, where a
+% slide has one, the cross-reference button on the right.
+\setbeamertemplate{footline}{%
+  \vspace{0.18cm}%
+  \hspace*{2.5ex}{\tiny\color{black!45}\insertframenumber\,/\,\inserttotalframenumber}%
+  \hfill\vspace{0.42cm}}
 % The buttons sit in the strip the footline reserves, so they never run into the
 % content above them.
 \newcommand{\slidebuttons}[1]{%
@@ -66,7 +71,7 @@
   \begin{itemize}
     \item Average-linkage hierarchical clustering, cut at a fixed tree height of 0.977.
     \item Commuting matrix: residents mainly working, ordinary households, the only definition available for 2020.
-    \item 1{,}678 municipalities: the four main islands and the Okinawa main island, plus every municipality joined to one by a permanent road link.
+    \item 1{,}656 municipalities: the four main islands and the Okinawa main island, plus every municipality joined to one by a permanent road link. The twenty-three special wards of Tokyo count as one, as the ordinance-designated cities do.
     \item Cores and urban areas for the fit statistics: the Urban Employment Area central cities and their areas.
   \end{itemize}
 \end{frame}
@@ -95,9 +100,9 @@
 
 \begin{frame}{The commuting zone with the lowest mean containment}{Figure 3 of Fowler (2024)}
   \centering
-  \includegraphics[width=0.755\textwidth]{lowest_containment_zone_2020_cut0.977.png}
+  \includegraphics[width=0.72\textwidth]{lowest_containment_zone_2020_cut0.977.png}
   \\[2pt]
-  \footnotesize Five western Tokyo suburbs at 0.36, wedged between the Tokyo zone and the zones west of it.
+  \footnotesize Six municipalities in southern Saitama at 0.41, between the Tokyo zone and the zones beyond.
 \end{frame}
 
 \begin{frame}{Technical validation}
@@ -184,7 +189,7 @@
   \centering
   {\setlength{\tabcolsep}{4pt}\input{tables/appendix_cutoff_comparison}}
   \\[4pt]
-  \footnotesize Moving from 0.977 to 0.980 removes sixteen commuting zones in 2010 and fifteen in 2020, and moves containment by half a point.
+  \footnotesize Moving from 0.977 to 0.980 removes fifteen commuting zones in each year and lifts the minimum containment by four to nine points.
   \backslide{sweep}
 \end{frame}
 

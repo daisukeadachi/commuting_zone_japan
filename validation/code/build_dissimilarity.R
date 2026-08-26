@@ -20,14 +20,9 @@ in_scope <- scope$code[scope$in_scope]
 dir.create(derived_dir, showWarnings = FALSE, recursive = TRUE)
 
 build_year <- function(year) {
-  flows <- read_csv(file.path(commute_dir, sprintf("commute_%d_harmonized.csv", year)),
-                    show_col_types = FALSE) %>%
-    mutate(
-      i = sprintf("%05d", as.integer(living_mun)),
-      j = sprintf("%05d", as.integer(commute_mun))
-    )
+  flows <- read_commuting(year)
 
-  reported <- flows %>% distinct(i, rlf_reported = tot_pop_living_mun)
+  reported <- flows %>% group_by(i) %>% summarise(rlf_reported = sum(pop), .groups = "drop")
   units <- sort(intersect(unique(flows$i), in_scope))
   kept <- flows %>% filter(i %in% units, j %in% units)
 

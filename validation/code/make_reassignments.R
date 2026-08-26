@@ -36,10 +36,7 @@ describe <- function(year, cutoff, cases) {
   zones <- read_csv(file.path(derived_dir, sprintf("zones_%d_cut%s.csv", year, format(cutoff, nsmall = 3))),
                     col_types = cols(code = col_character(), zone = col_integer()))
   zone_of <- setNames(zones$zone, zones$code)
-  flows <- read_csv(file.path(commute_dir, sprintf("commute_%d_harmonized.csv", year)), show_col_types = FALSE) %>%
-    transmute(i = sprintf("%05d", as.integer(living_mun)),
-              j = sprintf("%05d", as.integer(commute_mun)), pop) %>%
-    filter(i %in% zones$code, j %in% zones$code)
+  flows <- read_commuting(year) %>% filter(i %in% zones$code, j %in% zones$code)
 
   bind_rows(lapply(seq_len(nrow(cases)), function(k) {
     unit <- cases$code[k]

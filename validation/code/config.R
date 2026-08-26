@@ -61,3 +61,31 @@ inset_okinawa <- function(layer, okinawa_codes, margin = 60000) {
   sf::st_crs(frame) <- crs_equal_area
   list(layer = layer, frame = frame)
 }
+
+# The twenty-three special wards of Tokyo are treated as one municipality, as the
+# ordinance-designated cities are. The Urban Employment Area delineation already uses
+# this unit under the code 13100, so the Core measures line up with it without any
+# further mapping. Every layer that carries municipality codes goes through
+# merge_tokyo_wards before it is used.
+tokyo_ward_codes <- sprintf("131%02d", 1:23)
+tokyo_merged_code <- "13100"
+tokyo_merged_name <- "東京都特別区部"
+
+merge_tokyo_wards <- function(codes) {
+  ifelse(codes %in% tokyo_ward_codes, tokyo_merged_code, codes)
+}
+
+# Commuting flows on the merged universe. Reading them anywhere else risks a layer that
+# still carries the twenty-three ward codes.
+read_commuting <- function(year, code_type = "harmonized") {
+  path <- file.path(commute_dir, sprintf("commute_%d_%s.csv", year, code_type))
+  raw <- suppressMessages(readr::read_csv(path, show_col_types = FALSE))
+  raw |>
+    dplyr::transmute(
+      i = merge_tokyo_wards(sprintf("%05d", as.integer(living_mun))),
+      j = merge_tokyo_wards(sprintf("%05d", as.integer(commute_mun))),
+      pop
+    ) |>
+    dplyr::group_by(i, j) |>
+    dplyr::summarise(pop = sum(pop), .groups = "drop")
+}
