@@ -37,6 +37,7 @@ placed <- inset_okinawa(geometry, okinawa_codes)
 geometry <- placed$layer
 okinawa_frame <- placed$frame
 edges <- read_csv(file.path(data_dir, "adjacency_edges.csv"), col_types = cols(.default = col_character()))
+land <- st_union(geometry)
 
 map_theme <- theme_void(base_size = 11) +
   theme(legend.position = "right", legend.key.height = unit(1.1, "cm"),
@@ -50,8 +51,8 @@ national_map_theme <- theme_void(base_size = 20) +
         legend.background = element_blank(),
         plot.margin = margin(2, 2, 2, 2),
         plot.background = element_rect(fill = "white", colour = NA))
-line_theme <- theme_minimal(base_size = 11) +
-  theme(panel.grid.minor = element_blank(), legend.position = "bottom",
+sweep_theme <- theme_bw(base_size = 16) +
+  theme(legend.position = "none", panel.grid.minor = element_blank(),
         plot.background = element_rect(fill = "white", colour = NA))
 
 similarity_by_municipality <- read_csv(file.path(output_dir, "similarity_by_municipality.csv"),
@@ -73,21 +74,42 @@ romanized <- c(
 
 cut_label <- function(cutoff) format(cutoff, nsmall = 3)
 
+# Colour scales follow the source paper. The similarity map bins the score at its breaks
+# and shades the classes with a five-class BuPu ramp. The containment detail map uses the
+# same ramp over its own six classes; the Japanese data reaches below the floor of those
+# classes, so one lighter step is prepended.
+similarity_breaks <- c(0, 0.03, 0.25, 0.5, 0.75, 1)
+similarity_labels <- c("0", "0.03 to 0.25", "0.25 to 0.5", "0.5 to 0.75", "0.75 to 1")
+containment_palette <- c("#F7FCFD", RColorBrewer::brewer.pal(6, "BuPu"))
+names(containment_palette) <- c("below 0.4", "0.4 to 0.5", "0.5 to 0.6", "0.6 to 0.7",
+                                "0.7 to 0.8", "0.8 to 0.9", "0.9 to 1.0")
+
 # Similarity as a function of the cutoff applied to the later year, the counterpart of
-# Figure 4. Both anchors appear on the same panel, one line each.
+# Figure 4. The presentation follows the source paper: the mean with a band one standard
+# deviation wide, a dashed line at the anchor and a dotted line at the maximum.
 for (pair in baseline_pairs) {
-  panel <- sweep %>% filter(earlier_year == pair[1], later_year == pair[2])
-  ggplot(panel, aes(x = cutoff_later, y = mean_similarity,
-                    colour = factor(anchor), linetype = factor(anchor))) +
-    geom_line(linewidth = 0.7) +
-    geom_vline(xintercept = cutoff_anchors, colour = "grey60", linewidth = 0.3) +
-    scale_colour_grey(name = "Cutoff holding the earlier year", start = 0.1, end = 0.55) +
-    scale_linetype_discrete(name = "Cutoff holding the earlier year") +
-    labs(x = sprintf("Cutoff applied to the %d delineation", pair[2]),
-         y = "Mean Jaccard similarity across municipalities") +
-    line_theme
-  ggsave(file.path(figure_dir, sprintf("similarity_vs_cutoff_%d_%d.png", pair[1], pair[2])),
-         width = 7, height = 4.5, dpi = 300, bg = "white")
+  for (anchor_value in cutoff_anchors) {
+    panel <- sweep %>%
+      filter(earlier_year == pair[1], later_year == pair[2], abs(anchor - anchor_value) < 1e-9)
+    best <- panel %>% slice_max(mean_similarity, n = 1)
+    top <- max(panel$mean_similarity + panel$sd_similarity)
+    bottom <- min(panel$mean_similarity - panel$sd_similarity)
+    ggplot(panel, aes(x = cutoff_later, y = mean_similarity)) +
+      geom_ribbon(aes(ymin = mean_similarity - sd_similarity, ymax = mean_similarity + sd_similarity),
+                  alpha = 0.2) +
+      geom_line() +
+      geom_vline(xintercept = anchor_value, linetype = "dashed") +
+      annotate("text", x = anchor_value + 0.0016, y = bottom + 0.80 * (top - bottom), angle = 270,
+               size = 4.6, label = sprintf("Earlier year held at %s", cut_label(anchor_value))) +
+      geom_vline(xintercept = best$cutoff_later, linetype = "dotted") +
+      annotate("text", x = best$cutoff_later - 0.0016, y = bottom + 0.55 * (top - bottom), angle = 270,
+               size = 4.6, label = sprintf("Maximum at %s", cut_label(best$cutoff_later))) +
+      labs(x = "Cutoff value", y = "Mean Jaccard similarity") +
+      sweep_theme
+    ggsave(file.path(figure_dir, sprintf("similarity_vs_cutoff_%d_%d_anchor%s.png",
+                                         pair[1], pair[2], cut_label(anchor_value))),
+           width = 8, height = 5, dpi = 300, bg = "white")
+  }
 }
 
 # The diagnostic profile over the same range, so that what a move in the cutoff trades
@@ -95,33 +117,24 @@ for (pair in baseline_pairs) {
 profile <- sweep %>% distinct(later_year, cutoff_later, commuting_zones,
                               single_municipality_zones, noncontiguous_zones,
                               share_of_labour_force_contained)
+profile_panel <- function(panel, later, y, y_label, file) {
+  ggplot(panel, aes(x = cutoff_later, y = .data[[y]])) +
+    geom_line() +
+    geom_vline(xintercept = 0.977, linetype = "dashed") +
+    labs(x = "Cutoff value", y = y_label) +
+    sweep_theme
+  ggsave(file.path(figure_dir, sprintf(file, later)), width = 8, height = 5, dpi = 300, bg = "white")
+}
 for (later in unique(profile$later_year)) {
   panel <- profile %>% filter(later_year == later)
-  ggplot(panel, aes(x = cutoff_later, y = commuting_zones)) +
-    geom_line(linewidth = 0.7) +
-    geom_vline(xintercept = cutoff_anchors, colour = "grey60", linewidth = 0.3) +
-    labs(x = sprintf("Cutoff applied to the %d delineation", later), y = "Number of commuting zones") +
-    line_theme
-  ggsave(file.path(figure_dir, sprintf("zone_count_vs_cutoff_%d.png", later)),
-         width = 7, height = 4.5, dpi = 300, bg = "white")
-
-  ggplot(panel, aes(x = cutoff_later, y = share_of_labour_force_contained)) +
-    geom_line(linewidth = 0.7) +
-    geom_vline(xintercept = cutoff_anchors, colour = "grey60", linewidth = 0.3) +
-    labs(x = sprintf("Cutoff applied to the %d delineation", later),
-         y = "Share of the resident labour force working inside its own zone") +
-    line_theme
-  ggsave(file.path(figure_dir, sprintf("containment_vs_cutoff_%d.png", later)),
-         width = 7, height = 4.5, dpi = 300, bg = "white")
-
-  ggplot(panel, aes(x = cutoff_later, y = noncontiguous_zones)) +
-    geom_line(linewidth = 0.7) +
-    geom_vline(xintercept = cutoff_anchors, colour = "grey60", linewidth = 0.3) +
-    labs(x = sprintf("Cutoff applied to the %d delineation", later),
-         y = "Number of commuting zones holding a detached municipality") +
-    line_theme
-  ggsave(file.path(figure_dir, sprintf("noncontiguous_zones_vs_cutoff_%d.png", later)),
-         width = 7, height = 4.5, dpi = 300, bg = "white")
+  profile_panel(panel, later, "commuting_zones", "Number of commuting zones",
+                "zone_count_vs_cutoff_%d.png")
+  profile_panel(panel, later, "share_of_labour_force_contained",
+                "Share of the resident labour force working inside its own zone",
+                "containment_vs_cutoff_%d.png")
+  profile_panel(panel, later, "noncontiguous_zones",
+                "Commuting zones holding a detached municipality",
+                "noncontiguous_zones_vs_cutoff_%d.png")
 }
 
 for (headline_cutoff in cutoff_anchors) {
@@ -133,11 +146,17 @@ for (headline_cutoff in cutoff_anchors) {
   headline <- similarity_by_municipality %>%
     filter(earlier_year == headline_earlier, later_year == headline_later,
            abs(cutoff - headline_cutoff) < 1e-9)
-  ggplot(geometry %>% inner_join(headline, by = "code")) +
-    geom_sf(aes(fill = similarity), colour = NA) +
+  mapped <- geometry %>%
+    inner_join(headline, by = "code") %>%
+    mutate(similarity_class = cut(similarity, breaks = similarity_breaks,
+                                  labels = similarity_labels, include.lowest = TRUE))
+  ggplot(mapped) +
+    geom_sf(aes(fill = similarity_class, colour = similarity_class), linewidth = 0.05) +
     geom_sf(data = okinawa_frame, fill = NA, colour = "grey55", linewidth = 0.2) +
-    scale_fill_viridis_c(name = "Jaccard\nsimilarity", limits = c(0, 1), option = "rocket", direction = 1) +
-    map_theme
+    scale_fill_brewer(palette = "BuPu", na.value = "white", drop = FALSE) +
+    scale_colour_brewer(palette = "BuPu", na.value = "white", drop = FALSE, guide = "none") +
+    guides(fill = guide_legend(title = "Similarity")) +
+    national_map_theme
   ggsave(file.path(figure_dir, sprintf("similarity_map_%d_%d_cut%s.png", headline_earlier, headline_later,
                                        cut_label(headline_cutoff))),
          width = 7.5, height = 7.5, dpi = 300, bg = "white")
@@ -153,12 +172,13 @@ for (headline_cutoff in cutoff_anchors) {
       mutate(role = ifelse(code %in% detached_here$code, "detached municipality",
                            "rest of its commuting zone"))
     ggplot() +
-      geom_sf(data = geometry, fill = "grey95", colour = "grey85", linewidth = 0.05) +
+      geom_sf(data = land, fill = "grey35", colour = "grey20", linewidth = 0.15, alpha = 0.4) +
       geom_sf(data = affected, aes(fill = role), colour = "grey40", linewidth = 0.1) +
       geom_sf(data = okinawa_frame, fill = NA, colour = "grey55", linewidth = 0.2) +
-      scale_fill_manual(name = NULL, values = c("detached municipality" = "#7b1d3a",
-                                                "rest of its commuting zone" = "#2c6fa8")) +
-      national_map_theme
+      scale_fill_manual(name = NULL, values = c("detached municipality" = "maroon",
+                                                "rest of its commuting zone" = "blue")) +
+      national_map_theme +
+      theme(legend.position.inside = c(0.27, 0.30))
     ggsave(file.path(figure_dir, sprintf("noncontiguous_municipalities_%d_cut%s.png", headline_later,
                                          cut_label(headline_cutoff))),
            width = 7.5, height = 7.5, dpi = 300, bg = "white")
@@ -214,9 +234,11 @@ for (headline_cutoff in cutoff_anchors) {
                              nudge_x = -95000, nudge_y = -55000, hjust = 1,
                              min.segment.length = 0, segment.colour = "grey40", segment.size = 0.3,
                              box.padding = 0.3, max.overlaps = Inf, seed = 20260826) +
-    scale_fill_brewer(name = "Share of residents working\ninside their own commuting zone",
-                      palette = "BuPu", drop = FALSE) +
-    map_theme
+    scale_fill_manual(name = "Share of residents working\ninside their own commuting zone",
+                      values = containment_palette, drop = FALSE) +
+    theme_void(base_size = 16) +
+    theme(legend.position = "right", legend.key.height = unit(0.9, "cm"),
+          plot.background = element_rect(fill = "white", colour = NA))
   ggsave(file.path(figure_dir, sprintf("lowest_containment_zone_%d_cut%s.png", headline_later,
                                        cut_label(headline_cutoff))),
          width = 9.5, height = 5.6, dpi = 300, bg = "white")

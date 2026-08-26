@@ -117,6 +117,7 @@ for (pair in baseline_pairs) {
       sweep_rows[[length(sweep_rows) + 1]] <- tibble(
         earlier_year = pair[1], later_year = later, anchor = anchor, cutoff_later = cut_later,
         mean_similarity = result$summary$mean_similarity,
+        sd_similarity = result$summary$sd_similarity,
         labour_weighted_similarity = result$summary$labour_weighted_similarity_later,
         commuting_zones = length(sizes),
         single_municipality_zones = sum(sizes == 1),
