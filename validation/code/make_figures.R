@@ -139,6 +139,26 @@ for (pair in baseline_pairs) {
   }
 }
 
+# What holding the zones fixed at the earliest census year costs, as a function of how
+# far the later year is from it. One line per cutoff anchor, both years cut at the same
+# height, since here the two delineations are used interchangeably rather than one being
+# tuned against the other.
+anchored <- read_csv(output_path("similarity_to_1980.csv"), show_col_types = FALSE)
+anchored$cutoff_label <- cut_label(anchored$cutoff_earlier)
+ggplot(anchored, aes(x = later_year, y = mean_similarity,
+                     group = cutoff_label, linetype = cutoff_label)) +
+  geom_line() +
+  geom_point(size = 1.8) +
+  scale_x_continuous(breaks = anchored$later_year) +
+  scale_linetype_discrete(name = "Cutoff") +
+  expand_limits(y = c(0.6, 0.9)) +
+  labs(x = "Census year compared with 1980", y = "Mean Jaccard similarity") +
+  sweep_theme +
+  theme(legend.position = "inside", legend.position.inside = c(0.86, 0.84),
+        legend.background = element_blank())
+ggsave(file.path(figure_dir, "similarity_to_1980_by_year.png"),
+       width = 8, height = 5, dpi = 300, bg = "white")
+
 # The diagnostic profile over the same range, so that what a move in the cutoff trades
 # away is visible alongside the similarity.
 profile <- sweep %>% distinct(later_year, cutoff_later, commuting_zones,

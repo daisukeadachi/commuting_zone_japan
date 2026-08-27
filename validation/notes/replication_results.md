@@ -1,6 +1,6 @@
 # Fowler (2024) replicated on the Japanese delineation
 
-What follows reports every table and figure of <https://doi.org/10.1038/s41597-024-03829-5> that the available data supports, computed on Japanese census commuting flows for 1980 to 2020. The pairwise wage correlation is absent, since the wage microdata application is pending. Tables are under `validation/output` and figures under `validation/output/figures`; the code that builds them is under `validation/code` and runs in the order `build_scope_and_adjacency.R`, `build_dissimilarity.R`, `build_clusters.R`, `build_constrained_clusters.R`, `make_diagnostics.R`, `make_containment.R`, `make_similarity.R`, `make_core.R`, `make_reassignments.R`, `make_figures.R`, `make_constrained_comparison.R`, `build_full_coverage.R`.
+What follows reports every table and figure of <https://doi.org/10.1038/s41597-024-03829-5> that the available data supports, computed on Japanese census commuting flows for 1980 to 2020. The pairwise wage correlation is absent, since the wage microdata application is pending. Tables are under `validation/output` and figures under `validation/output/figures`; the code that builds them is under `validation/code` and runs in the order `build_scope_and_adjacency.R`, `build_dissimilarity.R`, `build_clusters.R`, `build_constrained_clusters.R`, `make_diagnostics.R`, `make_containment.R`, `make_similarity.R`, `make_core.R`, `make_reassignments.R`, `make_figures.R`, `make_constrained_comparison.R`, `build_full_coverage.R`, `build_zone_crosswalk.R`.
 
 ## What the delineation is built from
 

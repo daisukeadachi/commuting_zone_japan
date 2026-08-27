@@ -18,7 +18,7 @@ Issue #11, the replication, is done and merged. It produced the pipeline under `
 
 Issue #12, the constrained clustering, is done and merged. It built the contiguity-constrained delineation and set it beside the unconstrained one at the same cutoff.
 
-Three issues follow from the coauthor meeting. Issue #18 makes the constrained delineation the baseline, so that every committed table and figure reports it while the delineation without the constraint is computed alongside under names carrying `_unconstrained`, and moves the non-contiguity material into the appendix of the deck. Issue #19 extends the delineation to the offshore islands, which is what brings it to the whole census population; `validation/notes/island_coverage.md` reports the result. Issue #20 publishes the crosswalk from a fixed year's commuting zones to each census year's municipality codes, together with the similarity series that measures what fixing the anchor costs.
+Three issues follow from the coauthor meeting. Issue #18 makes the constrained delineation the baseline, so that every committed table and figure reports it while the delineation without the constraint is computed alongside under names carrying `_unconstrained`, and moves the non-contiguity material into the appendix of the deck. Issue #19 extends the delineation to the offshore islands, which is what brings it to the whole census population; `validation/notes/island_coverage.md` reports the result. Issue #20 publishes the crosswalk from a fixed year's commuting zones to each census year's municipality codes, together with the similarity series that measures what fixing the anchor costs; `validation/notes/zone_crosswalk.md` documents it.
 
 ## Settled decisions and the reasoning behind them
 
@@ -46,7 +46,7 @@ Committed under `validation/data`:
 
 - `uea/`, all 32 published Urban Employment Area files: metropolitan and micropolitan, suburb lists and central-city lists, for 1980, 1990, 1995, 2000, 2005, 2010, 2015, 2020. There is no 1985 delineation, which affects no comparison pair in scope.
 - `did_municipality.csv` and `did_municipality_harmonized.csv`, district population and area by municipality for 1980 to 2020, on survey-year codes and on 2015 codes respectively.
-- `crosswalk/`, one municipality code crosswalk per census year from 1980 to 2010 onto 1 October 2015.
+- `crosswalk/`, one municipality code crosswalk per census year from 1980 to 2010 onto 1 October 2015, and two written by hand from 2015 onto the 2020 and the 2025 codes.
 - `did_municipality_2020_raw.xlsx`, the census table behind the 2020 rows.
 - `MANUAL_DOWNLOADS.md`, provenance and the checks each file passed.
 

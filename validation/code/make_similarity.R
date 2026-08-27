@@ -12,7 +12,8 @@
 # a move in the cutoff trades away is visible.
 #
 # Writes validation/output/similarity_table.csv,
-# validation/output/similarity_by_municipality.csv and
+# validation/output/similarity_by_municipality.csv,
+# validation/output/similarity_to_1980.csv and
 # validation/output/cutoff_sweep.csv.
 
 suppressMessages({
@@ -71,7 +72,22 @@ for (pair in pairs) {
   }
 }
 
+# Holding the zones fixed at the earliest census year is what a researcher pooling
+# several censuses will want to do, and this measures what it costs: the similarity
+# between the 1980 delineation and the delineation of each later year, over the
+# municipalities the two years have in common.
+anchor_year <- min(census_years)
+anchored_rows <- list()
+for (later in setdiff(census_years, anchor_year)) {
+  for (anchor in cutoff_anchors) {
+    anchored_rows[[length(anchored_rows) + 1]] <-
+      similarity(anchor_year, later, anchor, anchor)$summary %>%
+      mutate(years_apart = later - anchor_year)
+  }
+}
+
 dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
+write_csv(bind_rows(anchored_rows), output_path("similarity_to_1980.csv"))
 write_csv(bind_rows(pair_rows), output_path("similarity_table.csv"))
 write_csv(bind_rows(municipality_rows), output_path("similarity_by_municipality.csv"))
 print(as.data.frame(bind_rows(pair_rows)))
