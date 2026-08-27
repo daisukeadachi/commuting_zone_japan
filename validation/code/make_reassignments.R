@@ -77,6 +77,16 @@ rows <- lapply(seq_len(nrow(cases)), function(k) {
   describe(cases$year[k], cases$cutoff[k], here)
 })
 
-table <- bind_rows(rows)
+# A contiguity-constrained delineation leaves nothing to report, and an empty list of
+# rows would write a file carrying no header at all. The columns are written whether or
+# not any municipality is detached, so that the file always states what it would hold.
+empty <- tibble(
+  year = integer(), cutoff = double(), code = character(), muni_name = character(),
+  prefecture = character(), assigned_zone = integer(),
+  share_commuting_to_assigned_zone = double(), nearest_adjacent_zone = integer(),
+  share_commuting_to_that_zone = double(), distance_to_assigned_zone_km = double(),
+  suggestion = character())
+
+table <- if (length(rows)) bind_rows(rows) else empty
 write_csv(table, output_path("reassignment_table.csv"))
 print(as.data.frame(table))

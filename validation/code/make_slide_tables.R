@@ -94,7 +94,9 @@ rows <- c(
 )
 write_table(rows, "fit.tex", "lrr", paste0("& 2010 & 2020", br))
 
-reassignments <- read_csv(output_path("reassignment_table.csv"),
+# The reassignment table belongs to the delineation without the contiguity constraint,
+# which is where a detached municipality can arise at all.
+reassignments <- read_csv(output_path("reassignment_table.csv", "unconstrained"),
                           col_types = cols(code = col_character(), .default = col_guess())) %>%
   filter(year == later_year, abs(cutoff - slide_cutoff) < 1e-9)
 rows <- vapply(seq_len(nrow(reassignments)), function(k) {
@@ -107,6 +109,19 @@ rows <- vapply(seq_len(nrow(reassignments)), function(k) {
 }, character(1))
 write_table(rows, "reassignments.tex", "lrrrrl",
             paste0("Municipality & Zone & To own zone & Nearest zone & To that zone & Suggestion", br))
+
+comparison <- read_csv(file.path(output_dir, "constrained_comparison.csv"), show_col_types = FALSE)
+containment_free <- read_csv(output_path("containment_table.csv", "unconstrained"), show_col_types = FALSE)
+x <- comparison %>% filter(year == later_year, abs(cutoff - slide_cutoff) < 1e-9)
+cf <- pick(containment_free, later_year); cc <- pick(containment, later_year)
+rows <- c(
+  sprintf("Commuting zones & %s & %s%s", count(x$zones_unconstrained), count(x$zones_constrained), br),
+  sprintf("Zones holding a detached municipality & %s & %s%s[2pt]", count(x$noncontiguous_zones_unconstrained), count(x$noncontiguous_zones_constrained), br),
+  sprintf("Minimum contained & %s & %s%s", share(cf$min_contained), share(cc$min_contained), br),
+  sprintf("Mean contained & %s & %s%s", share(x$mean_contained_unconstrained), share(x$mean_contained_constrained), br),
+  sprintf("Share of the labour force contained & %s & %s%s", share(x$share_contained_unconstrained), share(x$share_contained_constrained), br)
+)
+write_table(rows, "constraint.tex", "lrr", paste0("& Without the constraint & With the constraint", br))
 
 # ---------------------------------------------------------------------------
 # Appendix tables
@@ -179,6 +194,19 @@ write_table(rows, "appendix_cutoff_comparison.tex", "llrrrrrr",
             paste0("Year & Cutoff & Commuting & Non- & Minimum & Mean & Share of the & Areas", br,
                    "& & zones & contiguous & contained & contained & labour force & split", br))
 
+comparison_all <- comparison %>% filter(abs(cutoff - slide_cutoff) < 1e-9) %>% arrange(year)
+rows <- sprintf("%d & %s & %s & %s & %s & %s & %s%s", comparison_all$year,
+                count(comparison_all$zones_unconstrained), count(comparison_all$zones_constrained),
+                count(comparison_all$noncontiguous_zones_unconstrained),
+                count(comparison_all$municipalities_in_a_changed_zone),
+                share(comparison_all$mean_contained_unconstrained),
+                share(comparison_all$mean_contained_constrained), br)
+write_table(rows, "appendix_delineation_comparison.tex", "lrrrrrr",
+            paste0("Year & \\multicolumn{2}{c}{Commuting zones} & Detached & Changed & ",
+                   "\\multicolumn{2}{c}{Mean contained}", br,
+                   "\\cmidrule(lr){2-3} \\cmidrule(lr){6-7} ",
+                   "& No constraint & Constrained & zones & municipalities & No constraint & Constrained", br))
+
 pairs_all <- read_csv(output_path("similarity_table.csv"), show_col_types = FALSE) %>%
   filter(abs(cutoff_earlier - slide_cutoff) < 1e-9) %>%
   arrange(earlier_year, later_year)
@@ -208,6 +236,9 @@ macros <- c(
   sprintf("\\newcommand{\\plateauLow}{%s}", format(min(plateau$cutoff_later), nsmall = 3)),
   sprintf("\\newcommand{\\plateauHigh}{%s}", format(max(plateau$cutoff_later), nsmall = 3)),
   sprintf("\\newcommand{\\plateauZonesHigh}{%s}", count(max(plateau$commuting_zones))),
-  sprintf("\\newcommand{\\plateauZonesLow}{%s}", count(min(plateau$commuting_zones)))
+  sprintf("\\newcommand{\\plateauZonesLow}{%s}", count(min(plateau$commuting_zones))),
+  sprintf("\\newcommand{\\constraintMoved}{%s}", count(x$municipalities_in_a_changed_zone)),
+  sprintf("\\newcommand{\\constraintMunicipalities}{%s}", count(x$municipalities)),
+  sprintf("\\newcommand{\\constraintSimilarity}{%s}", ratio(x$mean_similarity))
 )
 write_rows(macros, "numbers.tex")

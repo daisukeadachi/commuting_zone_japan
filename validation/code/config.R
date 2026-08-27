@@ -13,14 +13,15 @@ data_dir <- "validation/data"
 derived_dir <- "validation/derived"
 output_dir <- "validation/output"
 
-# Which delineation the diagnostics are computed on. The unconstrained one is the
-# baseline and is what every committed table and figure reports. The
-# contiguity-constrained delineation of Guenard and Legendre (2022) is an option: set
-# the environment variable CZ_DELINEATION to "constrained" before running, having built
-# its zones first with build_constrained_clusters.R. Under the option every script reads
-# the constrained zones and writes its tables and figures under names of their own, so a
-# constrained run stands beside the baseline rather than on top of it.
-delineation <- Sys.getenv("CZ_DELINEATION", "unconstrained")
+# Which delineation the diagnostics are computed on. The contiguity-constrained
+# delineation of Guenard and Legendre (2022) is the baseline and is what every committed
+# table and figure reports under its plain name. The unconstrained delineation is
+# computed alongside it: set the environment variable CZ_DELINEATION to "unconstrained"
+# before running, having built its trees first with build_clusters.R. Under that setting
+# every script reads the unconstrained zones and writes its tables and figures under
+# names carrying the delineation, so the two runs stand beside each other and the
+# appendix can show what the constraint removes.
+delineation <- Sys.getenv("CZ_DELINEATION", "constrained")
 stopifnot(delineation %in% c("unconstrained", "constrained"))
 
 # The cutoff as it appears in a file name, at three decimals.
@@ -38,16 +39,19 @@ zone_path <- function(year, cutoff, which = delineation) {
 
 #' Destination of a diagnostic table.
 #'
-#' Under the constrained option the delineation is written into the file name, which is
-#' what keeps a constrained run from overwriting the baseline tables.
-output_path <- function(name) {
-  if (delineation == "unconstrained") return(file.path(output_dir, name))
-  file.path(output_dir, sub("([.][^.]+)$", "_constrained\\1", name))
+#' Away from the baseline the delineation is written into the file name, which is what
+#' keeps an unconstrained run from overwriting the baseline tables.
+#'
+#' @param name file name the table carries under the baseline
+#' @param which "unconstrained" or "constrained"; defaults to the selected delineation
+output_path <- function(name, which = delineation) {
+  if (which == "constrained") return(file.path(output_dir, name))
+  file.path(output_dir, sub("([.][^.]+)$", "_unconstrained\\1", name))
 }
 
 #' Directory the figures are written to, one per delineation.
-figure_path <- function() {
-  file.path(output_dir, if (delineation == "constrained") "figures_constrained" else "figures")
+figure_path <- function(which = delineation) {
+  file.path(output_dir, if (which == "unconstrained") "figures_unconstrained" else "figures")
 }
 
 #' Zones obtained by stopping an agglomeration at a cutoff.

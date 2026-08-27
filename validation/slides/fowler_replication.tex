@@ -11,7 +11,10 @@
 \hypersetup{hidelinks}
 
 \renewcommand{\arraystretch}{0.85}
-\graphicspath{{../output/figures/}}
+% Figures of the baseline delineation come first. The second directory holds the same
+% figures for the delineation without the contiguity constraint, and supplies the
+% appendix maps of non-contiguity, which the baseline has no counterpart for.
+\graphicspath{{../output/figures/}{../output/figures_unconstrained/}}
 \input{tables/numbers}
 
 \newcommand{\repo}{https://github.com/daisukeadachi/commuting_zone_japan/blob/main}
@@ -63,9 +66,10 @@
   and the dissimilarity is $1 - p_{ij}$ with a zero diagonal.
   \vfill
   \begin{itemize}
-    \item Average-linkage hierarchical clustering, cut at a fixed tree height of 0.977.
+    \item Average-linkage hierarchical clustering, cut at a fixed tree height of 0.977, with merges restricted to clusters that adjoin on land.
     \item Commuting matrix: residents mainly working, ordinary households, the only definition available for 2020.
-    \item 1{,}656 municipalities: the four main islands and the Okinawa main island, plus every municipality joined to one by a permanent road link. The twenty-three special wards of Tokyo count as one, as the ordinance-designated cities do.
+    \item 1{,}656 municipalities: the four main islands and the Okinawa main island, plus every municipality joined to one by a permanent road link.
+    \item The twenty-three special wards of Tokyo count as one, as the ordinance-designated cities do. Split, a suburb's commute reads as twenty-three weak links.
     \item Cores and urban areas for the fit statistics: the Urban Employment Area central cities and their areas.
   \end{itemize}
 \end{frame}
@@ -104,7 +108,7 @@
   \begin{itemize}
     \item The cutoff. It is inherited rather than derived. Does the similarity between delineations pick out a better value?
     \vfill
-    \item Non-contiguity. Zones that hold a municipality sharing its zone with none of its neighbours.
+    \item The contiguity constraint. What imposing it costs, and what the delineation looks like without it.
     \vfill
     \item Split urban areas. Externally defined urban areas cut across more than one commuting zone.
   \end{itemize}
@@ -118,18 +122,12 @@
   \footnotesize Holding 2010 at 0.977, the peak is \bestSimilarity{} at \bestCutoff{}, and the curve stays within 0.005 of it from \plateauLow{} to \plateauHigh{}, spanning \plateauZonesHigh{} down to \plateauZonesLow{} zones.
 \end{frame}
 
-\begin{frame}{Non-contiguous municipalities}{Figure 5 of Fowler (2024)}
+\begin{frame}[label=constraint]{The delineation with and without the contiguity constraint}{2020, at the 0.977 cutoff}
   \centering
-  \includegraphics[height=0.72\textheight]{noncontiguous_municipalities_2020_cut0.977.png}
-  \\[2pt]
-  \footnotesize One municipality in 2020, Shimukappu in Hokkaido, 991 metres from the nearest part of its own zone.
-\end{frame}
-
-\begin{frame}{Reassignments that would remove non-contiguity}{Table 3 of Fowler (2024)}
-  \centering
-  \input{tables/reassignments}
+  \gotoslide{appnoconstraint}{Without the constraint}
+  {\setlength{\tabcolsep}{4pt}\input{tables/constraint}}
   \\[6pt]
-  \footnotesize Its own zone takes 96 percent of its commuters, the adjacent zone 3 percent.
+  \footnotesize The constraint moves \constraintMoved{} of \constraintMunicipalities{} municipalities, and the two delineations agree at \constraintSimilarity{}.
 \end{frame}
 
 \begin{frame}[label=split]{Urban areas split across commuting zones}{Figure 6 of Fowler (2024)}
@@ -140,6 +138,7 @@
   \footnotesize 33 of the 208 Urban Employment Areas in 2020, concentrated along the Pacific corridor.
 \end{frame}
 
+\clearpage
 \appendix
 
 \begin{frame}[plain]
@@ -147,6 +146,36 @@
   \centering
   {\Huge Appendix}
   \vfill
+  \begin{itemize}
+    \item Every comparison pair, and the similarity curves of the two control pairs.
+    \item Diagnostic statistics, zone size and shape, 1980 to 2020.
+    \item Containment and the Core measures, 1980 to 2020.
+    \item The lowest-containment map at the other cutoff, and the two cutoff anchors compared.
+    \item The delineation without the contiguity constraint.
+  \end{itemize}
+  \vfill
+\end{frame}
+
+\begin{frame}[label=apppairs]{Every comparison pair}
+  \centering
+  \input{tables/appendix_pairs}
+  \\[4pt]
+  \footnotesize The 2010 to 2020 comparison sits below both pre-pandemic controls but above the decade pairs of the 1980s and 1990s.
+  \gotoandback{appcurvea}{Control-pair curves}{similaritymap}
+\end{frame}
+
+\begin{frame}[label=appcurvea]{Similarity against the cutoff, 2010 against 2015}
+  \centering
+  \includegraphics[height=0.63\textheight]{similarity_vs_cutoff_2010_2015_anchor0.977.png}
+  \\[2pt]
+  \gotoandback{appcurveb}{2005 against 2015}{sweep}
+\end{frame}
+
+\begin{frame}[label=appcurveb]{Similarity against the cutoff, 2005 against 2015}
+  \centering
+  \includegraphics[height=0.63\textheight]{similarity_vs_cutoff_2005_2015_anchor0.977.png}
+  \\[2pt]
+  \backslide{sweep}
 \end{frame}
 
 \begin{frame}[label=appdiagcounts]{Diagnostic statistics, 1980 to 2020}
@@ -184,7 +213,7 @@
   \centering
   \includegraphics[width=0.72\textwidth]{lowest_containment_zone_2020_cut0.980.png}
   \\[2pt]
-  \footnotesize Same extent as the previous map. Zone 89 is absorbed into Tokyo, which becomes zone 82; the minimum moves to Chiba, at 0.50.
+  \footnotesize Same extent as the map in the body. Zone 89 is absorbed into Tokyo, which becomes zone 82; the minimum moves to Chiba, at 0.50.
   \backslide{lowestcontainment}
 \end{frame}
 
@@ -192,30 +221,32 @@
   \centering
   {\setlength{\tabcolsep}{4pt}\input{tables/appendix_cutoff_comparison}}
   \\[4pt]
-  \footnotesize Moving from 0.977 to 0.980 removes fifteen commuting zones in each year and lifts the minimum containment by four to nine points.
+  \footnotesize Both columns are computed on the constrained delineation, so the non-contiguous count is zero throughout by construction.
   \backslide{sweep}
 \end{frame}
 
-\begin{frame}[label=apppairs]{Every comparison pair}
+\begin{frame}[label=appnoconstraint]{Non-contiguous municipalities without the constraint}{Figure 5 of Fowler (2024)}
   \centering
-  \input{tables/appendix_pairs}
+  \includegraphics[height=0.66\textheight]{noncontiguous_municipalities_2020_cut0.977.png}
+  \\[2pt]
+  \footnotesize One municipality in 2020, Shimukappu in Hokkaido, 991 metres from the nearest part of its own zone.
+  \gotoandback{appreassign}{Reassignments}{constraint}
+\end{frame}
+
+\begin{frame}[label=appreassign]{Reassignments that would remove non-contiguity}{Table 3 of Fowler (2024)}
+  \centering
+  \input{tables/reassignments}
+  \\[6pt]
+  \footnotesize Shimukappu's own zone takes 96 percent of its commuters. What detaches it runs inward: 66 workers arrive from Shimizu and Shintoku against a resident labour force of 783.
+  \gotoandback{appconstraintall}{All nine census years}{constraint}
+\end{frame}
+
+\begin{frame}[label=appconstraintall]{The two delineations, 1980 to 2020}
+  \centering
+  {\setlength{\tabcolsep}{2.5pt}\input{tables/appendix_delineation_comparison}}
   \\[4pt]
-  \footnotesize The 2010 to 2020 comparison sits below both pre-pandemic controls but above the decade pairs of the 1980s and 1990s.
-  \gotoandback{appcurvea}{Control-pair curves}{similaritymap}
-\end{frame}
-
-\begin{frame}[label=appcurvea]{Similarity against the cutoff, 2010 against 2015}
-  \centering
-  \includegraphics[height=0.63\textheight]{similarity_vs_cutoff_2010_2015_anchor0.977.png}
-  \\[2pt]
-  \gotoandback{appcurveb}{2005 against 2015}{sweep}
-\end{frame}
-
-\begin{frame}[label=appcurveb]{Similarity against the cutoff, 2005 against 2015}
-  \centering
-  \includegraphics[height=0.63\textheight]{similarity_vs_cutoff_2005_2015_anchor0.977.png}
-  \\[2pt]
-  \backslide{sweep}
+  \footnotesize Changed municipalities are those whose zone partners differ between the two delineations.
+  \backslide{constraint}
 \end{frame}
 
 \begin{frame}{One departure from the existing pipeline}
@@ -236,7 +267,7 @@
     \item \filelink{validation/notes/method\_crosscheck.md} --- the delineation formula across four implementations.
     \item \filelink{validation/notes/core\_definition.md} --- why the Urban Employment Area supplies the cores.
     \item \filelink{validation/output} --- the tables behind every slide, as comma-separated files.
-    \item \filelink{validation/code} --- the nine scripts, run in the order they are listed in the results note.
+    \item \filelink{validation/code} --- the scripts, run in the order they are listed in the results note.
   \end{itemize}
 \end{frame}
 
