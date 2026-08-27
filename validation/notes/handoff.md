@@ -85,4 +85,4 @@ Whether the repository reorganisation sketched in section 4 of the coauthor memo
 
 ## Conventions to keep
 
-Commit messages and every file in the repository are in English. Chat with the user is in Japanese. Reader-facing prose does not carry invented short tags; write the descriptive name. Each paragraph is one source line in Markdown and LaTeX. One branch per task, deleted after merge, and never force-push. Replies to the user end at the answer asked for, without appended menus of next steps.
+Commit messages and every file in the repository are in English. Chat with the user is in Japanese. Reader-facing prose does not carry invented short tags; write the descriptive name. Each paragraph is one source line in Markdown and LaTeX. One branch per task, deleted after merge, and never force-push. Replies to the user end at the answer asked for, without appended menus of next steps. In the deck, every appendix frame is one click from the body frame it supports and carries a single button back to it; no appendix frame links to another.
