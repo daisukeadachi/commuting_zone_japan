@@ -343,6 +343,7 @@ code_i,code_j,link,kind
 01513,01520,shared boundary,contiguity
 01514,01563,shared boundary,contiguity
 01516,01520,shared boundary,contiguity
+01518,01519,shared boundary,contiguity
 01543,01544,shared boundary,contiguity
 01543,01547,shared boundary,contiguity
 01543,01564,shared boundary,contiguity
@@ -3673,6 +3674,7 @@ code_i,code_j,link,kind
 37208,37403,shared boundary,contiguity
 37208,37404,shared boundary,contiguity
 37208,37406,shared boundary,contiguity
+37322,37324,shared boundary,contiguity
 37387,37406,shared boundary,contiguity
 37403,37406,shared boundary,contiguity
 38201,38202,shared boundary,contiguity
@@ -4290,6 +4292,7 @@ code_i,code_j,link,kind
 46208,46224,shared boundary,contiguity
 46208,46392,shared boundary,contiguity
 46210,46223,shared boundary,contiguity
+46213,46501,shared boundary,contiguity
 46214,46218,shared boundary,contiguity
 46215,46216,shared boundary,contiguity
 46215,46219,shared boundary,contiguity
@@ -4305,6 +4308,10 @@ code_i,code_j,link,kind
 46218,46452,shared boundary,contiguity
 46220,46223,shared boundary,contiguity
 46221,46468,shared boundary,contiguity
+46222,46523,shared boundary,contiguity
+46222,46524,shared boundary,contiguity
+46222,46525,shared boundary,contiguity
+46222,46527,shared boundary,contiguity
 46224,46392,shared boundary,contiguity
 46224,46452,shared boundary,contiguity
 46225,46392,shared boundary,contiguity
@@ -4314,6 +4321,13 @@ code_i,code_j,link,kind
 46490,46491,shared boundary,contiguity
 46490,46492,shared boundary,contiguity
 46491,46492,shared boundary,contiguity
+46501,46502,shared boundary,contiguity
+46523,46524,shared boundary,contiguity
+46524,46525,shared boundary,contiguity
+46530,46531,shared boundary,contiguity
+46530,46532,shared boundary,contiguity
+46531,46532,shared boundary,contiguity
+46533,46534,shared boundary,contiguity
 47201,47208,shared boundary,contiguity
 47201,47212,shared boundary,contiguity
 47201,47329,shared boundary,contiguity

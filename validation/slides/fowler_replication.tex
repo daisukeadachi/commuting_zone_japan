@@ -58,7 +58,7 @@
   \footnotesize Source paper: \url{https://doi.org/10.1038/s41597-024-03829-5}
 \end{frame}
 
-\begin{frame}{The delineation}
+\begin{frame}[label=delineation]{The delineation}
   For municipalities $i$ and $j$ with commuting flows $f_{ij}$ and resident labour forces $W_i$, the proportional flow is
   \[
     p_{ij} = \frac{f_{ij} + f_{ji}}{\min(W_i, W_j)}, \qquad p_{ij} \le 0.999 ,
@@ -72,6 +72,7 @@
     \item The twenty-three special wards of Tokyo count as one, as the ordinance-designated cities do. Split, a suburb's commute reads as twenty-three weak links.
     \item Cores and urban areas for the fit statistics: the Urban Employment Area central cities and their areas.
   \end{itemize}
+  \gotoslide{appislands}{The offshore islands}
 \end{frame}
 
 \begin{frame}[label=similaritymap]{Similarity between the 2010 and the 2020 delineations}{Figure 1 of Fowler (2024)}
@@ -147,6 +148,7 @@
   {\Huge Appendix}
   \vfill
   \begin{itemize}
+    \item The offshore islands, delineated alongside the main-island scope.
     \item Every comparison pair, and the similarity curves of the two control pairs.
     \item Diagnostic statistics, zone size and shape, 1980 to 2020.
     \item Containment and the Core measures, 1980 to 2020.
@@ -154,6 +156,14 @@
     \item The delineation without the contiguity constraint.
   \end{itemize}
   \vfill
+\end{frame}
+
+\begin{frame}[label=appislands]{The offshore islands}
+  \centering
+  {\setlength{\tabcolsep}{4pt}\input{tables/appendix_islands}}
+  \\[4pt]
+  \footnotesize Six of the 52 zones in 2020 hold more than one municipality: Rishiri, Shodoshima, Tanegashima, Amami Oshima, Tokunoshima and Okinoerabu.
+  \backslide{delineation}
 \end{frame}
 
 \begin{frame}[label=apppairs]{Every comparison pair}
