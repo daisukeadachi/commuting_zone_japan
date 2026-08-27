@@ -20,19 +20,18 @@
 \newcommand{\repo}{https://github.com/daisukeadachi/commuting_zone_japan/blob/main}
 \newcommand{\filelink}[1]{\href{\repo/#1}{\texttt{#1}}}
 
-% Links between the body and the appendix. A body slide points forward to the slide that
-% carries the fuller table or figure; that slide points back to where it came from.
-
-
+% Navigation. Every appendix slide is one click from the body slide it belongs to, and
+% carries a single button back to it. No appendix slide links to another, so a reader who
+% follows a button always knows where Back will take them.
 \setbeamertemplate{footline}[frame number]
 \setbeamertemplate{page number in head/foot}[appendixframenumber]
 \newcommand{\slidebuttons}[1]{%
-  \begin{textblock*}{9cm}(\dimexpr\paperwidth-9.35cm\relax,\dimexpr\paperheight-0.66cm\relax)
+  \begin{textblock*}{11cm}(\dimexpr\paperwidth-11.35cm\relax,\dimexpr\paperheight-0.66cm\relax)
     \raggedleft #1%
   \end{textblock*}}
 \newcommand{\gotoslide}[2]{\slidebuttons{\hyperlink{#1}{\beamergotobutton{#2}}}}
+\newcommand{\gototwo}[4]{\slidebuttons{\hyperlink{#1}{\beamergotobutton{#2}}\hspace{0.6em}\hyperlink{#3}{\beamergotobutton{#4}}}}
 \newcommand{\backslide}[1]{\slidebuttons{\hyperlink{#1}{\beamerreturnbutton{Back}}}}
-\newcommand{\gotoandback}[3]{\slidebuttons{\hyperlink{#1}{\beamergotobutton{#2}}\hspace{0.6em}\hyperlink{#3}{\beamerreturnbutton{Back}}}}
 
 \title{Fowler (2024) on the Japanese commuting zones}
 \author{}
@@ -52,7 +51,7 @@
     \vfill
     \item The wage-correlation block, that paper's Figure 2 and the Connection rows of its Table 2, waits on the Basic Survey on Wage Structure microdata.
     \vfill
-    \item Every body slide carries a button to the appendix slide that shows all nine census years.
+    \item Buttons in the lower right lead to the appendix and back.
   \end{itemize}
   \vfill
   \footnotesize Source paper: \url{https://doi.org/10.1038/s41597-024-03829-5}
@@ -72,12 +71,12 @@
     \item The twenty-three special wards of Tokyo count as one, as the ordinance-designated cities do. Split, a suburb's commute reads as twenty-three weak links.
     \item Cores and urban areas for the fit statistics: the Urban Employment Area central cities and their areas.
   \end{itemize}
-  \gotoslide{appislands}{The offshore islands}
+  \gototwo{appislands}{The offshore islands}{appdeparture}{Departure from the pipeline}
 \end{frame}
 
 \begin{frame}[label=similaritymap]{Similarity between the 2010 and the 2020 delineations}{Figure 1 of Fowler (2024)}
   \centering
-  \gotoslide{apppairs}{Every comparison pair}
+  \gototwo{apppairs}{Every comparison pair}{appanchor}{Zones held at 1980}
   \includegraphics[height=0.72\textheight]{similarity_map_2010_2020_cut0.977.png}
   \\[2pt]
   \footnotesize Jaccard similarity: the overlap of a municipality's two commuting zones over their union. Mean \meanSimilarity{}.
@@ -85,7 +84,7 @@
 
 \begin{frame}[label=diagnostics]{Diagnostic statistics}{Table 1 of Fowler (2024)}
   \centering
-  \gotoslide{appdiagcounts}{All nine census years}
+  \gototwo{appdiagcounts}{Counts, all nine years}{appdiagsize}{Size and shape, all nine years}
   \input{tables/diagnostics}
   \\[4pt]
   \footnotesize Compactness is the Polsby--Popper ratio, $4\pi A / P^2$ of the dissolved zone, averaged across zones.
@@ -93,7 +92,7 @@
 
 \begin{frame}[label=fit]{Fit statistics}{Table 2 of Fowler (2024)}
   \centering
-  \gotoslide{appcontainment}{All nine census years}
+  \gototwo{appcontainment}{Containment, all nine years}{appcore}{Core measures, all nine years}
   \input{tables/fit}
 \end{frame}
 
@@ -117,7 +116,7 @@
 
 \begin{frame}[label=sweep]{Similarity as a function of the cutoff}{Figure 4 of Fowler (2024)}
   \centering
-  \gotoslide{appcutoff}{The two cutoffs compared}
+  \gototwo{appcutoff}{The two cutoffs compared}{appcurves}{The control pairs}
   \includegraphics[height=0.63\textheight]{similarity_vs_cutoff_2010_2020_anchor0.977.png}
   \\[2pt]
   \footnotesize Holding 2010 at 0.977, the peak is \bestSimilarity{} at \bestCutoff{}, and the curve stays within 0.005 of it from \plateauLow{} to \plateauHigh{}, spanning \plateauZonesHigh{} down to \plateauZonesLow{} zones.
@@ -125,7 +124,7 @@
 
 \begin{frame}[label=constraint]{The delineation with and without the contiguity constraint}{2020, at the 0.977 cutoff}
   \centering
-  \gotoslide{appnoconstraint}{Without the constraint}
+  \gototwo{appnoconstraint}{Without the constraint}{appconstraintall}{All nine census years}
   {\setlength{\tabcolsep}{4pt}\input{tables/constraint}}
   \\[6pt]
   \footnotesize The constraint moves \constraintMoved{} of \constraintMunicipalities{} municipalities, and the two delineations agree at \constraintSimilarity{}.
@@ -133,10 +132,22 @@
 
 \begin{frame}[label=split]{Urban areas split across commuting zones}{Figure 6 of Fowler (2024)}
   \centering
-  \gotoslide{appcore}{All nine census years}
   \includegraphics[height=0.72\textheight]{split_urban_areas_2020_cut0.977.png}
   \\[2pt]
   \footnotesize 33 of the 208 Urban Employment Areas in 2020, concentrated along the Pacific corridor.
+\end{frame}
+
+\begin{frame}{Where everything lives}
+  On the repo: \url{https://github.com/daisukeadachi/commuting_zone_japan/}
+  \vfill
+  \begin{itemize}
+    \item \filelink{validation/notes/replication\_results.md} --- the written results, with every number in this deck in context.
+    \item \filelink{validation/notes/island\_coverage.md} --- the offshore islands, and what covering them changes.
+    \item \filelink{validation/notes/zone\_crosswalk.md} --- the published crosswalk, column by column.
+    \item \filelink{validation/notes/method\_crosscheck.md} --- the delineation formula across four implementations.
+    \item \filelink{validation/notes/core\_definition.md} --- why the Urban Employment Area supplies the cores.
+    \item \filelink{validation/output} --- the tables behind every slide, as comma-separated files.
+  \end{itemize}
 \end{frame}
 
 \clearpage
@@ -148,11 +159,12 @@
   {\Huge Appendix}
   \vfill
   \begin{itemize}
-    \item The offshore islands, delineated alongside the main-island scope.
-    \item Every comparison pair, the two control-pair curves, and what a fixed anchor year costs.
+    \item The offshore islands, and the departure from the existing pipeline.
+    \item Every comparison pair, and what holding the zones at 1980 costs.
     \item Diagnostic statistics, zone size and shape, 1980 to 2020.
     \item Containment and the Core measures, 1980 to 2020.
-    \item The lowest-containment map at the other cutoff, and the two cutoff anchors compared.
+    \item The lowest-containment map at the other cutoff.
+    \item The two cutoff anchors compared, and the control-pair curves.
     \item The delineation without the contiguity constraint.
   \end{itemize}
   \vfill
@@ -166,26 +178,23 @@
   \backslide{delineation}
 \end{frame}
 
+\begin{frame}[label=appdeparture]{One departure from the existing pipeline}
+  The existing Japanese pipeline joins the flow file to its own transpose in a way that keeps a pair only when the flow from $i$ to $j$ is recorded, so a pair connected only in the reverse direction enters as unconnected.
+  \vfill
+  \begin{itemize}
+    \item The matrix it clusters is asymmetric; this replication uses the symmetric numerator the source method specifies.
+    \item Between 1.2 and 4.4 percent of pairs are affected in each year, moving up to four zones and up to 108 municipalities.
+    \item Measured year by year in \filelink{validation/notes/method\_crosscheck.md}.
+  \end{itemize}
+  \backslide{delineation}
+\end{frame}
+
 \begin{frame}[label=apppairs]{Every comparison pair}
   \centering
   \input{tables/appendix_pairs}
   \\[4pt]
   \footnotesize The 2010 to 2020 comparison sits below both pre-pandemic controls but above the decade pairs of the 1980s and 1990s.
-  \gotoandback{appcurvea}{Control-pair curves}{similaritymap}
-\end{frame}
-
-\begin{frame}[label=appcurvea]{Similarity against the cutoff, 2010 against 2015}
-  \centering
-  \includegraphics[height=0.63\textheight]{similarity_vs_cutoff_2010_2015_anchor0.977.png}
-  \\[2pt]
-  \gotoandback{appcurveb}{2005 against 2015}{sweep}
-\end{frame}
-
-\begin{frame}[label=appcurveb]{Similarity against the cutoff, 2005 against 2015}
-  \centering
-  \includegraphics[height=0.63\textheight]{similarity_vs_cutoff_2005_2015_anchor0.977.png}
-  \\[2pt]
-  \gotoandback{appanchor}{Zones held at 1980}{sweep}
+  \backslide{similaritymap}
 \end{frame}
 
 \begin{frame}[label=appanchor]{What holding the zones at 1980 costs}
@@ -201,7 +210,7 @@
   \input{tables/appendix_diagnostics_counts}
   \\[4pt]
   \footnotesize Counts at the 0.977 cutoff. Non-contiguous zones are those holding a municipality with no neighbour in its own zone.
-  \gotoandback{appdiagsize}{Size and shape}{diagnostics}
+  \backslide{diagnostics}
 \end{frame}
 
 \begin{frame}[label=appdiagsize]{Zone size and shape, 1980 to 2020}
@@ -216,7 +225,7 @@
   \input{tables/appendix_containment}
   \\[4pt]
   \footnotesize The minimum and the mean are taken over commuting zones; the share of the labour force is a single national ratio.
-  \gotoandback{appcore}{Core measures}{fit}
+  \backslide{fit}
 \end{frame}
 
 \begin{frame}[label=appcore]{Core measures, 1980 to 2020}
@@ -243,20 +252,24 @@
   \backslide{sweep}
 \end{frame}
 
-\begin{frame}[label=appnoconstraint]{Non-contiguous municipalities without the constraint}{Figure 5 of Fowler (2024)}
+\begin{frame}[label=appcurves]{Similarity against the cutoff, the two control pairs}
   \centering
-  \includegraphics[height=0.66\textheight]{noncontiguous_municipalities_2020_cut0.977.png}
-  \\[2pt]
-  \footnotesize One municipality in 2020, Shimukappu in Hokkaido, 991 metres from the nearest part of its own zone.
-  \gotoandback{appreassign}{Reassignments}{constraint}
+  \includegraphics[width=0.47\textwidth]{similarity_vs_cutoff_2010_2015_anchor0.977.png}
+  \hfill
+  \includegraphics[width=0.47\textwidth]{similarity_vs_cutoff_2005_2015_anchor0.977.png}
+  \\[4pt]
+  \footnotesize 2010 against 2015 on the left, 2005 against 2015 on the right, both anchored at 0.977.
+  \backslide{sweep}
 \end{frame}
 
-\begin{frame}[label=appreassign]{Reassignments that would remove non-contiguity}{Table 3 of Fowler (2024)}
+\begin{frame}[label=appnoconstraint]{Non-contiguous municipalities without the constraint}{Figure 5 and Table 3 of Fowler (2024)}
   \centering
+  \includegraphics[height=0.52\textheight]{noncontiguous_municipalities_2020_cut0.977.png}
+  \\[4pt]
   \input{tables/reassignments}
-  \\[6pt]
-  \footnotesize Shimukappu's own zone takes 96 percent of its commuters. What detaches it runs inward: 66 workers arrive from Shimizu and Shintoku against a resident labour force of 783.
-  \gotoandback{appconstraintall}{All nine census years}{constraint}
+  \\[4pt]
+  \footnotesize Its own zone takes 96 percent of Shimukappu's commuters and lies 991 metres away. What detaches it runs inward: 66 workers arrive from Shimizu and Shintoku.
+  \backslide{constraint}
 \end{frame}
 
 \begin{frame}[label=appconstraintall]{The two delineations, 1980 to 2020}
@@ -265,28 +278,6 @@
   \\[4pt]
   \footnotesize Changed municipalities are those whose zone partners differ between the two delineations.
   \backslide{constraint}
-\end{frame}
-
-\begin{frame}{One departure from the existing pipeline}
-  The existing Japanese pipeline joins the flow file to its own transpose in a way that keeps a pair only when the flow from $i$ to $j$ is recorded, so a pair connected only in the reverse direction enters as unconnected.
-  \vfill
-  \begin{itemize}
-    \item The matrix it clusters is asymmetric; this replication uses the symmetric numerator the source method specifies.
-    \item Between 1.2 and 4.4 percent of pairs are affected in each year, moving up to four zones and up to 108 municipalities.
-    \item Measured year by year in \filelink{validation/notes/method\_crosscheck.md}.
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{Where everything lives}
-  On the repo: \url{https://github.com/daisukeadachi/commuting_zone_japan/}
-  \vfill
-  \begin{itemize}
-    \item \filelink{validation/notes/replication\_results.md} --- the written results, with every number in this deck in context.
-    \item \filelink{validation/notes/method\_crosscheck.md} --- the delineation formula across four implementations.
-    \item \filelink{validation/notes/core\_definition.md} --- why the Urban Employment Area supplies the cores.
-    \item \filelink{validation/output} --- the tables behind every slide, as comma-separated files.
-    \item \filelink{validation/code} --- the scripts, run in the order they are listed in the results note.
-  \end{itemize}
 \end{frame}
 
 \end{document}
