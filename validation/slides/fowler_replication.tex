@@ -149,7 +149,7 @@
   \vfill
   \begin{itemize}
     \item The offshore islands, delineated alongside the main-island scope.
-    \item Every comparison pair, and the similarity curves of the two control pairs.
+    \item Every comparison pair, the two control-pair curves, and what a fixed anchor year costs.
     \item Diagnostic statistics, zone size and shape, 1980 to 2020.
     \item Containment and the Core measures, 1980 to 2020.
     \item The lowest-containment map at the other cutoff, and the two cutoff anchors compared.
@@ -185,7 +185,15 @@
   \centering
   \includegraphics[height=0.63\textheight]{similarity_vs_cutoff_2005_2015_anchor0.977.png}
   \\[2pt]
-  \backslide{sweep}
+  \gotoandback{appanchor}{Zones held at 1980}{sweep}
+\end{frame}
+
+\begin{frame}[label=appanchor]{What holding the zones at 1980 costs}
+  \centering
+  \includegraphics[height=0.63\textheight]{similarity_to_1980_by_year.png}
+  \\[2pt]
+  \footnotesize Both years cut at the same height. The crosswalk carries a column for every anchor year.
+  \backslide{similaritymap}
 \end{frame}
 
 \begin{frame}[label=appdiagcounts]{Diagnostic statistics, 1980 to 2020}
