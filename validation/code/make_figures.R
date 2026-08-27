@@ -55,8 +55,12 @@ similarity_by_municipality <- read_csv(output_path("similarity_by_municipality.c
 containment_by_zone <- read_csv(output_path("containment_by_zone.csv"), show_col_types = FALSE)
 containment_by_municipality <- read_csv(output_path("containment_by_municipality.csv"),
                                         col_types = cols(code = col_character(), .default = col_guess()))
+# Under a contiguity-constrained delineation this table is empty, and the column types
+# have to be stated: read from a file with no rows, year and cutoff would be guessed as
+# logical and the filters below would fail on them.
 detached <- read_csv(output_path("noncontiguous_municipalities.csv"),
-                     col_types = cols(code = col_character()))
+                     col_types = cols(code = col_character(), year = col_integer(),
+                                      cutoff = col_double(), .default = col_guess()))
 sweep <- read_csv(output_path("cutoff_sweep.csv"), show_col_types = FALSE)
 
 # Romanized names for the municipalities the detail map labels. The boundary layer
