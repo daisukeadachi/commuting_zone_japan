@@ -128,23 +128,23 @@ area_km2 <- shape %>%
   as.numeric() / 1e6
 scope$area_km2 <- round(area_km2[match(scope$code, shape$code)], 3)
 
-# The adjacency graph the constrained clustering runs on: contiguity within the scope
-# plus every permanent road link.
+# The adjacency graph the constrained clustering runs on: contiguity plus every
+# permanent road link, for every municipality rather than for the scope alone. Two
+# municipalities on the same offshore island share a boundary, so the components of this
+# graph are the road-connected landmasses of the whole country, and a delineation that
+# covers the offshore islands needs no adjacency written by hand.
 edges <- bind_rows(
   contiguity %>% mutate(link = "shared boundary", kind = "contiguity"),
   road_links %>%
     mutate(lo = pmin(code_i, code_j), hi = pmax(code_i, code_j)) %>%
     transmute(code_i = lo, code_j = hi, link, kind = "road link")
 ) %>%
-  filter(code_i %in% scope$code[scope$in_scope], code_j %in% scope$code[scope$in_scope]) %>%
   distinct(code_i, code_j, .keep_all = TRUE) %>%
   arrange(code_i, code_j)
 
 full_graph <- graph_from_data_frame(edges, directed = FALSE,
-                                    vertices = tibble(name = sort(scope$code[scope$in_scope])))
-scope$graph_component <- NA_integer_
-membership <- components(full_graph)$membership
-scope$graph_component[scope$in_scope] <- as.integer(membership[scope$code[scope$in_scope]])
+                                    vertices = tibble(name = sort(scope$code)))
+scope$graph_component <- as.integer(components(full_graph)$membership[scope$code])
 
 dir.create(data_dir, showWarnings = FALSE, recursive = TRUE)
 write_csv(scope, file.path(data_dir, "municipality_scope.csv"))
@@ -158,3 +158,5 @@ message(sprintf("adjacency edges: %d contiguity, %d road links",
 message(sprintf("components of the adjacency graph: %d (sizes %s)",
                 components(full_graph)$no,
                 paste(sort(components(full_graph)$csize, decreasing = TRUE), collapse = ", ")))
+message(sprintf("components holding no municipality in scope: %d over %d municipalities",
+                n_distinct(scope$graph_component[!scope$in_scope]), sum(!scope$in_scope)))

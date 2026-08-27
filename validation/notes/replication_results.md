@@ -1,6 +1,6 @@
 # Fowler (2024) replicated on the Japanese delineation
 
-What follows reports every table and figure of <https://doi.org/10.1038/s41597-024-03829-5> that the available data supports, computed on Japanese census commuting flows for 1980 to 2020. The pairwise wage correlation is absent, since the wage microdata application is pending. Tables are under `validation/output` and figures under `validation/output/figures`; the code that builds them is under `validation/code` and runs in the order `build_scope_and_adjacency.R`, `build_dissimilarity.R`, `build_clusters.R`, `build_constrained_clusters.R`, `make_diagnostics.R`, `make_containment.R`, `make_similarity.R`, `make_core.R`, `make_reassignments.R`, `make_figures.R`, `make_constrained_comparison.R`.
+What follows reports every table and figure of <https://doi.org/10.1038/s41597-024-03829-5> that the available data supports, computed on Japanese census commuting flows for 1980 to 2020. The pairwise wage correlation is absent, since the wage microdata application is pending. Tables are under `validation/output` and figures under `validation/output/figures`; the code that builds them is under `validation/code` and runs in the order `build_scope_and_adjacency.R`, `build_dissimilarity.R`, `build_clusters.R`, `build_constrained_clusters.R`, `make_diagnostics.R`, `make_containment.R`, `make_similarity.R`, `make_core.R`, `make_reassignments.R`, `make_figures.R`, `make_constrained_comparison.R`, `build_full_coverage.R`.
 
 ## What the delineation is built from
 
@@ -62,4 +62,4 @@ The Connection block, the pairwise wage correlation of the source paper's Table 
 
 The sensitivity check on the sample definition, using all employed persons whose workplace is identifiable rather than those mainly working, waits on the disaggregated 2020 file.
 
-The offshore islands are outside the delineation. In 2020 the 63 island municipalities hold 215,526 workers, 0.46 percent of the national resident labour force; covering them is issue #19.
+The offshore islands are outside the delineation the tables above report, and stay outside it so that the comparison with the source paper is one of like with like. They are delineated alongside it, and `validation/notes/island_coverage.md` reports what the resulting zones look like.

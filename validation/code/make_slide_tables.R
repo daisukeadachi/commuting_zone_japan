@@ -27,6 +27,7 @@ romanized <- c(
 
 count <- function(x) format(round(x), big.mark = ",", scientific = FALSE, trim = TRUE)
 share <- function(x) sprintf("%.1f\\%%", 100 * x)
+share_fine <- function(x) sprintf("%.2f\\%%", 100 * x)
 ratio <- function(x) sprintf("%.2f", x)
 br <- " \\\\"
 
@@ -206,6 +207,18 @@ write_table(rows, "appendix_delineation_comparison.tex", "lrrrrrr",
                    "\\multicolumn{2}{c}{Mean contained}", br,
                    "\\cmidrule(lr){2-3} \\cmidrule(lr){6-7} ",
                    "& No constraint & Constrained & zones & municipalities & No constraint & Constrained", br))
+
+full_coverage <- read_csv(file.path(output_dir, "full_coverage_zones.csv"), show_col_types = FALSE) %>%
+  filter(abs(cutoff - slide_cutoff) < 1e-9) %>%
+  arrange(year)
+rows <- sprintf("%d & %s & %s & %s & %s & %s%s", full_coverage$year,
+                count(full_coverage$municipalities_on_islands), count(full_coverage$island_zones),
+                count(full_coverage$labour_force_on_islands),
+                share_fine(full_coverage$share_of_labour_force_on_islands),
+                share(full_coverage$mean_contained_islands), br)
+write_table(rows, "appendix_islands.tex", "lrrrrr",
+            paste0("Year & Island & Island & Resident & Share of the & Mean", br,
+                   "& municipalities & zones & labour force & labour force & contained", br))
 
 pairs_all <- read_csv(output_path("similarity_table.csv"), show_col_types = FALSE) %>%
   filter(abs(cutoff_earlier - slide_cutoff) < 1e-9) %>%
