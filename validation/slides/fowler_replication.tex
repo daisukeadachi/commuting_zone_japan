@@ -31,6 +31,7 @@
   \end{textblock*}}
 \newcommand{\gotoslide}[2]{\slidebuttons{\hyperlink{#1}{\beamergotobutton{#2}}}}
 \newcommand{\gototwo}[4]{\slidebuttons{\hyperlink{#1}{\beamergotobutton{#2}}\hspace{0.6em}\hyperlink{#3}{\beamergotobutton{#4}}}}
+\newcommand{\gotothree}[6]{\slidebuttons{\hyperlink{#1}{\beamergotobutton{#2}}\hspace{0.6em}\hyperlink{#3}{\beamergotobutton{#4}}\hspace{0.6em}\hyperlink{#5}{\beamergotobutton{#6}}}}
 \newcommand{\backslide}[1]{\slidebuttons{\hyperlink{#1}{\beamerreturnbutton{Back}}}}
 
 \title{Fowler (2024) on the Japanese commuting zones}
@@ -66,12 +67,12 @@
   \vfill
   \begin{itemize}
     \item Average-linkage hierarchical clustering, cut at a fixed tree height of 0.977, with merges restricted to clusters that adjoin on land.
-    \item Commuting matrix: residents mainly working, ordinary households, the only definition available for 2020.
+    \item Commuting matrix: residents whose labour-force status is mainly working. $W_i$ counts the same residents, summed over every destination.
     \item 1{,}656 municipalities: the four main islands and the Okinawa main island, plus every municipality joined to one by a permanent road link.
     \item The twenty-three special wards of Tokyo count as one, as the ordinance-designated cities do. Split, a suburb's commute reads as twenty-three weak links.
     \item Cores and urban areas for the fit statistics: the Urban Employment Area central cities and their areas.
   \end{itemize}
-  \gototwo{appislands}{The offshore islands}{appdeparture}{Departure from the pipeline}
+  \gotothree{appislands}{The offshore islands}{appdeparture}{Departure from the pipeline}{appdenominator}{Who counts as working}
 \end{frame}
 
 \begin{frame}[label=similaritymap]{Similarity between the 2010 and the 2020 delineations}{Figure 1 of Fowler (2024)}
@@ -145,6 +146,7 @@
     \item \filelink{validation/notes/island\_coverage.md} --- the offshore islands, and what covering them changes.
     \item \filelink{validation/notes/zone\_crosswalk.md} --- the published crosswalk, column by column.
     \item \filelink{validation/notes/method\_crosscheck.md} --- the delineation formula across four implementations.
+    \item \filelink{validation/notes/denominator.md} --- what the proportional flow divides by, and a wider count of who works.
     \item \filelink{validation/notes/core\_definition.md} --- why the Urban Employment Area supplies the cores.
     \item \filelink{validation/output} --- the tables behind every slide, as comma-separated files.
   \end{itemize}
@@ -159,7 +161,7 @@
   {\Huge Appendix}
   \vfill
   \begin{itemize}
-    \item The offshore islands, and the departure from the existing pipeline.
+    \item The offshore islands, the departure from the existing pipeline, and a wider count of who is working.
     \item Every comparison pair, and what holding the zones at 1980 costs.
     \item Diagnostic statistics, zone size and shape, 1980 to 2020.
     \item Containment and the Core measures, 1980 to 2020.
@@ -186,6 +188,14 @@
     \item Between 1.2 and 4.4 percent of pairs are affected in each year, moving up to four zones and up to 108 municipalities.
     \item Measured year by year in \filelink{validation/notes/method\_crosscheck.md}.
   \end{itemize}
+  \backslide{delineation}
+\end{frame}
+
+\begin{frame}[label=appdenominator]{Who counts as working}{The denominator widened to work alongside housework or study}
+  \centering
+  {\setlength{\tabcolsep}{4pt}\input{tables/appendix_denominator}}
+  \\[4pt]
+  \footnotesize The wider count is up to \denominatorRatio\ times the baseline. Flows stay on residents mainly working, so containment is measured against the same commuting.
   \backslide{delineation}
 \end{frame}
 

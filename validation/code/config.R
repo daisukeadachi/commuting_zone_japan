@@ -49,6 +49,56 @@ sample_tag <- function(which = sample_definition) {
   if (which == "WORK_MAIN") "" else paste0("_", tolower(which))
 }
 
+# Which count of workers the proportional flow divides by. The source paper writes the
+# denominator as the total workforce of each county and computes it as the row sum of the
+# commuting flow matrix, over every destination the census records; "reported" is that
+# quantity and is the baseline. "in_scope" sums only over the destinations inside the
+# geographic scope the clustering runs on, which is what the pipeline did before and
+# differs from the baseline by less than a thousandth of the workforce in every year.
+# "with_side_work" widens the count to residents who work alongside housework or study
+# while leaving the flows themselves on the "mainly working" sample, so that what a wider
+# reading of who is working does to the delineation can be read off the denominator
+# alone; build_side_work_denominator.R builds it, and it exists for 1980 to 2015 only.
+# Set the environment variable CZ_DENOMINATOR to choose; away from the baseline every
+# derived object and every table and figure carries the choice in its name.
+denominator <- Sys.getenv("CZ_DENOMINATOR", "reported")
+stopifnot(denominator %in% c("reported", "in_scope", "with_side_work"))
+
+#' File-name tag for a denominator, empty under the baseline.
+denominator_tag <- function(which = denominator) {
+  if (which == "reported") "" else paste0("_", which)
+}
+
+#' File-name tag for everything the delineation is conditioned on bar the contiguity
+#' constraint, which the paths carry separately.
+variant_tag <- function(den = denominator) paste0(sample_tag(), denominator_tag(den))
+
+#' Workers resident in each municipality, the denominator of the proportional flow.
+#'
+#' @param flows the census year's commuting matrix, on the merged municipality universe
+#' @param units the municipalities the delineation runs on
+#' @param year census year, read only when the count comes from outside the matrix
+#' @return named numeric vector in the order of units
+resident_labour_force <- function(flows, units, year) {
+  count <- switch(denominator,
+    reported = flows |> dplyr::group_by(i) |>
+      dplyr::summarise(w = sum(pop), .groups = "drop"),
+    in_scope = flows |> dplyr::filter(j %in% units) |> dplyr::group_by(i) |>
+      dplyr::summarise(w = sum(pop), .groups = "drop"),
+    with_side_work = suppressMessages(readr::read_csv(
+      side_work_denominator_path(year),
+      col_types = readr::cols(code = readr::col_character()))) |>
+      dplyr::transmute(i = code, w = workers))
+  out <- setNames(count$w, count$i)[units]
+  stopifnot(!any(is.na(out)), all(out > 0))
+  out
+}
+
+#' Path of the count of residents working alongside housework or study.
+side_work_denominator_path <- function(year) {
+  file.path(derived_dir, sprintf("denominator_with_side_work_%d.csv", year))
+}
+
 #' Path of one census year's commuting matrix.
 #'
 #' @param year census year
@@ -64,16 +114,16 @@ commute_path <- function(year, code_type = "harmonized", which = sample_definiti
 #' @param stem file name up to the year, without the sample tag
 #' @param year census year
 #' @param ext file extension, including the dot
-derived_path <- function(stem, year, ext = ".rds") {
-  file.path(derived_dir, sprintf("%s%s_%d%s", stem, sample_tag(), year, ext))
+derived_path <- function(stem, year, ext = ".rds", den = denominator) {
+  file.path(derived_dir, sprintf("%s%s_%d%s", stem, variant_tag(den), year, ext))
 }
 
 #' Path of a saved agglomeration.
 #'
 #' @param year census year
 #' @param which "unconstrained" or "constrained"; defaults to the selected delineation
-tree_path <- function(year, which = delineation) {
-  derived_path(if (which == "constrained") "constrained_hclust" else "hclust", year)
+tree_path <- function(year, which = delineation, den = denominator) {
+  derived_path(if (which == "constrained") "constrained_hclust" else "hclust", year, den = den)
 }
 
 # The cutoff as it appears in a file name, at three decimals.
@@ -82,7 +132,7 @@ cut_label <- function(cutoff) format(cutoff, nsmall = 3)
 #' Path of a full-coverage zone assignment, the one that carries the offshore islands.
 full_zone_path <- function(year, cutoff) {
   file.path(derived_dir, sprintf("zones_full_%d_cut%s%s.csv", year, cut_label(cutoff),
-                                 sample_tag()))
+                                 variant_tag()))
 }
 
 #' Path of a zone assignment written by the build step.
@@ -90,9 +140,10 @@ full_zone_path <- function(year, cutoff) {
 #' @param year census year
 #' @param cutoff tree height the assignment was cut at
 #' @param which "unconstrained" or "constrained"; defaults to the selected delineation
-zone_path <- function(year, cutoff, which = delineation) {
+#' @param den denominator the dissimilarity was built with; defaults to the selected one
+zone_path <- function(year, cutoff, which = delineation, den = denominator) {
   prefix <- if (which == "constrained") "zones_constrained" else "zones"
-  file.path(derived_dir, sprintf("%s%s_%d_cut%s.csv", prefix, sample_tag(), year,
+  file.path(derived_dir, sprintf("%s%s_%d_cut%s.csv", prefix, variant_tag(den), year,
                                  cut_label(cutoff)))
 }
 
@@ -105,15 +156,15 @@ zone_path <- function(year, cutoff, which = delineation) {
 #' @param name file name the table carries under the baseline
 #' @param which "unconstrained" or "constrained"; defaults to the selected delineation
 output_path <- function(name, which = delineation) {
-  tag <- paste0(if (which == "constrained") "" else "_unconstrained", sample_tag())
+  tag <- paste0(if (which == "constrained") "" else "_unconstrained", variant_tag())
   if (tag == "") return(file.path(output_dir, name))
   file.path(output_dir, sub("([.][^.]+)$", paste0(tag, "\\1"), name))
 }
 
-#' Directory the figures are written to, one per delineation and sample.
+#' Directory the figures are written to, one per delineation, sample and denominator.
 figure_path <- function(which = delineation) {
   stem <- if (which == "unconstrained") "figures_unconstrained" else "figures"
-  file.path(output_dir, paste0(stem, sample_tag()))
+  file.path(output_dir, paste0(stem, variant_tag()))
 }
 
 #' Zones obtained by stopping an agglomeration at a cutoff.
@@ -153,7 +204,7 @@ cut_tree_at_height <- function(tree, cutoff) {
 .tree_cache <- new.env(parent = emptyenv())
 
 load_tree <- function(year) {
-  key <- sprintf("%s_%s_%d", delineation, sample_definition, year)
+  key <- sprintf("%s_%s_%s_%d", delineation, sample_definition, denominator, year)
   if (!exists(key, envir = .tree_cache)) {
     assign(key, readRDS(tree_path(year)), envir = .tree_cache)
   }
@@ -227,8 +278,11 @@ detached_municipalities <- function(zone, neighbours) {
 # Transverse Mercator and zone-based. See the comment on issue #11.
 crs_equal_area <- "+proj=aea +lat_1=30 +lat_2=42 +lat_0=36 +lon_0=136 +ellps=GRS80 +units=m +no_defs"
 
-# Census years available in the commuting matrices.
+# Census years available in the commuting matrices. The wider count of workers is built
+# from the attribute-level tabulation, whose last year is 2015, so a run on that
+# denominator stops there.
 census_years <- seq(1980, 2020, by = 5)
+if (denominator == "with_side_work") census_years <- census_years[census_years <= 2015]
 
 # Dissimilarity floor of the existing pipeline. Algebraically identical to the cap of
 # 0.999 that Fowler places on the proportional flow.

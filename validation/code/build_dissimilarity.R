@@ -6,6 +6,11 @@
 # pipeline writes as a floor of 0.001 on the dissimilarity; the two are algebraically
 # the same.
 #
+# The resident labour force is the row sum of the commuting matrix over every destination
+# the census records, which is how the source paper computes the total workforce it
+# divides by. Which count is used is the denominator setting in config.R, and the flows
+# in the numerator are unaffected by it.
+#
 # Writes validation/derived/dissimilarity_<year>.rds and
 # validation/derived/labour_force_<year>.csv, both carrying the labour-force sample in
 # their names away from the baseline. Neither is committed.
@@ -30,9 +35,7 @@ build_year <- function(year) {
   mat <- matrix(0, nrow = length(units), ncol = length(units), dimnames = list(units, units))
   mat[cbind(match(kept$i, units), match(kept$j, units))] <- kept$pop
 
-  # Resident labour force is the row sum over destinations inside the scope, following
-  # the source paper, which computes it from the square matrix it clusters on.
-  rlf <- rowSums(mat)
+  rlf <- resident_labour_force(flows, units, year)
   pair_min <- pmin(matrix(rlf, length(units), length(units), byrow = FALSE),
                    matrix(rlf, length(units), length(units), byrow = TRUE))
   prop <- (mat + t(mat)) / pair_min
@@ -42,7 +45,7 @@ build_year <- function(year) {
 
   saveRDS(as.dist(dissim), derived_path("dissimilarity", year))
 
-  labour <- tibble(code = units, rlf_in_scope = rlf) %>%
+  labour <- tibble(code = units, denominator = rlf, rlf_in_scope = rowSums(mat)) %>%
     left_join(reported, by = c("code" = "i")) %>%
     mutate(dropped_to_out_of_scope = rlf_reported - rlf_in_scope)
   write_csv(labour, derived_path("labour_force", year, ".csv"))
@@ -51,9 +54,11 @@ build_year <- function(year) {
     year = year,
     municipalities_reported = length(unique(flows$i)),
     municipalities_in_scope = length(units),
-    labour_force_in_scope = sum(rlf),
+    labour_force_in_denominator = sum(rlf),
+    labour_force_in_scope = sum(labour$rlf_in_scope),
     labour_force_reported = sum(labour$rlf_reported),
-    share_lost_to_out_of_scope_destinations = 1 - sum(rlf) / sum(labour$rlf_reported)
+    share_lost_to_out_of_scope_destinations =
+      1 - sum(labour$rlf_in_scope) / sum(labour$rlf_reported)
   )
 }
 
@@ -62,5 +67,5 @@ summary_table <- bind_rows(lapply(census_years, function(y) {
   build_year(y)
 }))
 write_csv(summary_table, file.path(derived_dir,
-                                   paste0("dissimilarity_build_summary", sample_tag(), ".csv")))
+                                   paste0("dissimilarity_build_summary", variant_tag(), ".csv")))
 print(as.data.frame(summary_table))

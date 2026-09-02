@@ -31,5 +31,5 @@ counts <- lapply(census_years, function(year) {
 })
 
 counts <- bind_rows(counts)
-write_csv(counts, file.path(derived_dir, paste0("cluster_counts", sample_tag(), ".csv")))
+write_csv(counts, file.path(derived_dir, paste0("cluster_counts", variant_tag(), ".csv")))
 print(as.data.frame(counts))

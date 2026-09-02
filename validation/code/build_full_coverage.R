@@ -38,8 +38,9 @@ muni_name <- setNames(scope$muni_name, scope$code)
 #' Proportional-flow dissimilarity on every municipality a census year reports.
 #'
 #' @param flows the year's commuting matrix, on the merged municipality universe
+#' @param year census year, passed on to the denominator
 #' @return a list with the dissimilarity matrix, the flow matrix and the labour force
-full_dissimilarity <- function(flows) {
+full_dissimilarity <- function(flows, year) {
   # Municipalities that appear only as a destination have no resident labour force in the
   # matrix and cannot enter a delineation built on residents, so the universe is the set
   # of origins, as it is for the delineation the diagnostics run on.
@@ -47,8 +48,7 @@ full_dissimilarity <- function(flows) {
   kept <- flows %>% filter(i %in% units, j %in% units)
   mat <- matrix(0, nrow = length(units), ncol = length(units), dimnames = list(units, units))
   mat[cbind(match(kept$i, units), match(kept$j, units))] <- kept$pop
-  rlf <- rowSums(mat)
-  stopifnot(all(rlf > 0))
+  rlf <- resident_labour_force(flows, units, year)
   pair_min <- pmin(matrix(rlf, length(units), length(units), byrow = FALSE),
                    matrix(rlf, length(units), length(units), byrow = TRUE))
   prop <- (mat + t(mat)) / pair_min
@@ -89,7 +89,7 @@ island_rows <- list()
 for (year in census_years) {
   message("full coverage ", year)
   flows <- read_commuting(year)
-  built <- full_dissimilarity(flows)
+  built <- full_dissimilarity(flows, year)
   units <- built$units
 
   e <- edges %>% filter(code_i %in% units, code_j %in% units)

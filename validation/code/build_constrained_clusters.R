@@ -112,6 +112,6 @@ counts <- bind_rows(lapply(census_years, function(y) {
   build_year(y)
 }))
 write_csv(counts, file.path(derived_dir,
-                            paste0("constrained_cluster_counts", sample_tag(), ".csv")))
+                            paste0("constrained_cluster_counts", variant_tag(), ".csv")))
 write_csv(bind_rows(inversion_rows), file.path(output_dir, "constrained_inversions.csv"))
 print(as.data.frame(counts))
