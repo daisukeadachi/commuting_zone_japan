@@ -22,7 +22,9 @@
 
 % Navigation. Every appendix slide is one click from the body slide it belongs to, and
 % carries a single button back to it. No appendix slide links to another, so a reader who
-% follows a button always knows where Back will take them.
+% follows a button always knows where Back will take them. A frame that leads to more
+% appendix slides than fit on one row of buttons uses slidebuttonrows rather than sending
+% one of them to a body slide that motivates it less well.
 \setbeamertemplate{footline}[frame number]
 \setbeamertemplate{page number in head/foot}[appendixframenumber]
 \newcommand{\slidebuttons}[1]{%
@@ -33,6 +35,12 @@
 \newcommand{\gototwo}[4]{\slidebuttons{\hyperlink{#1}{\beamergotobutton{#2}}\hspace{0.6em}\hyperlink{#3}{\beamergotobutton{#4}}}}
 \newcommand{\gotothree}[6]{\slidebuttons{\hyperlink{#1}{\beamergotobutton{#2}}\hspace{0.6em}\hyperlink{#3}{\beamergotobutton{#4}}\hspace{0.6em}\hyperlink{#5}{\beamergotobutton{#6}}}}
 \newcommand{\backslide}[1]{\slidebuttons{\hyperlink{#1}{\beamerreturnbutton{Back}}}}
+\newcommand{\slidebuttonrows}[2]{%
+  \begin{textblock*}{11cm}(\dimexpr\paperwidth-11.35cm\relax,\dimexpr\paperheight-1.28cm\relax)
+    \raggedleft #1\\[2pt] #2%
+  \end{textblock*}}
+\newcommand{\btn}[2]{\hyperlink{#1}{\beamergotobutton{#2}}}
+\newcommand{\btngap}{\hspace{0.6em}}
 
 \title{Fowler (2024) on the Japanese commuting zones}
 \author{}
@@ -64,20 +72,20 @@
     p_{ij} = \frac{f_{ij} + f_{ji}}{\min(W_i, W_j)}, \qquad p_{ij} \le 0.999 ,
   \]
   and the dissimilarity is $1 - p_{ij}$ with a zero diagonal.
-  \vfill
   \begin{itemize}
-    \item Average-linkage hierarchical clustering, cut at a fixed tree height of 0.977, with merges restricted to clusters that adjoin on land.
-    \item Commuting matrix: residents whose labour-force status is mainly working. $W_i$ counts the same residents, summed over every destination.
-    \item 1{,}656 municipalities: the four main islands and the Okinawa main island, plus every municipality joined to one by a permanent road link.
+    \item Average-linkage clustering cut at 0.977, merging only clusters that adjoin on land.
+    \item Commuting matrix: residents mainly working; $W_i$ counts them over every destination.
+    \item 1{,}656 municipalities: the five main islands and everything joined to one by road.
     \item The twenty-three special wards of Tokyo count as one, as the ordinance-designated cities do. Split, a suburb's commute reads as twenty-three weak links.
-    \item Cores and urban areas for the fit statistics: the Urban Employment Area central cities and their areas.
+    \item Cores and urban areas for the fit statistics: the Urban Employment Areas.
   \end{itemize}
-  \gotothree{appislands}{The offshore islands}{appdeparture}{Departure from the pipeline}{appdenominator}{Who counts as working}
+  \vfill
+  \slidebuttonrows{\btn{appislands}{The offshore islands}\btngap\btn{appdeparture}{Departure from the pipeline}\btngap\btn{appdenominator}{Who counts as working}}{\btn{appsidework}{Alongside housework}\btngap\btn{appsideworkmap}{Kanto on two samples}}
 \end{frame}
 
 \begin{frame}[label=similaritymap]{Similarity between the 2010 and the 2020 delineations}{Figure 1 of Fowler (2024)}
   \centering
-  \gotothree{apppairs}{Every comparison pair}{appanchor}{Zones held at 1980}{appsideworkmap}{Kanto on two samples}
+  \gototwo{apppairs}{Every comparison pair}{appanchor}{Zones held at 1980}
   \includegraphics[height=0.72\textheight]{similarity_map_2010_2020_cut0.977.png}
   \\[2pt]
   \footnotesize Jaccard similarity: the overlap of a municipality's two commuting zones over their union. Mean \meanSimilarity{}.
@@ -85,7 +93,7 @@
 
 \begin{frame}[label=diagnostics]{Diagnostic statistics}{Table 1 of Fowler (2024)}
   \centering
-  \gotothree{appdiagcounts}{Counts, all nine years}{appdiagsize}{Size and shape, all nine years}{appsidework}{Alongside housework}
+  \gototwo{appdiagcounts}{Counts, all nine years}{appdiagsize}{Size and shape, all nine years}
   \input{tables/diagnostics}
   \\[4pt]
   \footnotesize Compactness is the Polsby--Popper ratio, $4\pi A / P^2$ of the dissolved zone, averaged across zones.
@@ -161,9 +169,10 @@
   {\Huge Appendix}
   \vfill
   \begin{itemize}
-    \item The offshore islands, the departure from the existing pipeline, and a wider count of who is working.
-    \item Every comparison pair, what holding the zones at 1980 costs, and Kanto on two samples.
-    \item Diagnostic statistics, zone size and shape, and the zones of a sample that works alongside housework.
+    \item The offshore islands, the departure from the existing pipeline, and who counts as working.
+    \item The zones of a sample that works alongside housework, in numbers and on the map.
+    \item Every comparison pair, and what holding the zones at 1980 costs.
+    \item Diagnostic statistics, zone size and shape, 1980 to 2020.
     \item Containment and the Core measures, 1980 to 2020.
     \item The lowest-containment map at the other cutoff.
     \item The two cutoff anchors compared, and the control-pair curves.
@@ -199,20 +208,12 @@
   \backslide{delineation}
 \end{frame}
 
-\begin{frame}[label=apppairs]{Every comparison pair}
+\begin{frame}[label=appsidework]{A sample that works alongside housework}{Zones built on that group's own flows and its own workforce}
   \centering
-  \input{tables/appendix_pairs}
+  {\setlength{\tabcolsep}{4pt}\input{tables/appendix_side_work}}
   \\[4pt]
-  \footnotesize The 2010 to 2020 comparison sits below both pre-pandemic controls but above the decade pairs of the 1980s and 1990s.
-  \backslide{similaritymap}
-\end{frame}
-
-\begin{frame}[label=appanchor]{What holding the zones at 1980 costs}
-  \centering
-  \includegraphics[height=0.63\textheight]{similarity_to_1980_by_year.png}
-  \\[2pt]
-  \footnotesize Both years cut at the same height. The crosswalk carries a column for every anchor year.
-  \backslide{similaritymap}
+  \footnotesize Containment is measured on this group's flows. Dividing instead by the mainly-working workforce leaves \sideWorkHeldZones{} zones in \sideWorkYear{}, \sideWorkHeldSingletons{} of them a lone municipality, so the zones are not defined.
+  \backslide{delineation}
 \end{frame}
 
 \begin{frame}[label=appsideworkmap]{Kanto under the two delineations}{2015, at the 0.977 cutoff}
@@ -229,6 +230,22 @@
   \end{minipage}
   \\[2pt]
   \footnotesize Shades separate neighbouring zones and carry no meaning.
+  \backslide{delineation}
+\end{frame}
+
+\begin{frame}[label=apppairs]{Every comparison pair}
+  \centering
+  \input{tables/appendix_pairs}
+  \\[4pt]
+  \footnotesize The 2010 to 2020 comparison sits below both pre-pandemic controls but above the decade pairs of the 1980s and 1990s.
+  \backslide{similaritymap}
+\end{frame}
+
+\begin{frame}[label=appanchor]{What holding the zones at 1980 costs}
+  \centering
+  \includegraphics[height=0.63\textheight]{similarity_to_1980_by_year.png}
+  \\[2pt]
+  \footnotesize Both years cut at the same height. The crosswalk carries a column for every anchor year.
   \backslide{similaritymap}
 \end{frame}
 
@@ -245,14 +262,6 @@
   {\setlength{\tabcolsep}{4pt}\input{tables/appendix_diagnostics_size}}
   \\[4pt]
   \footnotesize Population is the resident labour force carried in the commuting matrix. Compactness is the Polsby--Popper ratio.
-  \backslide{diagnostics}
-\end{frame}
-
-\begin{frame}[label=appsidework]{A sample that works alongside housework}{Zones built on that group's own flows and its own workforce}
-  \centering
-  {\setlength{\tabcolsep}{4pt}\input{tables/appendix_side_work}}
-  \\[4pt]
-  \footnotesize Containment is measured on this group's flows. Dividing instead by the mainly-working workforce leaves \sideWorkHeldZones{} zones in \sideWorkYear{}, \sideWorkHeldSingletons{} of them a lone municipality, so the zones are not defined.
   \backslide{diagnostics}
 \end{frame}
 
