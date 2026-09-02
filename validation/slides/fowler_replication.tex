@@ -23,22 +23,18 @@
 % Navigation. Every appendix slide is one click from the body slide it belongs to, and
 % carries a single button back to it. No appendix slide links to another, so a reader who
 % follows a button always knows where Back will take them. A frame that leads to more
-% appendix slides than fit on one row of buttons uses slidebuttonrows rather than sending
-% one of them to a body slide that motivates it less well.
+% appendix slides than fits beside its neighbours shortens the labels; the strip runs the
+% full width of the frame, so a row grows leftwards rather than wrapping.
 \setbeamertemplate{footline}[frame number]
 \setbeamertemplate{page number in head/foot}[appendixframenumber]
 \newcommand{\slidebuttons}[1]{%
-  \begin{textblock*}{11cm}(\dimexpr\paperwidth-11.35cm\relax,\dimexpr\paperheight-0.66cm\relax)
+  \begin{textblock*}{\dimexpr\paperwidth-0.7cm\relax}(0.35cm,\dimexpr\paperheight-0.66cm\relax)
     \raggedleft #1%
   \end{textblock*}}
 \newcommand{\gotoslide}[2]{\slidebuttons{\hyperlink{#1}{\beamergotobutton{#2}}}}
 \newcommand{\gototwo}[4]{\slidebuttons{\hyperlink{#1}{\beamergotobutton{#2}}\hspace{0.6em}\hyperlink{#3}{\beamergotobutton{#4}}}}
 \newcommand{\gotothree}[6]{\slidebuttons{\hyperlink{#1}{\beamergotobutton{#2}}\hspace{0.6em}\hyperlink{#3}{\beamergotobutton{#4}}\hspace{0.6em}\hyperlink{#5}{\beamergotobutton{#6}}}}
 \newcommand{\backslide}[1]{\slidebuttons{\hyperlink{#1}{\beamerreturnbutton{Back}}}}
-\newcommand{\slidebuttonrows}[2]{%
-  \begin{textblock*}{11cm}(\dimexpr\paperwidth-11.35cm\relax,\dimexpr\paperheight-1.28cm\relax)
-    \raggedleft #1\\[2pt] #2%
-  \end{textblock*}}
 \newcommand{\btn}[2]{\hyperlink{#1}{\beamergotobutton{#2}}}
 \newcommand{\btngap}{\hspace{0.6em}}
 
@@ -73,14 +69,14 @@
   \]
   and the dissimilarity is $1 - p_{ij}$ with a zero diagonal.
   \begin{itemize}
-    \item Average-linkage clustering cut at 0.977, merging only clusters that adjoin on land.
-    \item Commuting matrix: residents mainly working; $W_i$ counts them over every destination.
-    \item 1{,}656 municipalities: the five main islands and everything joined to one by road.
+    \item Average-linkage hierarchical clustering, cut at a fixed tree height of 0.977, with merges restricted to clusters that adjoin on land.
+    \item Commuting matrix: residents whose labour-force status is mainly working. $W_i$ counts the same residents, summed over every destination.
+    \item 1{,}656 municipalities: the four main islands and the Okinawa main island, plus every municipality joined to one by a permanent road link.
     \item The twenty-three special wards of Tokyo count as one, as the ordinance-designated cities do. Split, a suburb's commute reads as twenty-three weak links.
     \item Cores and urban areas for the fit statistics: the Urban Employment Areas.
   \end{itemize}
   \vfill
-  \slidebuttonrows{\btn{appislands}{The offshore islands}\btngap\btn{appdeparture}{Departure from the pipeline}\btngap\btn{appdenominator}{Who counts as working}}{\btn{appsidework}{Alongside housework}\btngap\btn{appsideworkmap}{Kanto on two samples}}
+  \slidebuttons{\btn{appislands}{The offshore islands}\btngap\btn{appdeparture}{Departure from the pipeline}\btngap\btn{appdenominator}{Who counts as working}\btngap\btn{appsidework}{Alongside housework}\btngap\btn{appsideworkmap}{Kanto on two samples}}
 \end{frame}
 
 \begin{frame}[label=similaritymap]{Similarity between the 2010 and the 2020 delineations}{Figure 1 of Fowler (2024)}
