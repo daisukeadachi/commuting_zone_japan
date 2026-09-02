@@ -77,6 +77,7 @@ rows <- bind_rows(lapply(comparison_years, function(year) {
       zones_side_work = n_distinct(own_denominator),
       zones_side_work_baseline_denominator = n_distinct(baseline_denominator),
       singletons_side_work = sum(table(own_denominator) == 1),
+      singletons_side_work_baseline_denominator = sum(table(baseline_denominator) == 1),
       largest_zone_side_work = max(table(own_denominator)),
       mean_similarity_to_baseline = mean(score),
       weighted_similarity_to_baseline = weighted.mean(score, weight),

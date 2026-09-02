@@ -233,6 +233,21 @@ write_table(rows, "appendix_denominator.tex", "lrrrrr",
                    "\\cmidrule(lr){2-3} \\cmidrule(lr){5-6} ",
                    "& Mainly working & Wider & & Mainly working & Wider", br))
 
+num <- read_csv(file.path(output_dir, "numerator_comparison.csv"), show_col_types = FALSE) %>%
+  filter(abs(cutoff - slide_cutoff) < 1e-9) %>%
+  arrange(year)
+rows <- sprintf("%d & %s & %s & %s & %s & %s & %s%s", num$year,
+                count(num$zones_baseline), count(num$zones_side_work),
+                count(num$singletons_side_work), count(num$largest_zone_side_work),
+                ratio(num$mean_similarity_to_baseline),
+                ratio(num$mean_contained_side_work_zones), br)
+write_table(rows, "appendix_side_work.tex", "lrrrrrr",
+            paste0("Year & \\multicolumn{2}{c}{Commuting zones} & Single & Largest & ",
+                   "Similarity & Mean", br,
+                   "\\cmidrule(lr){2-3} ",
+                   "& Mainly working & Alongside & municipality & zone & to baseline & contained",
+                   br))
+
 pairs_all <- read_csv(output_path("similarity_table.csv"), show_col_types = FALSE) %>%
   filter(abs(cutoff_earlier - slide_cutoff) < 1e-9) %>%
   arrange(earlier_year, later_year)
@@ -272,6 +287,11 @@ macros <- c(
           count(den$zones_baseline[den$year == max(den$year)])),
   sprintf("\\newcommand{\\denominatorZones}{%s}",
           count(den$zones_with_side_work[den$year == max(den$year)])),
-  sprintf("\\newcommand{\\denominatorYear}{%d}", max(den$year))
+  sprintf("\\newcommand{\\denominatorYear}{%d}", max(den$year)),
+  sprintf("\\newcommand{\\sideWorkHeldZones}{%s}",
+          count(num$zones_side_work_baseline_denominator[num$year == max(num$year)])),
+  sprintf("\\newcommand{\\sideWorkHeldSingletons}{%s}",
+          count(num$singletons_side_work_baseline_denominator[num$year == max(num$year)])),
+  sprintf("\\newcommand{\\sideWorkYear}{%d}", max(num$year))
 )
 write_rows(macros, "numbers.tex")

@@ -77,7 +77,7 @@
 
 \begin{frame}[label=similaritymap]{Similarity between the 2010 and the 2020 delineations}{Figure 1 of Fowler (2024)}
   \centering
-  \gototwo{apppairs}{Every comparison pair}{appanchor}{Zones held at 1980}
+  \gotothree{apppairs}{Every comparison pair}{appanchor}{Zones held at 1980}{appsideworkmap}{Kanto on two samples}
   \includegraphics[height=0.72\textheight]{similarity_map_2010_2020_cut0.977.png}
   \\[2pt]
   \footnotesize Jaccard similarity: the overlap of a municipality's two commuting zones over their union. Mean \meanSimilarity{}.
@@ -85,7 +85,7 @@
 
 \begin{frame}[label=diagnostics]{Diagnostic statistics}{Table 1 of Fowler (2024)}
   \centering
-  \gototwo{appdiagcounts}{Counts, all nine years}{appdiagsize}{Size and shape, all nine years}
+  \gotothree{appdiagcounts}{Counts, all nine years}{appdiagsize}{Size and shape, all nine years}{appsidework}{Alongside housework}
   \input{tables/diagnostics}
   \\[4pt]
   \footnotesize Compactness is the Polsby--Popper ratio, $4\pi A / P^2$ of the dissolved zone, averaged across zones.
@@ -162,8 +162,8 @@
   \vfill
   \begin{itemize}
     \item The offshore islands, the departure from the existing pipeline, and a wider count of who is working.
-    \item Every comparison pair, and what holding the zones at 1980 costs.
-    \item Diagnostic statistics, zone size and shape, 1980 to 2020.
+    \item Every comparison pair, what holding the zones at 1980 costs, and Kanto on two samples.
+    \item Diagnostic statistics, zone size and shape, and the zones of a sample that works alongside housework.
     \item Containment and the Core measures, 1980 to 2020.
     \item The lowest-containment map at the other cutoff.
     \item The two cutoff anchors compared, and the control-pair curves.
@@ -215,6 +215,23 @@
   \backslide{similaritymap}
 \end{frame}
 
+\begin{frame}[label=appsideworkmap]{Kanto under the two delineations}{2015, at the 0.977 cutoff}
+  \centering
+  \begin{minipage}{0.46\textwidth}
+    \centering
+    \footnotesize Mainly working: 29 zones\\[2pt]
+    \includegraphics[height=0.70\textheight]{kanto_zones_mainly_working_2015_cut0.977.png}
+  \end{minipage}\hfill
+  \begin{minipage}{0.46\textwidth}
+    \centering
+    \footnotesize Alongside housework: 56 zones\\[2pt]
+    \includegraphics[height=0.70\textheight]{kanto_zones_alongside_housework_2015_cut0.977.png}
+  \end{minipage}
+  \\[2pt]
+  \footnotesize Shades separate neighbouring zones and carry no meaning.
+  \backslide{similaritymap}
+\end{frame}
+
 \begin{frame}[label=appdiagcounts]{Diagnostic statistics, 1980 to 2020}
   \centering
   \input{tables/appendix_diagnostics_counts}
@@ -228,6 +245,14 @@
   {\setlength{\tabcolsep}{4pt}\input{tables/appendix_diagnostics_size}}
   \\[4pt]
   \footnotesize Population is the resident labour force carried in the commuting matrix. Compactness is the Polsby--Popper ratio.
+  \backslide{diagnostics}
+\end{frame}
+
+\begin{frame}[label=appsidework]{A sample that works alongside housework}{Zones built on that group's own flows and its own workforce}
+  \centering
+  {\setlength{\tabcolsep}{4pt}\input{tables/appendix_side_work}}
+  \\[4pt]
+  \footnotesize Containment is measured on this group's flows. Dividing instead by the mainly-working workforce leaves \sideWorkHeldZones{} zones in \sideWorkYear{}, \sideWorkHeldSingletons{} of them a lone municipality, so the zones are not defined.
   \backslide{diagnostics}
 \end{frame}
 
