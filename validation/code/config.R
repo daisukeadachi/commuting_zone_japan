@@ -41,8 +41,13 @@ stopifnot(delineation %in% c("unconstrained", "constrained"))
 # CZ_SAMPLE to "WORK_ALL" to run on the wider sample; every derived object and every
 # table and figure then carries the sample in its name, so the two runs stand beside each
 # other and neither overwrites the baseline.
+#
+# SIDE_WORK is the flows of the eight million people who work alongside housework, on
+# their own, which is what a delineation of that group's commuting zones needs.
+# build_side_work_flows.R builds it into the repository's derived folder rather than the
+# shared one, and it reaches 1980 to 2015 for the same reason the wider denominator does.
 sample_definition <- Sys.getenv("CZ_SAMPLE", "WORK_MAIN")
-stopifnot(sample_definition %in% c("WORK_MAIN", "WORK_ALL"))
+stopifnot(sample_definition %in% c("WORK_MAIN", "WORK_ALL", "SIDE_WORK"))
 
 #' File-name tag for a labour-force sample, empty under the baseline.
 sample_tag <- function(which = sample_definition) {
@@ -59,10 +64,14 @@ sample_tag <- function(which = sample_definition) {
 # while leaving the flows themselves on the "mainly working" sample, so that what a wider
 # reading of who is working does to the delineation can be read off the denominator
 # alone; build_side_work_denominator.R builds it, and it exists for 1980 to 2015 only.
+# "mainly_working" holds the count at the baseline whatever sample the flows are drawn
+# from, which is what isolates a change of numerator: a delineation built on the flows of
+# one group, divided by the workforce the baseline divides by, differs from the baseline
+# only in its flows. Under the baseline sample the two are the same number.
 # Set the environment variable CZ_DENOMINATOR to choose; away from the baseline every
 # derived object and every table and figure carries the choice in its name.
 denominator <- Sys.getenv("CZ_DENOMINATOR", "reported")
-stopifnot(denominator %in% c("reported", "in_scope", "with_side_work"))
+stopifnot(denominator %in% c("reported", "in_scope", "with_side_work", "mainly_working"))
 
 #' File-name tag for a denominator, empty under the baseline.
 denominator_tag <- function(which = denominator) {
@@ -88,7 +97,9 @@ resident_labour_force <- function(flows, units, year) {
     with_side_work = suppressMessages(readr::read_csv(
       side_work_denominator_path(year),
       col_types = readr::cols(code = readr::col_character()))) |>
-      dplyr::transmute(i = code, w = workers))
+      dplyr::transmute(i = code, w = workers),
+    mainly_working = read_commuting(year, which = "WORK_MAIN") |> dplyr::group_by(i) |>
+      dplyr::summarise(w = sum(pop), .groups = "drop"))
   out <- setNames(count$w, count$i)[units]
   stopifnot(!any(is.na(out)), all(out > 0))
   out
@@ -105,7 +116,8 @@ side_work_denominator_path <- function(year) {
 #' @param code_type "harmonized" or "original"
 #' @param which labour-force sample; defaults to the selected one
 commute_path <- function(year, code_type = "harmonized", which = sample_definition) {
-  root <- if (year == census2020_year) census2020_dir else commute_dir
+  root <- if (which == "SIDE_WORK") derived_dir
+          else if (year == census2020_year) census2020_dir else commute_dir
   file.path(root, which, sprintf("commute_%d_%s.csv", year, code_type))
 }
 
@@ -282,7 +294,9 @@ crs_equal_area <- "+proj=aea +lat_1=30 +lat_2=42 +lat_0=36 +lon_0=136 +ellps=GRS
 # from the attribute-level tabulation, whose last year is 2015, so a run on that
 # denominator stops there.
 census_years <- seq(1980, 2020, by = 5)
-if (denominator == "with_side_work") census_years <- census_years[census_years <= 2015]
+if (denominator == "with_side_work" || sample_definition == "SIDE_WORK") {
+  census_years <- census_years[census_years <= 2015]
+}
 
 # Dissimilarity floor of the existing pipeline. Algebraically identical to the cap of
 # 0.999 that Fowler places on the proportional flow.
@@ -346,8 +360,8 @@ merge_tokyo_wards <- function(codes) {
 
 # Commuting flows on the merged universe. Reading them anywhere else risks a layer that
 # still carries the twenty-three ward codes.
-read_commuting <- function(year, code_type = "harmonized") {
-  raw <- suppressMessages(readr::read_csv(commute_path(year, code_type),
+read_commuting <- function(year, code_type = "harmonized", which = sample_definition) {
+  raw <- suppressMessages(readr::read_csv(commute_path(year, code_type, which),
                                           show_col_types = FALSE))
   raw |>
     dplyr::transmute(

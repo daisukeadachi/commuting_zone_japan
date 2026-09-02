@@ -18,7 +18,8 @@
 # moves the delineation is reported rather than assumed.
 #
 # Writes validation/derived/zones_full_<year>_cut<cutoff>.csv, not committed, and
-# validation/output/full_coverage_zones.csv and validation/output/island_zones.csv.
+# validation/output/full_coverage_zones.csv and validation/output/island_zones.csv. All
+# three carry the sample and the denominator in their names away from the baseline.
 
 suppressMessages({
   library(dplyr)
@@ -101,11 +102,14 @@ for (year in census_years) {
   })
   names(trees) <- sort(unique(membership))
 
-  # Containment is the share of a municipality's residents who work inside its own zone.
+  # Containment is the share of a municipality's workers who work inside its own zone,
+  # so it divides by the workers the flow matrix holds rather than by whatever count the
+  # proportional flow divides by, which need not be the same people.
+  workers <- rowSums(built$flows)
   contained_by <- function(assigned) {
     zone <- setNames(assigned$zone, assigned$code)
     same <- outer(zone[units], zone[units], `==`)
-    rowSums(built$flows * same) / built$rlf
+    rowSums(built$flows * same) / workers
   }
 
   for (cutoff in cutoff_anchors) {
@@ -131,9 +135,9 @@ for (year in census_years) {
         year = year, cutoff = cutoff, zone = z,
         municipalities = length(members),
         muni_names = paste(muni_name[members], collapse = "; "),
-        resident_labour_force = sum(built$rlf[members]),
+        resident_labour_force = sum(workers[members]),
         mean_contained = mean(contained[members]),
-        labour_weighted_contained = weighted.mean(contained[members], built$rlf[members]))
+        labour_weighted_contained = weighted.mean(contained[members], workers[members]))
     }
 
     summary_rows[[length(summary_rows) + 1]] <- tibble(
@@ -142,9 +146,9 @@ for (year in census_years) {
       municipalities_on_islands = length(island_units),
       zones = n_distinct(assigned$zone),
       island_zones = length(island_zone_ids),
-      labour_force = sum(built$rlf),
-      labour_force_on_islands = sum(built$rlf[island_units]),
-      share_of_labour_force_on_islands = sum(built$rlf[island_units]) / sum(built$rlf),
+      labour_force = sum(workers),
+      labour_force_on_islands = sum(workers[island_units]),
+      share_of_labour_force_on_islands = sum(workers[island_units]) / sum(workers),
       mean_contained_islands = mean(contained[island_units]),
       mean_contained_in_scope = mean(contained[intersect(units, in_scope)]),
       mean_similarity_to_baseline = mean(agreement),
@@ -153,6 +157,6 @@ for (year in census_years) {
 }
 
 summary_table <- bind_rows(summary_rows)
-write_csv(summary_table, file.path(output_dir, "full_coverage_zones.csv"))
-write_csv(bind_rows(island_rows), file.path(output_dir, "island_zones.csv"))
+write_csv(summary_table, output_path("full_coverage_zones.csv"))
+write_csv(bind_rows(island_rows), output_path("island_zones.csv"))
 print(as.data.frame(summary_table))
