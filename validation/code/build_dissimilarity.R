@@ -7,7 +7,8 @@
 # the same.
 #
 # Writes validation/derived/dissimilarity_<year>.rds and
-# validation/derived/labour_force_<year>.csv. Neither is committed.
+# validation/derived/labour_force_<year>.csv, both carrying the labour-force sample in
+# their names away from the baseline. Neither is committed.
 
 suppressMessages({
   library(dplyr)
@@ -39,12 +40,12 @@ build_year <- function(year) {
   dissim <- 1 - prop
   diag(dissim) <- 0
 
-  saveRDS(as.dist(dissim), file.path(derived_dir, sprintf("dissimilarity_%d.rds", year)))
+  saveRDS(as.dist(dissim), derived_path("dissimilarity", year))
 
   labour <- tibble(code = units, rlf_in_scope = rlf) %>%
     left_join(reported, by = c("code" = "i")) %>%
     mutate(dropped_to_out_of_scope = rlf_reported - rlf_in_scope)
-  write_csv(labour, file.path(derived_dir, sprintf("labour_force_%d.csv", year)))
+  write_csv(labour, derived_path("labour_force", year, ".csv"))
 
   tibble(
     year = year,
@@ -60,5 +61,6 @@ summary_table <- bind_rows(lapply(census_years, function(y) {
   message("building ", y)
   build_year(y)
 }))
-write_csv(summary_table, file.path(derived_dir, "dissimilarity_build_summary.csv"))
+write_csv(summary_table, file.path(derived_dir,
+                                   paste0("dissimilarity_build_summary", sample_tag(), ".csv")))
 print(as.data.frame(summary_table))

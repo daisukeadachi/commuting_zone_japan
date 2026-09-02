@@ -54,8 +54,10 @@ Rebuild scripts are in `validation/code`. `build_did_table.py` re-fetches its bu
 
 Two inputs are not in the repository and have to be read from the shared project folder, rooted at `Dropbox/projects/Kawaguchi_Saito/CommutingZone/adachi/clustering`:
 
-- Commuting matrices, `data/raw/commuteCensusData/data/use/WORK_MAIN/commute_<year>_<harmonized|original>.csv`, 1980 to 2020.
+- Commuting matrices, `data/raw/commuteCensusData/data/use/<sample>/commute_<year>_<harmonized|original>.csv`, 1980 to 2015, one folder per labour-force sample.
 - The municipality boundary layer, `data/raw/mmm/shapefiles/mmm20151001_ku_aggregate/mmm20151001.shp`. The folder name matters: the wards are already aggregated, matching the convention above.
+
+The 2020 matrices sit in a shared folder of their own, `Dropbox/projects/CZ_RA/census2020`, under the same one-folder-per-sample layout. `commute_path` in `validation/code/config.R` sends 2020 there and every earlier year to the folder above, so a run reaches both without either path being written out again. The 2020 matrix on "mainly working" also exists under the older folder; the two files hold the same rows in a different order, so which one is read does not change the delineation. The wider sample was delivered for 2020 only in the newer folder.
 
 ## Traps already found, do not rediscover them
 

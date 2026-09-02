@@ -110,8 +110,7 @@ for (year in census_years) {
 
   for (cutoff in cutoff_anchors) {
     assigned <- assign_zones(trees, membership, cutoff)
-    write_csv(assigned, file.path(derived_dir,
-                                  sprintf("zones_full_%d_cut%s.csv", year, cut_label(cutoff))))
+    write_csv(assigned, full_zone_path(year, cutoff))
 
     contained <- contained_by(assigned)
     zone_of <- setNames(assigned$zone, assigned$code)

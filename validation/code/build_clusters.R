@@ -5,7 +5,8 @@
 # the source paper. The tree itself is kept because the cutoff sweep needs it.
 #
 # Writes validation/derived/hclust_<year>.rds and
-# validation/derived/zones_<year>_cut<cutoff>.csv. Neither is committed.
+# validation/derived/zones_<year>_cut<cutoff>.csv, both carrying the labour-force sample
+# in their names away from the baseline. Neither is committed.
 
 suppressMessages({
   library(dplyr)
@@ -14,9 +15,9 @@ suppressMessages({
 source("validation/code/config.R")
 
 counts <- lapply(census_years, function(year) {
-  dissim <- readRDS(file.path(derived_dir, sprintf("dissimilarity_%d.rds", year)))
+  dissim <- readRDS(derived_path("dissimilarity", year))
   tree <- hclust(dissim, method = "average")
-  saveRDS(tree, file.path(derived_dir, sprintf("hclust_%d.rds", year)))
+  saveRDS(tree, tree_path(year, "unconstrained"))
 
   bind_rows(lapply(cutoff_anchors, function(cutoff) {
     zone <- cutree(tree, h = cutoff)
@@ -30,5 +31,5 @@ counts <- lapply(census_years, function(year) {
 })
 
 counts <- bind_rows(counts)
-write_csv(counts, file.path(derived_dir, "cluster_counts.csv"))
+write_csv(counts, file.path(derived_dir, paste0("cluster_counts", sample_tag(), ".csv")))
 print(as.data.frame(counts))

@@ -5,8 +5,18 @@
 # live here rather than in the repository; see validation/notes/handoff.md.
 shared_root <- "C:/Users/au698627/Dropbox/projects/Kawaguchi_Saito/CommutingZone/adachi/clustering"
 
-commute_dir <- file.path(shared_root, "data/raw/commuteCensusData/data/use/WORK_MAIN")
+commute_dir <- file.path(shared_root, "data/raw/commuteCensusData/data/use")
 boundary_shp <- file.path(shared_root, "data/raw/mmm/shapefiles/mmm20151001_ku_aggregate/mmm20151001.shp")
+
+# The 2020 matrices arrived later than the rest and sit in their own shared folder, one
+# subfolder per labour-force sample as under commute_dir. Only 2020 is there: 1980 to
+# 2015 exist under commute_dir alone, and the 2020 matrix on "mainly working" exists in
+# both places, where the two files hold the same rows in a different order. Reading 2020
+# from here rather than from commute_dir therefore leaves the delineation unchanged, and
+# it is the only way to reach the sample that also counts secondary and student jobs,
+# which was delivered for 2020 here and nowhere else.
+census2020_dir <- "C:/Users/au698627/Dropbox/projects/CZ_RA/census2020"
+census2020_year <- 2020L
 
 # Repository paths. Derived objects are large and are not committed.
 data_dir <- "validation/data"
@@ -24,8 +34,56 @@ output_dir <- "validation/output"
 delineation <- Sys.getenv("CZ_DELINEATION", "constrained")
 stopifnot(delineation %in% c("unconstrained", "constrained"))
 
+# Which labour-force sample the commuting matrix is drawn from. WORK_MAIN is the baseline
+# and holds persons whose labour-force status is "mainly working". WORK_ALL widens it to
+# persons working alongside housework or study and to persons temporarily absent from a
+# job, which adds about a fifth to the counted labour force. Set the environment variable
+# CZ_SAMPLE to "WORK_ALL" to run on the wider sample; every derived object and every
+# table and figure then carries the sample in its name, so the two runs stand beside each
+# other and neither overwrites the baseline.
+sample_definition <- Sys.getenv("CZ_SAMPLE", "WORK_MAIN")
+stopifnot(sample_definition %in% c("WORK_MAIN", "WORK_ALL"))
+
+#' File-name tag for a labour-force sample, empty under the baseline.
+sample_tag <- function(which = sample_definition) {
+  if (which == "WORK_MAIN") "" else paste0("_", tolower(which))
+}
+
+#' Path of one census year's commuting matrix.
+#'
+#' @param year census year
+#' @param code_type "harmonized" or "original"
+#' @param which labour-force sample; defaults to the selected one
+commute_path <- function(year, code_type = "harmonized", which = sample_definition) {
+  root <- if (year == census2020_year) census2020_dir else commute_dir
+  file.path(root, which, sprintf("commute_%d_%s.csv", year, code_type))
+}
+
+#' Path of a derived object that depends on the sample but not on the delineation.
+#'
+#' @param stem file name up to the year, without the sample tag
+#' @param year census year
+#' @param ext file extension, including the dot
+derived_path <- function(stem, year, ext = ".rds") {
+  file.path(derived_dir, sprintf("%s%s_%d%s", stem, sample_tag(), year, ext))
+}
+
+#' Path of a saved agglomeration.
+#'
+#' @param year census year
+#' @param which "unconstrained" or "constrained"; defaults to the selected delineation
+tree_path <- function(year, which = delineation) {
+  derived_path(if (which == "constrained") "constrained_hclust" else "hclust", year)
+}
+
 # The cutoff as it appears in a file name, at three decimals.
 cut_label <- function(cutoff) format(cutoff, nsmall = 3)
+
+#' Path of a full-coverage zone assignment, the one that carries the offshore islands.
+full_zone_path <- function(year, cutoff) {
+  file.path(derived_dir, sprintf("zones_full_%d_cut%s%s.csv", year, cut_label(cutoff),
+                                 sample_tag()))
+}
 
 #' Path of a zone assignment written by the build step.
 #'
@@ -34,24 +92,28 @@ cut_label <- function(cutoff) format(cutoff, nsmall = 3)
 #' @param which "unconstrained" or "constrained"; defaults to the selected delineation
 zone_path <- function(year, cutoff, which = delineation) {
   prefix <- if (which == "constrained") "zones_constrained" else "zones"
-  file.path(derived_dir, sprintf("%s_%d_cut%s.csv", prefix, year, cut_label(cutoff)))
+  file.path(derived_dir, sprintf("%s%s_%d_cut%s.csv", prefix, sample_tag(), year,
+                                 cut_label(cutoff)))
 }
 
 #' Destination of a diagnostic table.
 #'
-#' Away from the baseline the delineation is written into the file name, which is what
-#' keeps an unconstrained run from overwriting the baseline tables.
+#' Away from the baseline the delineation and the labour-force sample are written into
+#' the file name, which is what keeps an unconstrained or a wider-sample run from
+#' overwriting the baseline tables.
 #'
 #' @param name file name the table carries under the baseline
 #' @param which "unconstrained" or "constrained"; defaults to the selected delineation
 output_path <- function(name, which = delineation) {
-  if (which == "constrained") return(file.path(output_dir, name))
-  file.path(output_dir, sub("([.][^.]+)$", "_unconstrained\\1", name))
+  tag <- paste0(if (which == "constrained") "" else "_unconstrained", sample_tag())
+  if (tag == "") return(file.path(output_dir, name))
+  file.path(output_dir, sub("([.][^.]+)$", paste0(tag, "\\1"), name))
 }
 
-#' Directory the figures are written to, one per delineation.
+#' Directory the figures are written to, one per delineation and sample.
 figure_path <- function(which = delineation) {
-  file.path(output_dir, if (which == "unconstrained") "figures_unconstrained" else "figures")
+  stem <- if (which == "unconstrained") "figures_unconstrained" else "figures"
+  file.path(output_dir, paste0(stem, sample_tag()))
 }
 
 #' Zones obtained by stopping an agglomeration at a cutoff.
@@ -91,10 +153,9 @@ cut_tree_at_height <- function(tree, cutoff) {
 .tree_cache <- new.env(parent = emptyenv())
 
 load_tree <- function(year) {
-  key <- sprintf("%s_%d", delineation, year)
+  key <- sprintf("%s_%s_%d", delineation, sample_definition, year)
   if (!exists(key, envir = .tree_cache)) {
-    file <- if (delineation == "constrained") "constrained_hclust_%d.rds" else "hclust_%d.rds"
-    assign(key, readRDS(file.path(derived_dir, sprintf(file, year))), envir = .tree_cache)
+    assign(key, readRDS(tree_path(year)), envir = .tree_cache)
   }
   get(key, envir = .tree_cache)
 }
@@ -232,8 +293,8 @@ merge_tokyo_wards <- function(codes) {
 # Commuting flows on the merged universe. Reading them anywhere else risks a layer that
 # still carries the twenty-three ward codes.
 read_commuting <- function(year, code_type = "harmonized") {
-  path <- file.path(commute_dir, sprintf("commute_%d_%s.csv", year, code_type))
-  raw <- suppressMessages(readr::read_csv(path, show_col_types = FALSE))
+  raw <- suppressMessages(readr::read_csv(commute_path(year, code_type),
+                                          show_col_types = FALSE))
   raw |>
     dplyr::transmute(
       i = merge_tokyo_wards(sprintf("%05d", as.integer(living_mun))),
