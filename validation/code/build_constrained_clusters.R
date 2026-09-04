@@ -16,7 +16,8 @@
 #
 # Writes validation/derived/constrained_hclust_<year>.rds and
 # validation/derived/zones_constrained_<year>_cut<cutoff>.csv, neither committed, and
-# validation/output/constrained_inversions.csv.
+# validation/output/constrained_inversions.csv. All three carry the labour-force sample
+# in their names away from the baseline.
 
 suppressMessages({
   library(dplyr)
@@ -59,7 +60,7 @@ component_tree <- function(dissim_matrix, units) {
 inversion_rows <- list()
 
 build_year <- function(year) {
-  dissim <- readRDS(file.path(derived_dir, sprintf("dissimilarity_%d.rds", year)))
+  dissim <- readRDS(derived_path("dissimilarity", year))
   units <- labels(dissim)
   dissim_matrix <- as.matrix(dissim)
   membership <- year_components(units)
@@ -84,7 +85,7 @@ build_year <- function(year) {
   }
 
   saveRDS(list(trees = trees, membership = membership),
-          file.path(derived_dir, sprintf("constrained_hclust_%d.rds", year)))
+          tree_path(year, "constrained"))
 
   bind_rows(lapply(cutoff_anchors, function(cutoff) {
     # Each component is cut on its own tree; the labels are then offset so that no two
@@ -110,6 +111,7 @@ counts <- bind_rows(lapply(census_years, function(y) {
   message("constrained clustering ", y)
   build_year(y)
 }))
-write_csv(counts, file.path(derived_dir, "constrained_cluster_counts.csv"))
-write_csv(bind_rows(inversion_rows), file.path(output_dir, "constrained_inversions.csv"))
+write_csv(counts, file.path(derived_dir,
+                            paste0("constrained_cluster_counts", variant_tag(), ".csv")))
+write_csv(bind_rows(inversion_rows), output_path("constrained_inversions.csv"))
 print(as.data.frame(counts))

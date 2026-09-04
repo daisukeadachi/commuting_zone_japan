@@ -22,16 +22,21 @@
 
 % Navigation. Every appendix slide is one click from the body slide it belongs to, and
 % carries a single button back to it. No appendix slide links to another, so a reader who
-% follows a button always knows where Back will take them.
+% follows a button always knows where Back will take them. A frame that leads to more
+% appendix slides than fits beside its neighbours shortens the labels; the strip runs the
+% full width of the frame, so a row grows leftwards rather than wrapping.
 \setbeamertemplate{footline}[frame number]
 \setbeamertemplate{page number in head/foot}[appendixframenumber]
 \newcommand{\slidebuttons}[1]{%
-  \begin{textblock*}{11cm}(\dimexpr\paperwidth-11.35cm\relax,\dimexpr\paperheight-0.66cm\relax)
+  \begin{textblock*}{\dimexpr\paperwidth-0.7cm\relax}(0.35cm,\dimexpr\paperheight-0.66cm\relax)
     \raggedleft #1%
   \end{textblock*}}
 \newcommand{\gotoslide}[2]{\slidebuttons{\hyperlink{#1}{\beamergotobutton{#2}}}}
 \newcommand{\gototwo}[4]{\slidebuttons{\hyperlink{#1}{\beamergotobutton{#2}}\hspace{0.6em}\hyperlink{#3}{\beamergotobutton{#4}}}}
+\newcommand{\gotothree}[6]{\slidebuttons{\hyperlink{#1}{\beamergotobutton{#2}}\hspace{0.6em}\hyperlink{#3}{\beamergotobutton{#4}}\hspace{0.6em}\hyperlink{#5}{\beamergotobutton{#6}}}}
 \newcommand{\backslide}[1]{\slidebuttons{\hyperlink{#1}{\beamerreturnbutton{Back}}}}
+\newcommand{\btn}[2]{\hyperlink{#1}{\beamergotobutton{#2}}}
+\newcommand{\btngap}{\hspace{0.6em}}
 
 \title{Fowler (2024) on the Japanese commuting zones}
 \author{}
@@ -63,15 +68,15 @@
     p_{ij} = \frac{f_{ij} + f_{ji}}{\min(W_i, W_j)}, \qquad p_{ij} \le 0.999 ,
   \]
   and the dissimilarity is $1 - p_{ij}$ with a zero diagonal.
-  \vfill
   \begin{itemize}
     \item Average-linkage hierarchical clustering, cut at a fixed tree height of 0.977, with merges restricted to clusters that adjoin on land.
-    \item Commuting matrix: residents mainly working, ordinary households, the only definition available for 2020.
+    \item Commuting matrix: residents whose labour-force status is mainly working. $W_i$ counts the same residents, summed over every destination.
     \item 1{,}656 municipalities: the four main islands and the Okinawa main island, plus every municipality joined to one by a permanent road link.
     \item The twenty-three special wards of Tokyo count as one, as the ordinance-designated cities do. Split, a suburb's commute reads as twenty-three weak links.
-    \item Cores and urban areas for the fit statistics: the Urban Employment Area central cities and their areas.
+    \item Cores and urban areas for the fit statistics: the Urban Employment Areas.
   \end{itemize}
-  \gototwo{appislands}{The offshore islands}{appdeparture}{Departure from the pipeline}
+  \vfill
+  \slidebuttons{\btn{appislands}{The offshore islands}\btngap\btn{appdeparture}{Departure from the pipeline}\btngap\btn{appdenominator}{Who counts as working}\btngap\btn{appsidework}{Alongside housework}\btngap\btn{appsideworkmap}{Kanto on two samples}}
 \end{frame}
 
 \begin{frame}[label=similaritymap]{Similarity between the 2010 and the 2020 delineations}{Figure 1 of Fowler (2024)}
@@ -145,6 +150,7 @@
     \item \filelink{validation/notes/island\_coverage.md} --- the offshore islands, and what covering them changes.
     \item \filelink{validation/notes/zone\_crosswalk.md} --- the published crosswalk, column by column.
     \item \filelink{validation/notes/method\_crosscheck.md} --- the delineation formula across four implementations.
+    \item \filelink{validation/notes/denominator.md} --- what the proportional flow divides by, and a wider count of who works.
     \item \filelink{validation/notes/core\_definition.md} --- why the Urban Employment Area supplies the cores.
     \item \filelink{validation/output} --- the tables behind every slide, as comma-separated files.
   \end{itemize}
@@ -159,7 +165,8 @@
   {\Huge Appendix}
   \vfill
   \begin{itemize}
-    \item The offshore islands, and the departure from the existing pipeline.
+    \item The offshore islands, the departure from the existing pipeline, and who counts as working.
+    \item The zones of a sample that works alongside housework, in numbers and on the map.
     \item Every comparison pair, and what holding the zones at 1980 costs.
     \item Diagnostic statistics, zone size and shape, 1980 to 2020.
     \item Containment and the Core measures, 1980 to 2020.
@@ -186,6 +193,39 @@
     \item Between 1.2 and 4.4 percent of pairs are affected in each year, moving up to four zones and up to 108 municipalities.
     \item Measured year by year in \filelink{validation/notes/method\_crosscheck.md}.
   \end{itemize}
+  \backslide{delineation}
+\end{frame}
+
+\begin{frame}[label=appdenominator]{Who counts as working}{The denominator widened to work alongside housework or study}
+  \centering
+  {\setlength{\tabcolsep}{4pt}\input{tables/appendix_denominator}}
+  \\[4pt]
+  \footnotesize The wider count is up to \denominatorRatio\ times the baseline. Flows stay on residents mainly working, so containment is measured against the same commuting.
+  \backslide{delineation}
+\end{frame}
+
+\begin{frame}[label=appsidework]{A sample that works alongside housework}{Zones built on that group's own flows and its own workforce}
+  \centering
+  {\setlength{\tabcolsep}{4pt}\input{tables/appendix_side_work}}
+  \\[4pt]
+  \footnotesize Containment is measured on this group's flows. Dividing instead by the mainly-working workforce leaves \sideWorkHeldZones{} zones in \sideWorkYear{}, \sideWorkHeldSingletons{} of them a lone municipality, so the zones are not defined.
+  \backslide{delineation}
+\end{frame}
+
+\begin{frame}[label=appsideworkmap]{Kanto under the two delineations}{2015, at the 0.977 cutoff}
+  \centering
+  \begin{minipage}{0.46\textwidth}
+    \centering
+    \footnotesize Mainly working: 29 zones\\[2pt]
+    \includegraphics[height=0.70\textheight]{kanto_zones_mainly_working_2015_cut0.977.png}
+  \end{minipage}\hfill
+  \begin{minipage}{0.46\textwidth}
+    \centering
+    \footnotesize Alongside housework: 56 zones\\[2pt]
+    \includegraphics[height=0.70\textheight]{kanto_zones_alongside_housework_2015_cut0.977.png}
+  \end{minipage}
+  \\[2pt]
+  \footnotesize Shades separate neighbouring zones and carry no meaning.
   \backslide{delineation}
 \end{frame}
 

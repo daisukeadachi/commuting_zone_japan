@@ -70,9 +70,9 @@ movers <- list()
 
 rows <- bind_rows(lapply(census_years, function(year) {
   message("comparing ", year)
-  labour <- read_csv(file.path(derived_dir, sprintf("labour_force_%d.csv", year)),
+  labour <- read_csv(derived_path("labour_force", year, ".csv"),
                      col_types = cols(code = col_character()))
-  tree <- readRDS(file.path(derived_dir, sprintf("hclust_%d.rds", year)))
+  tree <- readRDS(tree_path(year, "unconstrained"))
   all_flows <- read_commuting(year)
 
   bind_rows(lapply(cutoff_anchors, function(cutoff) {

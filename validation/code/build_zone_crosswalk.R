@@ -105,8 +105,7 @@ records <- records %>%
 for (cutoff in cutoff_anchors) {
   table <- records
   for (anchor in census_years) {
-    zones <- read_csv(file.path(derived_dir,
-                                sprintf("zones_full_%d_cut%s.csv", anchor, cut_label(cutoff))),
+    zones <- read_csv(full_zone_path(anchor, cutoff),
                       col_types = cols(code = col_character(), zone = col_integer()))
     table[[sprintf("zone_%d", anchor)]] <-
       setNames(zones$zone, zones$code)[table$delineation_unit]

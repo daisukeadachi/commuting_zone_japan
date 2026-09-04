@@ -15,6 +15,8 @@ For municipalities i and j, write the directed commuting flows as f_ij and f_ji 
 | Linkage | average | average | average | average |
 | Cutoff | not fixed | 0.977 | 0.977 | 0.980 |
 
+The replication divides by the row sum over every destination the census records, which is the quantity the source paper's code computes, and `validation/notes/denominator.md` records the reasoning and what a wider count of who is working would do.
+
 Three of the four rows raise nothing. The floor of 0.001 on the dissimilarity is algebraically the same as the cap of 0.999 on the proportional flow, so the Japanese pipeline and the source paper's code agree exactly there; the paper's prose says only that values above one are reduced, while its code reduces anything from 0.999 upward, and the difference concerns proportional flows in the half-open interval from 0.999 to 1, which no pair in the Japanese data reaches other than through the cap itself. The denominator agrees as well: the reported resident labour force equals the row sum of the flow matrix exactly, in every census year from 1980 to 2020, so the two ways of computing it are the same number.
 
 ## The numerator does not agree

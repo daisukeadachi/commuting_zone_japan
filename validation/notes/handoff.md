@@ -22,7 +22,9 @@ Three issues follow from the coauthor meeting. Issue #18 makes the constrained d
 
 ## Settled decisions and the reasoning behind them
 
-**Commuting matrix.** The baseline is labour-force status "mainly working" only, restricted to ordinary households, which is the `WORK_MAIN` variant of the existing pipeline. This is not a preference; it is the only definition available for 2020, because the 2020 delivery arrived already aggregated and the disaggregated file behind it does not exist locally. A sensitivity check on all employed persons whose workplace is identifiable is wanted but deferred until that file arrives from Fukai-san, who has been asked. Note that the existing `WORK_ALL` variant is not that object: it also sweeps in persons temporarily absent from work, who have no commute.
+**Commuting matrix.** The baseline is labour-force status "mainly working" only, which is the `WORK_MAIN` variant of the existing pipeline. There is no restriction by household type; the tabulation the variants are built from covers the whole census population, and the three statuses that involve work are "mainly working", working alongside housework, and working alongside study, with persons temporarily absent from a job counted separately. The wider `WORK_ALL` variant adds all three of the others, so it is not the sample a sensitivity check on employed persons wants either: a person temporarily absent from a job still carries the workplace of the job, but the status is a different thing from working.
+
+**Denominator of the proportional flow.** The smaller of the two municipalities' counts of residents mainly working, summed over every destination the census records. That is the quantity the source paper calls the total workforce and computes as the row sum of the flow matrix. `validation/notes/denominator.md` records it, together with what widening the count to residents who work alongside housework or study does to the delineation, which is the sensitivity check that answers the question raised at the coauthor meeting. `validation/notes/side_work_zones.md` goes the other way and delineates the flows of the people who work alongside housework on their own.
 
 **Population for the diagnostic table.** Use the resident labour force already carried in the commuting matrix, `tot_pop_living_mun`, and note the definition wherever it is reported. Actual census population by municipality exists only for a single year locally, and the labour force has the advantage of being exactly the quantity the delineation itself uses.
 
@@ -54,8 +56,10 @@ Rebuild scripts are in `validation/code`. `build_did_table.py` re-fetches its bu
 
 Two inputs are not in the repository and have to be read from the shared project folder, rooted at `Dropbox/projects/Kawaguchi_Saito/CommutingZone/adachi/clustering`:
 
-- Commuting matrices, `data/raw/commuteCensusData/data/use/WORK_MAIN/commute_<year>_<harmonized|original>.csv`, 1980 to 2020.
+- Commuting matrices, `data/raw/commuteCensusData/data/use/<sample>/commute_<year>_<harmonized|original>.csv`, 1980 to 2015, one folder per labour-force sample.
 - The municipality boundary layer, `data/raw/mmm/shapefiles/mmm20151001_ku_aggregate/mmm20151001.shp`. The folder name matters: the wards are already aggregated, matching the convention above.
+
+The 2020 matrices sit in a shared folder of their own, `Dropbox/projects/CZ_RA/census2020`, under the same one-folder-per-sample layout. `commute_path` in `validation/code/config.R` sends 2020 there and every earlier year to the folder above, so a run reaches both without either path being written out again. The 2020 matrix on "mainly working" also exists under the older folder; the two files hold the same rows in a different order, so which one is read does not change the delineation. The wider sample was delivered for 2020 only in the newer folder.
 
 ## Traps already found, do not rediscover them
 

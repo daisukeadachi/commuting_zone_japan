@@ -29,7 +29,7 @@ neighbours <- split(c(edges$code_j, edges$code_i), c(edges$code_i, edges$code_j)
 diagnose <- function(year, cutoff) {
   zones <- read_csv(zone_path(year, cutoff),
                     col_types = cols(code = col_character(), zone = col_integer()))
-  labour <- read_csv(file.path(derived_dir, sprintf("labour_force_%d.csv", year)),
+  labour <- read_csv(derived_path("labour_force", year, ".csv"),
                      col_types = cols(code = col_character()))
   units <- zones %>%
     left_join(labour[, c("code", "rlf_in_scope")], by = "code") %>%

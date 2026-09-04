@@ -28,7 +28,7 @@ edges <- read_csv(file.path(data_dir, "adjacency_edges.csv"), col_types = cols(.
 neighbours <- split(c(edges$code_j, edges$code_i), c(edges$code_i, edges$code_j))
 
 labour <- setNames(lapply(census_years, function(y) {
-  read_csv(file.path(derived_dir, sprintf("labour_force_%d.csv", y)), col_types = cols(code = col_character()))
+  read_csv(derived_path("labour_force", y, ".csv"), col_types = cols(code = col_character()))
 }), as.character(census_years))
 
 common_units <- function(earlier, later) {
