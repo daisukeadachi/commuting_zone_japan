@@ -85,6 +85,13 @@ areas <- bind_rows(centres, suburbs) %>%
 palette <- RColorBrewer::brewer.pal(8, "Set2")[1:7]
 outside <- "grey82"
 
+# The device is given the aspect ratio of the ground it draws, so that the map fills it
+# rather than sitting in a band of white.
+frame <- st_bbox(geometry)
+map_width <- 6.0
+map_height <- map_width * as.numeric((frame["ymax"] - frame["ymin"]) /
+                                     (frame["xmax"] - frame["xmin"]))
+
 draw <- function(layer, outlines, name) {
   ggplot() +
     geom_sf(data = layer, aes(fill = shade), colour = "grey70", linewidth = 0.05) +
@@ -96,7 +103,8 @@ draw <- function(layer, outlines, name) {
     theme_void(base_size = 11) +
     theme(plot.background = element_rect(fill = "white", colour = NA),
           plot.margin = margin(2, 2, 2, 2))
-  ggsave(file.path(figure_dir, name), width = 6.0, height = 6.4, dpi = 300, bg = "white")
+  ggsave(file.path(figure_dir, name), width = map_width, height = map_height,
+         dpi = 300, bg = "white")
 }
 
 cz_layer <- geometry %>%
