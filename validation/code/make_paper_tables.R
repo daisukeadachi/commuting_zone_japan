@@ -25,7 +25,10 @@ table_dir <- file.path(output_dir, "paper_tables")
 dir.create(table_dir, showWarnings = FALSE, recursive = TRUE)
 
 paper_cutoff <- baseline_cutoff
-headline_years <- c(2010, 2020)
+
+# The paper reports its two-way tables at a decade's spacing across the whole period
+# rather than for the most recent decade alone.
+decade_years <- seq(1980, 2020, by = 10)
 
 count <- function(x) format(round(x), big.mark = ",", scientific = FALSE, trim = TRUE)
 share <- function(x) sprintf("%.1f\\%%", 100 * x)
@@ -72,50 +75,54 @@ write_table(rows, "delineation.tex", "lrrrrrrr",
 # source paper, with the compactness of the units the zones are built from beside the
 # compactness of the zones and the United States figures below them.
 
-a <- pick(diagnostics, headline_years[1]); b <- pick(diagnostics, headline_years[2])
+across <- function(data, f, column) {
+  paste(vapply(decade_years, function(y) f(pick(data, y)[[column]]), character(1)),
+        collapse = " & ")
+}
 us_county <- us$compactness[us$unit == "county"]
 us_zone <- us$compactness[us$unit == "commuting zone"]
+spanning <- sprintf("\\multicolumn{%d}{c}", length(decade_years))
+# A block header spans the label column as well as the years.
+block_header <- sprintf("\\multicolumn{%d}{l}", length(decade_years) + 1)
 rows <- c(
-  sprintf("Municipalities in the delineation & %s & %s%s", count(a$municipalities), count(b$municipalities), br),
-  sprintf("Commuting zones & %s & %s%s", count(a$commuting_zones), count(b$commuting_zones), br),
-  sprintf("Single-municipality zones & %s & %s%s", count(a$single_municipality_zones), count(b$single_municipality_zones), br),
-  sprintf("Municipalities in the largest zone & %s & %s%s", count(a$municipalities_in_largest_zone), count(b$municipalities_in_largest_zone), br),
-  sprintf("Non-contiguous zones & %s & %s%s[3pt]", count(a$noncontiguous_zones_paper_test), count(b$noncontiguous_zones_paper_test), br),
-  sprintf("Smallest zone, resident labour force & %s & %s%s", count(a$min_population), count(b$min_population), br),
-  sprintf("Average zone, resident labour force & %s & %s%s", count(a$mean_population), count(b$mean_population), br),
-  sprintf("Largest zone, resident labour force & %s & %s%s[3pt]", count(a$max_population), count(b$max_population), br),
-  sprintf("Smallest zone area (sq.\\,km) & %s & %s%s", count(a$min_area_km2), count(b$min_area_km2), br),
-  sprintf("Average zone area (sq.\\,km) & %s & %s%s", count(a$mean_area_km2), count(b$mean_area_km2), br),
-  sprintf("Largest zone area (sq.\\,km) & %s & %s%s[3pt]", count(a$max_area_km2), count(b$max_area_km2), br),
-  sprintf("Compactness of zones & %s & %s%s", ratio(a$compactness), ratio(b$compactness), br),
-  sprintf("Compactness of municipalities & %s & %s%s[3pt]", ratio(a$compactness_municipalities), ratio(b$compactness_municipalities), br),
-  sprintf("United States, compactness of commuting zones & \\multicolumn{2}{c}{%s}%s", ratio(us_zone), br),
-  sprintf("United States, compactness of counties & \\multicolumn{2}{c}{%s}%s", ratio(us_county), br))
-write_table(rows, "diagnostics.tex", "lrr",
-            paste0("& ", headline_years[1], " & ", headline_years[2], br))
+  sprintf("Municipalities in the delineation & %s%s", across(diagnostics, count, "municipalities"), br),
+  sprintf("Commuting zones & %s%s", across(diagnostics, count, "commuting_zones"), br),
+  sprintf("Single-municipality zones & %s%s", across(diagnostics, count, "single_municipality_zones"), br),
+  sprintf("Municipalities in the largest zone & %s%s", across(diagnostics, count, "municipalities_in_largest_zone"), br),
+  sprintf("Non-contiguous zones & %s%s[3pt]", across(diagnostics, count, "noncontiguous_zones_paper_test"), br),
+  sprintf("Smallest zone, resident labour force & %s%s", across(diagnostics, count, "min_population"), br),
+  sprintf("Average zone, resident labour force & %s%s", across(diagnostics, count, "mean_population"), br),
+  sprintf("Largest zone, resident labour force & %s%s[3pt]", across(diagnostics, count, "max_population"), br),
+  sprintf("Smallest zone area (sq.\\,km) & %s%s", across(diagnostics, count, "min_area_km2"), br),
+  sprintf("Average zone area (sq.\\,km) & %s%s", across(diagnostics, count, "mean_area_km2"), br),
+  sprintf("Largest zone area (sq.\\,km) & %s%s[3pt]", across(diagnostics, count, "max_area_km2"), br),
+  sprintf("Compactness of zones & %s%s", across(diagnostics, ratio, "compactness"), br),
+  sprintf("Compactness of municipalities & %s%s[3pt]", across(diagnostics, ratio, "compactness_municipalities"), br),
+  sprintf("United States, compactness of commuting zones & %s{%s}%s", spanning, ratio(us_zone), br),
+  sprintf("United States, compactness of counties & %s{%s}%s", spanning, ratio(us_county), br))
+write_table(rows, "diagnostics.tex", paste0("l", strrep("r", length(decade_years))),
+            paste0("& ", paste(decade_years, collapse = " & "), br))
 
 # ---------------------------------------------------------------------------
 # Fit statistics for the two headline years, the counterpart of Table 2 of the source
 # paper. The Connection block waits on wage microdata and is left out rather than shown
 # empty.
 
-ca <- pick(containment, headline_years[1]); cb <- pick(containment, headline_years[2])
-ka <- pick(core, headline_years[1]); kb <- pick(core, headline_years[2])
 rows <- c(
-  paste0("\\multicolumn{3}{l}{\\emph{Core}}", br),
-  sprintf("\\quad Urban areas split across zones & %s & %s%s", count(ka$urban_areas_split_across_zones), count(kb$urban_areas_split_across_zones), br),
-  sprintf("\\quad Zones containing a core & %s & %s%s", share(ka$share_of_zones_with_a_core), share(kb$share_of_zones_with_a_core), br),
-  sprintf("\\quad Residents working in a core of their zone & %s & %s%s", share(ka$share_working_in_a_core_of_own_zone), share(kb$share_working_in_a_core_of_own_zone), br),
-  sprintf("\\quad Workforce living in a core of their zone & %s & %s%s[3pt]", share(ka$share_living_in_a_core_of_own_zone), share(kb$share_living_in_a_core_of_own_zone), br),
-  paste0("\\multicolumn{3}{l}{\\emph{Containment}}", br),
-  sprintf("\\quad Minimum contained & %s & %s%s", share(ca$min_contained), share(cb$min_contained), br),
-  sprintf("\\quad Fifth percentile contained & %s & %s%s", share(ca$p5_contained), share(cb$p5_contained), br),
-  sprintf("\\quad Median contained & %s & %s%s", share(ca$median_contained), share(cb$median_contained), br),
-  sprintf("\\quad Mean contained & %s & %s%s", share(ca$mean_contained), share(cb$mean_contained), br),
-  sprintf("\\quad Share of the labour force contained & %s & %s%s", share(ca$share_of_labour_force_contained), share(cb$share_of_labour_force_contained), br),
-  sprintf("\\quad Mean work contained & %s & %s%s", share(ca$mean_work_contained), share(cb$mean_work_contained), br))
-write_table(rows, "fit.tex", "lrr",
-            paste0("& ", headline_years[1], " & ", headline_years[2], br))
+  paste0(block_header, "{\\emph{Core}}", br),
+  sprintf("\\quad Urban areas split across zones & %s%s", across(core, count, "urban_areas_split_across_zones"), br),
+  sprintf("\\quad Zones containing a core & %s%s", across(core, share, "share_of_zones_with_a_core"), br),
+  sprintf("\\quad Residents working in a core of their zone & %s%s", across(core, share, "share_working_in_a_core_of_own_zone"), br),
+  sprintf("\\quad Workforce living in a core of their zone & %s%s[3pt]", across(core, share, "share_living_in_a_core_of_own_zone"), br),
+  paste0(block_header, "{\\emph{Containment}}", br),
+  sprintf("\\quad Minimum contained & %s%s", across(containment, share, "min_contained"), br),
+  sprintf("\\quad Fifth percentile contained & %s%s", across(containment, share, "p5_contained"), br),
+  sprintf("\\quad Median contained & %s%s", across(containment, share, "median_contained"), br),
+  sprintf("\\quad Mean contained & %s%s", across(containment, share, "mean_contained"), br),
+  sprintf("\\quad Share of the labour force contained & %s%s", across(containment, share, "share_of_labour_force_contained"), br),
+  sprintf("\\quad Mean work contained & %s%s", across(containment, share, "mean_work_contained"), br))
+write_table(rows, "fit.tex", paste0("l", strrep("r", length(decade_years))),
+            paste0("& ", paste(decade_years, collapse = " & "), br))
 
 # ---------------------------------------------------------------------------
 # Appendix: the same three blocks over every census year, and what the contiguity
@@ -177,6 +184,23 @@ write_table(rows, "appendix_constraint.tex", "lrrrrrrr",
                    "\\cline{2-3} \\cline{4-5} \\cline{6-7}",
                    "& Without & With & Without & With & Without & With & similarity", br))
 
+# Similarity between the delineations of two census years, a decade apart, over the
+# whole period.
+
+similarity_all <- read_csv(output_path("similarity_table.csv"), show_col_types = FALSE) %>%
+  filter(abs(cutoff_earlier - paper_cutoff) < 1e-9,
+         abs(cutoff_later - paper_cutoff) < 1e-9)
+decades <- bind_rows(lapply(appendix_pairs, function(pair) {
+  similarity_all %>% filter(earlier_year == pair[1], later_year == pair[2])
+}))
+rows <- sprintf("%d to %d & %s & %s & %s & %s%s", decades$earlier_year, decades$later_year,
+                count(decades$municipalities), ratio(decades$mean_similarity),
+                ratio(decades$sd_similarity),
+                ratio(decades$labour_weighted_similarity_later), br)
+write_table(rows, "appendix_similarity.tex", "lrrrr",
+            paste0("Census years & Municipalities & Mean & Standard & Labour-force", br,
+                   "& & similarity & deviation & weighted mean", br))
+
 # ---------------------------------------------------------------------------
 # Numbers quoted in the paper's own prose.
 
@@ -186,6 +210,13 @@ similarity <- read_csv(output_path("similarity_table.csv"), show_col_types = FAL
 sweep <- read_csv(output_path("cutoff_sweep.csv"), show_col_types = FALSE) %>%
   filter(earlier_year == 2010, later_year == 2020, abs(anchor - paper_cutoff) < 1e-9)
 best <- sweep %>% arrange(cutoff_later) %>% slice_max(mean_similarity, n = 1, with_ties = FALSE)
+decade_peaks <- vapply(appendix_pairs, function(pair) {
+  panel <- read_csv(output_path("cutoff_sweep.csv"), show_col_types = FALSE) %>%
+    filter(earlier_year == pair[1], later_year == pair[2],
+           abs(anchor - paper_cutoff) < 1e-9) %>%
+    arrange(cutoff_later)
+  panel$cutoff_later[which.max(panel$mean_similarity)]
+}, numeric(1))
 plateau <- sweep %>% filter(mean_similarity >= best$mean_similarity - 0.005)
 latest <- full %>% filter(year == max(year))
 base <- full %>% filter(year == min(year))
@@ -212,6 +243,10 @@ macros <- c(
   sprintf("\\newcommand{\\constraintSimilarity}{%s}",
           ratio(min(comparison$mean_similarity))),
   sprintf("\\newcommand{\\constraintDetached}{%s}",
-          count(max(comparison$noncontiguous_zones_unconstrained))))
+          count(max(comparison$noncontiguous_zones_unconstrained))),
+  sprintf("\\newcommand{\\decadeSimilarityLow}{%s}", ratio(min(decades$mean_similarity))),
+  sprintf("\\newcommand{\\decadeSimilarityHigh}{%s}", ratio(max(decades$mean_similarity))),
+  sprintf("\\newcommand{\\decadePeakLow}{%s}", format(min(decade_peaks), nsmall = 3)),
+  sprintf("\\newcommand{\\decadePeakHigh}{%s}", format(max(decade_peaks), nsmall = 3)))
 writeLines(macros, file.path(table_dir, "numbers.tex"))
 message("wrote numbers.tex (", length(macros), " macros)")

@@ -93,10 +93,11 @@ write_csv(bind_rows(municipality_rows), output_path("similarity_by_municipality.
 print(as.data.frame(bind_rows(pair_rows)))
 
 # The sweep. The earlier year sits at the anchor and the later year's cutoff runs over
-# the range the source paper uses.
+# the range the source paper uses. It runs on every pair, the decade pairs included, so
+# that the cutoff can be read against each decade rather than the most recent one alone.
 sweep_grid <- seq(0.925, 0.999, by = 0.001)
 sweep_rows <- list()
-for (pair in baseline_pairs) {
+for (pair in pairs) {
   later <- pair[2]
   flows <- read_commuting(later) %>%
     filter(i %in% delineation_units(later), j %in% delineation_units(later))
