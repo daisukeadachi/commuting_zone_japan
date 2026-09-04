@@ -27,3 +27,9 @@ validation/slides/*.fls
 validation/slides/*.fdb_latexmk
 validation/slides/*.synctex.gz
 validation/slides/build/
+
+# Boundary layers fetched by validation/code/fetch_boundaries.py
+validation/data/boundaries/
+
+# United States county layer fetched by validation/code/build_us_compactness.R
+validation/data/us/

@@ -7,6 +7,11 @@
 # municipalities, as the source paper does, and weighted by resident labour force, which
 # issue #11 asks for alongside.
 #
+# The lower tail of the distribution across zones is reported at three points, the
+# minimum, the fifth percentile and the median, rather than at the minimum alone. Two
+# hundred zones put one zone at the minimum, and how far that zone sits below the rest is
+# something the other two points show and it does not.
+#
 # Writes validation/output/containment_table.csv, validation/output/containment_by_zone.csv
 # and validation/output/containment_by_municipality.csv.
 
@@ -63,6 +68,8 @@ containment <- function(year, cutoff) {
       cutoff = cutoff,
       commuting_zones = nrow(by_zone),
       min_contained = min(by_zone$mean_contained),
+      p5_contained = unname(quantile(by_zone$mean_contained, 0.05, type = 7)),
+      median_contained = median(by_zone$mean_contained),
       mean_contained = mean(by_zone$mean_contained),
       labour_weighted_mean_contained = weighted.mean(by_zone$mean_contained, by_zone$residents),
       share_of_labour_force_contained = sum(municipalities$residents_in_zone) / sum(municipalities$residents),

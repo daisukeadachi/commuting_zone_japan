@@ -54,6 +54,7 @@ diagnostics <- read_csv(output_path("diagnostics_table.csv"), show_col_types = F
 containment <- read_csv(output_path("containment_table.csv"), show_col_types = FALSE)
 core_table <- read_csv(output_path("core_table.csv"), show_col_types = FALSE)
 core <- core_table %>% filter(core_definition == "Urban Employment Area central city")
+us_compactness <- read_csv(file.path(output_dir, "us_compactness.csv"), show_col_types = FALSE)
 
 # ---------------------------------------------------------------------------
 # Body tables
@@ -72,7 +73,9 @@ rows <- c(
   sprintf("Smallest zone area (sq.\\,km) & %s & %s%s", count(a$min_area_km2), count(b$min_area_km2), br),
   sprintf("Average zone area (sq.\\,km) & %s & %s%s", count(a$mean_area_km2), count(b$mean_area_km2), br),
   sprintf("Largest zone area (sq.\\,km) & %s & %s%s[2pt]", count(a$max_area_km2), count(b$max_area_km2), br),
-  sprintf("Compactness of zones & %s & %s%s", ratio(a$compactness), ratio(b$compactness), br)
+  sprintf("Compactness of zones & %s & %s%s", ratio(a$compactness), ratio(b$compactness), br),
+  sprintf("Compactness of municipalities & %s & %s%s", ratio(a$compactness_municipalities),
+          ratio(b$compactness_municipalities), br)
 )
 write_table(rows, "diagnostics.tex", "lrr", paste0("& 2010 & 2020", br))
 
@@ -90,6 +93,8 @@ rows <- c(
   paste0("\\quad Mean wage correlation, multi-municipality zones & \\multicolumn{2}{c}{pending}", br, "[3pt]"),
   paste0("\\multicolumn{3}{l}{\\emph{Containment}}", br),
   sprintf("\\quad Minimum contained & %s & %s%s", share(ca$min_contained), share(cb$min_contained), br),
+  sprintf("\\quad Fifth percentile contained & %s & %s%s", share(ca$p5_contained), share(cb$p5_contained), br),
+  sprintf("\\quad Median contained & %s & %s%s", share(ca$median_contained), share(cb$median_contained), br),
   sprintf("\\quad Mean contained & %s & %s%s", share(ca$mean_contained), share(cb$mean_contained), br),
   sprintf("\\quad Share of the labour force contained & %s & %s%s", share(ca$share_of_labour_force_contained), share(cb$share_of_labour_force_contained), br)
 )
@@ -137,26 +142,30 @@ write_table(rows, "appendix_diagnostics_counts.tex", "lrrrrr",
             paste0("Year & Municipalities & Commuting & Single- & Largest & Non-", br,
                    "& & zones & municipality & zone & contiguous", br))
 
-rows <- sprintf("%d & %s & %s & %s & %s & %s & %s & %s%s", diagnostics_all$year,
+rows <- sprintf("%d & %s & %s & %s & %s & %s & %s & %s & %s%s", diagnostics_all$year,
                 count(diagnostics_all$min_population), count(diagnostics_all$mean_population),
                 count(diagnostics_all$max_population), count(diagnostics_all$min_area_km2),
                 count(diagnostics_all$mean_area_km2), count(diagnostics_all$max_area_km2),
-                ratio(diagnostics_all$compactness), br)
-write_table(rows, "appendix_diagnostics_size.tex", "lrrrrrrr",
+                ratio(diagnostics_all$compactness),
+                ratio(diagnostics_all$compactness_municipalities), br)
+write_table(rows, "appendix_diagnostics_size.tex", "lrrrrrrrr",
             paste0("Year & \\multicolumn{3}{c}{Resident labour force} & ",
-                   "\\multicolumn{3}{c}{Area (sq.\\,km)} & Compactness", br,
-                   "\\cmidrule(lr){2-4} \\cmidrule(lr){5-7} ",
-                   "& Smallest & Average & Largest & Smallest & Average & Largest &", br))
+                   "\\multicolumn{3}{c}{Area (sq.\\,km)} & \\multicolumn{2}{c}{Compactness}", br,
+                   "\\cmidrule(lr){2-4} \\cmidrule(lr){5-7} \\cmidrule(lr){8-9} ",
+                   "& Smallest & Average & Largest & Smallest & Average & Largest & ",
+                   "Zones & Municipalities", br))
 
 containment_all <- containment %>% filter(abs(cutoff - slide_cutoff) < 1e-9) %>% arrange(year)
-rows <- sprintf("%d & %s & %s & %s & %s & %s%s", containment_all$year,
-                share(containment_all$min_contained), share(containment_all$mean_contained),
+rows <- sprintf("%d & %s & %s & %s & %s & %s & %s & %s%s", containment_all$year,
+                share(containment_all$min_contained), share(containment_all$p5_contained),
+                share(containment_all$median_contained), share(containment_all$mean_contained),
                 share(containment_all$labour_weighted_mean_contained),
                 share(containment_all$share_of_labour_force_contained),
                 share(containment_all$mean_work_contained), br)
-write_table(rows, "appendix_containment.tex", "lrrrrr",
-            paste0("Year & Minimum & Mean & Labour-force & Share of the & Mean work", br,
-                   "& & & weighted mean & labour force & contained", br))
+write_table(rows, "appendix_containment.tex", "lrrrrrrr",
+            paste0("Year & Minimum & Fifth & Median & Mean & Labour-force & Share of the & ",
+                   "Mean work", br,
+                   "& & percentile & & & weighted mean & labour force & contained", br))
 
 core_all <- core_table %>% filter(abs(cutoff - slide_cutoff) < 1e-9)
 uea <- core_all %>% filter(core_definition == "Urban Employment Area central city")
@@ -292,6 +301,12 @@ macros <- c(
           count(num$zones_side_work_baseline_denominator[num$year == max(num$year)])),
   sprintf("\\newcommand{\\sideWorkHeldSingletons}{%s}",
           count(num$singletons_side_work_baseline_denominator[num$year == max(num$year)])),
-  sprintf("\\newcommand{\\sideWorkYear}{%d}", max(num$year))
+  sprintf("\\newcommand{\\sideWorkYear}{%d}", max(num$year)),
+  sprintf("\\newcommand{\\usCountyCompactness}{%s}",
+          ratio(us_compactness$compactness[us_compactness$unit == "county"])),
+  sprintf("\\newcommand{\\usZoneCompactness}{%s}",
+          ratio(us_compactness$compactness[us_compactness$unit == "commuting zone"])),
+  sprintf("\\newcommand{\\usZones}{%s}",
+          count(us_compactness$units[us_compactness$unit == "commuting zone"]))
 )
 write_rows(macros, "numbers.tex")

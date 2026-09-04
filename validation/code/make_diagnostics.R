@@ -6,6 +6,11 @@
 # are computed on the equal-area projection declared in config.R. Compactness is the
 # Polsby-Popper ratio of the dissolved commuting zone polygon, averaged across zones.
 #
+# The same ratio is reported for the municipalities themselves, which are the units the
+# zones are built out of. A zone can be no rounder than the pieces allow, so the two
+# figures are read together, and against the counterparts for United States counties and
+# commuting zones that validation/code/build_us_compactness.R computes.
+#
 # Writes validation/output/diagnostics_table.csv and, for the contiguity diagnostics of
 # issue #11, validation/output/noncontiguous_municipalities.csv.
 
@@ -25,6 +30,15 @@ edges <- read_csv(file.path(data_dir, "adjacency_edges.csv"), col_types = cols(.
 geometry <- read_boundaries(scope$code)
 
 neighbours <- split(c(edges$code_j, edges$code_i), c(edges$code_i, edges$code_j))
+
+# Compactness of each municipality on its own, computed once for the whole layer and
+# looked up per year. Fowler's checkCompactness takes the mean of this ratio over the
+# dissolved clusters; taking it over the undissolved units is the same statistic applied
+# to the building blocks.
+municipality_perimeter <-
+  as.numeric(st_length(st_cast(st_geometry(geometry), "MULTILINESTRING")))
+municipality_compactness <- setNames(
+  4 * pi * as.numeric(st_area(geometry)) / municipality_perimeter^2, geometry$code)
 
 diagnose <- function(year, cutoff) {
   zones <- read_csv(zone_path(year, cutoff),
@@ -80,7 +94,8 @@ diagnose <- function(year, cutoff) {
       min_area_km2 = min(zone_area$area),
       mean_area_km2 = mean(zone_area$area),
       max_area_km2 = max(zone_area$area),
-      compactness = mean(polsby_popper)
+      compactness = mean(polsby_popper),
+      compactness_municipalities = mean(municipality_compactness[units$code])
     ),
     detached = units %>%
       filter(detached) %>%

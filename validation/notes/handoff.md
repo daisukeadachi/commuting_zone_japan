@@ -20,6 +20,8 @@ Issue #12, the constrained clustering, is done and merged. It built the contigui
 
 Three issues follow from the coauthor meeting. Issue #18 makes the constrained delineation the baseline, so that every committed table and figure reports it while the delineation without the constraint is computed alongside under names carrying `_unconstrained`, and moves the non-contiguity material into the appendix of the deck. Issue #19 extends the delineation to the offshore islands, which is what brings it to the whole census population; `validation/notes/island_coverage.md` reports the result. Issue #20 publishes the crosswalk from a fixed year's commuting zones to each census year's municipality codes, together with the similarity series that measures what fixing the anchor costs; `validation/notes/zone_crosswalk.md` documents it.
 
+Three more came out of the meeting of 4 September 2026. Compactness is now reported for the municipalities as well as the zones, and against United States counties and the zones built on them, so that the level of the Japanese figure can be read against the shape of the units it starts from. The containment block of the fit statistics reports the fifth percentile and the median beside the minimum. And `validation/output/provided` now holds the two tables a user is handed, one on the harmonized codes for a panel and one on each census date's own codes for a cross-section, the second of which needed the whole pipeline run under `CZ_CODES=original`.
+
 ## Settled decisions and the reasoning behind them
 
 **Commuting matrix.** The baseline is labour-force status "mainly working" only, which is the `WORK_MAIN` variant of the existing pipeline. There is no restriction by household type; the tabulation the variants are built from covers the whole census population, and the three statuses that involve work are "mainly working", working alongside housework, and working alongside study, with persons temporarily absent from a job counted separately. The wider `WORK_ALL` variant adds all three of the others, so it is not the sample a sensitivity check on employed persons wants either: a person temporarily absent from a job still carries the workplace of the job, but the status is a different thing from working.
@@ -53,6 +55,10 @@ Committed under `validation/data`:
 - `MANUAL_DOWNLOADS.md`, provenance and the checks each file passed.
 
 Rebuild scripts are in `validation/code`. `build_did_table.py` re-fetches its bulk sources, which are gitignored.
+
+Two further datasets are fetched by script and gitignored. `fetch_boundaries.py` downloads a municipality boundary layer per census date from Municipality Map Maker into `validation/data/boundaries`, which is what a delineation on each year's own codes needs; the 2015 layer it returns is identical to the one in the shared folder. `build_us_compactness.R` downloads the county layer the source paper released, carrying its own county vintage, its own zone assignment and EPSG:5070, into `validation/data/us`.
+
+`validation/data/original` holds the scope table and the adjacency edge list of each census date, built from those layers by `build_original_scope_and_adjacency.R`. They are committed, as their 2015-code counterparts are.
 
 Two inputs are not in the repository and have to be read from the shared project folder, rooted at `Dropbox/projects/Kawaguchi_Saito/CommutingZone/adachi/clustering`:
 

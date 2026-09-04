@@ -49,6 +49,94 @@ stopifnot(delineation %in% c("unconstrained", "constrained"))
 sample_definition <- Sys.getenv("CZ_SAMPLE", "WORK_MAIN")
 stopifnot(sample_definition %in% c("WORK_MAIN", "WORK_ALL", "SIDE_WORK"))
 
+# Which municipality codes the delineation is read on. Under the harmonized codes every
+# census year's matrix is carried onto the units in force on 1 October 2015, so one
+# delineation can be compared with another and a panel keyed by municipality holds still.
+# Under the original codes each year is read on the units in force on its own census date,
+# which is what a cross-section of that year describes. Set the environment variable
+# CZ_CODES to "original" to run that way; every derived object and every table then
+# carries the choice in its name.
+#
+# The original codes need a boundary layer per census date, for the areas and for the
+# adjacency graph the constrained clustering runs on. fetch_boundaries.py downloads them
+# and build_original_scope_and_adjacency.R turns them into a scope table and an edge list
+# per year.
+code_universe <- Sys.getenv("CZ_CODES", "harmonized")
+stopifnot(code_universe %in% c("harmonized", "original"))
+
+#' File-name tag for a code universe, empty under the baseline.
+code_tag <- function(which = code_universe) {
+  if (which == "harmonized") "" else paste0("_", which)
+}
+
+# Towns incorporated as cities between the 2015 and the 2020 census dates. Each took a new
+# code and no boundary moved, so the 2015 boundary layer serves the 2020 census once the
+# two codes are renamed. Municipality Map Maker stops on 1 May 2019 and so cannot supply a
+# 2020 layer; nothing is lost. See build_recent_crosswalks.py.
+incorporations_after_2015 <- c("04423" = "04216", "40305" = "40231")
+
+#' Carry the 2015 codes of the two towns onto the codes a later census date uses.
+#'
+#' A no-op under the harmonized codes, which stay on the 2015 units throughout, and for
+#' any year up to 2015.
+rename_incorporated_towns <- function(codes, year = NULL) {
+  if (code_universe == "harmonized" || is.null(year) || as.integer(year) <= 2015L) return(codes)
+  renamed <- incorporations_after_2015[codes]
+  ifelse(is.na(renamed), codes, unname(renamed))
+}
+
+# Permanent road links between municipalities whose polygons do not touch, on the codes in
+# force on 1 October 2015. Within a block these attach a bridge-connected island to its
+# main island; across blocks they carry the four crossings over which people commute
+# daily. The Seikan tunnel is absent because it carries rail only.
+# build_original_scope_and_adjacency.R carries each end onto the codes of an earlier
+# census date, so the list is written once here rather than in either builder.
+road_links <- data.frame(
+  code_i = c("28100", "28224", "33202", "34205", "35201", "34202", "35212", "43213", "46206"),
+  code_j = c("28226", "36202", "37203", "38202", "40100", "34215", "35305", "43212", "46404"),
+  link = c("Akashi-Kaikyo Bridge", "Onaruto Bridge", "Seto Ohashi", "Shimanami Kaido",
+           "Kanmon crossing", "Kurahashi bridges", "Oshima Bridge", "Amakusa bridges",
+           "Kuronoseto Bridge"),
+  kind = c(rep("between blocks", 5), rep("within block", 4)),
+  stringsAsFactors = FALSE)
+
+# Islands reachable only by ferry whose polygon nonetheless shares a boundary with a
+# main-island municipality, drawn over water in the boundary layer.
+water_boundary_artifacts <- c("37364")
+
+#' Path of the boundary layer a census year is read on.
+#'
+#' @param year census year; ignored under the harmonized codes, which use one layer
+boundary_path <- function(year = NULL) {
+  if (code_universe == "harmonized") return(boundary_shp)
+  stem <- sprintf("mmm%d1001", min(as.integer(year), 2015L))
+  file.path(data_dir, "boundaries", stem, paste0(stem, ".shp"))
+}
+
+#' Path of the scope table a census year is delineated on.
+#'
+#' @param year census year; ignored under the harmonized codes, which use one table
+scope_path <- function(year = NULL) {
+  if (code_universe == "harmonized") return(file.path(data_dir, "municipality_scope.csv"))
+  file.path(data_dir, "original", sprintf("municipality_scope_%d.csv", as.integer(year)))
+}
+
+#' Path of the adjacency edge list a census year is delineated on.
+adjacency_path <- function(year = NULL) {
+  if (code_universe == "harmonized") return(file.path(data_dir, "adjacency_edges.csv"))
+  file.path(data_dir, "original", sprintf("adjacency_edges_%d.csv", as.integer(year)))
+}
+
+read_scope <- function(year = NULL) {
+  suppressMessages(readr::read_csv(scope_path(year),
+                                   col_types = readr::cols(code = readr::col_character())))
+}
+
+read_adjacency <- function(year = NULL) {
+  suppressMessages(readr::read_csv(adjacency_path(year),
+                                   col_types = readr::cols(.default = readr::col_character())))
+}
+
 #' File-name tag for a labour-force sample, empty under the baseline.
 sample_tag <- function(which = sample_definition) {
   if (which == "WORK_MAIN") "" else paste0("_", tolower(which))
@@ -80,7 +168,9 @@ denominator_tag <- function(which = denominator) {
 
 #' File-name tag for everything the delineation is conditioned on bar the contiguity
 #' constraint, which the paths carry separately.
-variant_tag <- function(den = denominator) paste0(sample_tag(), denominator_tag(den))
+variant_tag <- function(den = denominator) {
+  paste0(code_tag(), sample_tag(), denominator_tag(den))
+}
 
 #' Workers resident in each municipality, the denominator of the proportional flow.
 #'
@@ -113,9 +203,9 @@ side_work_denominator_path <- function(year) {
 #' Path of one census year's commuting matrix.
 #'
 #' @param year census year
-#' @param code_type "harmonized" or "original"
+#' @param code_type "harmonized" or "original"; defaults to the selected code universe
 #' @param which labour-force sample; defaults to the selected one
-commute_path <- function(year, code_type = "harmonized", which = sample_definition) {
+commute_path <- function(year, code_type = code_universe, which = sample_definition) {
   root <- if (which == "SIDE_WORK") derived_dir
           else if (year == census2020_year) census2020_dir else commute_dir
   file.path(root, which, sprintf("commute_%d_%s.csv", year, code_type))
@@ -360,7 +450,7 @@ merge_tokyo_wards <- function(codes) {
 
 # Commuting flows on the merged universe. Reading them anywhere else risks a layer that
 # still carries the twenty-three ward codes.
-read_commuting <- function(year, code_type = "harmonized", which = sample_definition) {
+read_commuting <- function(year, code_type = code_universe, which = sample_definition) {
   raw <- suppressMessages(readr::read_csv(commute_path(year, code_type, which),
                                           show_col_types = FALSE))
   raw |>
@@ -376,10 +466,11 @@ read_commuting <- function(year, code_type = "harmonized", which = sample_defini
 # The boundary layer on the same municipality universe as everything else. Reading the
 # shapefile directly leaves the twenty-three ward codes in place; they then fail the
 # scope filter and the wards vanish from every map and from every area computed off one.
-read_boundaries <- function(codes = NULL) {
-  layer <- sf::st_read(boundary_shp, quiet = TRUE, options = "ENCODING=CP932")
+read_boundaries <- function(codes = NULL, year = NULL) {
+  layer <- sf::st_read(boundary_path(year), quiet = TRUE, options = "ENCODING=CP932")
   layer <- sf::st_make_valid(layer)
-  layer$code <- merge_tokyo_wards(sprintf("%05d", as.integer(as.character(layer$JISCODE))))
+  layer$code <- merge_tokyo_wards(rename_incorporated_towns(
+    sprintf("%05d", as.integer(as.character(layer$JISCODE))), year))
   layer <- layer[, "code"]
   layer <- layer |>
     dplyr::group_by(code) |>
