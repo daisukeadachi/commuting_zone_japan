@@ -179,19 +179,22 @@ core_table <- bind_rows(results)
 write_csv(core_table, output_path("core_table.csv"))
 print(as.data.frame(core_table %>% filter(abs(cutoff - baseline_cutoff) < 1e-9)))
 
-# The map of urban areas split across commuting zones, the counterpart of Figure 6,
-# drawn at each cutoff anchor.
-headline_year <- 2020
+# The map of urban areas split across commuting zones, the counterpart of Figure 6, drawn
+# at each cutoff anchor. The paper reads 2000 and the deck reads the most recent census,
+# so it is drawn for both years and the file name carries the year.
+map_years <- c(2000L, 2020L)
+splits_year <- max(map_years)
+for (map_year in map_years) {
 for (headline_cutoff in cutoff_anchors) {
-zones <- read_csv(zone_path(headline_year, headline_cutoff),
+zones <- read_csv(zone_path(map_year, headline_cutoff),
                   col_types = cols(code = col_character(), zone = col_integer()))
-areas <- read_uea(headline_year) %>% filter(code %in% zones$code)
+areas <- read_uea(map_year) %>% filter(code %in% zones$code)
 split_status <- areas %>%
   mutate(zone = unname(setNames(zones$zone, zones$code)[code])) %>%
   group_by(area) %>%
   mutate(is_split = n_distinct(zone) > 1) %>%
   ungroup()
-if (abs(headline_cutoff - baseline_cutoff) < 1e-9) {
+if (abs(headline_cutoff - baseline_cutoff) < 1e-9 && map_year == splits_year) {
   write_csv(split_status, output_path("core_area_splits.csv"))
 }
 
@@ -245,11 +248,12 @@ ggplot() +
         legend.key.size = unit(0.9, "cm"),
         plot.margin = margin(2, 2, 2, 2),
         plot.background = element_rect(fill = "white", colour = NA))
-ggsave(file.path(figure_dir, sprintf("split_urban_areas_%d_cut%s.png", headline_year,
+ggsave(file.path(figure_dir, sprintf("split_urban_areas_%d_cut%s.png", map_year,
                                      format(headline_cutoff, nsmall = 3))),
        width = 7.5, height = 7.5, dpi = 300, bg = "white")
 
-message("cutoff ", format(headline_cutoff, nsmall = 3), ": urban areas in ", headline_year, ": ",
+message("cutoff ", format(headline_cutoff, nsmall = 3), ": urban areas in ", map_year, ": ",
         n_distinct(split_status$area), "; split across zones: ",
         n_distinct(split_status$area[split_status$is_split]))
+}
 }
