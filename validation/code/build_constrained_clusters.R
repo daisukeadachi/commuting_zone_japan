@@ -27,16 +27,16 @@ suppressMessages({
 })
 source("validation/code/config.R")
 
-scope <- read_csv(file.path(data_dir, "municipality_scope.csv"),
-                  col_types = cols(code = col_character())) %>% filter(in_scope)
-edges <- read_csv(file.path(data_dir, "adjacency_edges.csv"),
-                  col_types = cols(.default = col_character()))
+# The adjacency graph is read per year because under each census date's own municipality
+# codes it is a different graph. Under the harmonized codes it is the same edge list every
+# time.
 
 #' Connected components of the adjacency graph induced on one year's municipalities.
 #'
 #' @param units character vector of municipality codes present in that year
+#' @param edges the year's adjacency edge list
 #' @return named integer vector, one component label per municipality
-year_components <- function(units) {
+year_components <- function(units, edges) {
   e <- edges %>% filter(code_i %in% units, code_j %in% units)
   g <- graph_from_data_frame(e[, c("code_i", "code_j")], directed = FALSE,
                              vertices = data.frame(name = units))
@@ -47,8 +47,9 @@ year_components <- function(units) {
 #'
 #' @param dissim_matrix full dissimilarity matrix for the year
 #' @param units municipality codes of this component
+#' @param edges the year's adjacency edge list
 #' @return an object of class constr.hclust, or NULL when the component holds one unit
-component_tree <- function(dissim_matrix, units) {
+component_tree <- function(dissim_matrix, units, edges) {
   if (length(units) < 2) return(NULL)
   e <- edges %>% filter(code_i %in% units, code_j %in% units)
   tree <- constr.hclust(as.dist(dissim_matrix[units, units]), method = "average",
@@ -60,14 +61,15 @@ component_tree <- function(dissim_matrix, units) {
 inversion_rows <- list()
 
 build_year <- function(year) {
+  edges <- read_adjacency(year)
   dissim <- readRDS(derived_path("dissimilarity", year))
   units <- labels(dissim)
   dissim_matrix <- as.matrix(dissim)
-  membership <- year_components(units)
+  membership <- year_components(units, edges)
   component_ids <- sort(unique(membership))
 
   trees <- lapply(component_ids, function(k) {
-    component_tree(dissim_matrix, names(membership)[membership == k])
+    component_tree(dissim_matrix, names(membership)[membership == k], edges)
   })
   names(trees) <- component_ids
 

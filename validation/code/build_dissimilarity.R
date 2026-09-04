@@ -21,11 +21,14 @@ suppressMessages({
 })
 source("validation/code/config.R")
 
-scope <- read_csv(file.path(data_dir, "municipality_scope.csv"), col_types = cols(code = col_character()))
-in_scope <- scope$code[scope$in_scope]
 dir.create(derived_dir, showWarnings = FALSE, recursive = TRUE)
 
 build_year <- function(year) {
+  # The scope is read per year because under each census date's own municipality codes it
+  # is a different set of units. Under the harmonized codes it is the same table every
+  # time.
+  scope <- read_scope(year)
+  in_scope <- scope$code[scope$in_scope]
   flows <- read_commuting(year)
 
   reported <- flows %>% group_by(i) %>% summarise(rlf_reported = sum(pop), .groups = "drop")

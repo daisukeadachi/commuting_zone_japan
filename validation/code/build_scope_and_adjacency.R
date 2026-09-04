@@ -18,26 +18,9 @@ suppressMessages({
 source("validation/code/config.R")
 sf_use_s2(FALSE)
 
-# Permanent road links between municipalities whose polygons do not touch.
-# Within a block these attach a bridge-connected island to its main island; across
-# blocks they carry the four crossings over which people commute daily. The Seikan
-# tunnel is absent because it carries rail only.
-road_links <- tribble(
-  ~code_i,  ~code_j,  ~link,                  ~kind,
-  "28100",  "28226",  "Akashi-Kaikyo Bridge", "between blocks",
-  "28224",  "36202",  "Onaruto Bridge",       "between blocks",
-  "33202",  "37203",  "Seto Ohashi",          "between blocks",
-  "34205",  "38202",  "Shimanami Kaido",      "between blocks",
-  "35201",  "40100",  "Kanmon crossing",      "between blocks",
-  "34202",  "34215",  "Kurahashi bridges",    "within block",
-  "35212",  "35305",  "Oshima Bridge",        "within block",
-  "43213",  "43212",  "Amakusa bridges",      "within block",
-  "46206",  "46404",  "Kuronoseto Bridge",    "within block"
-)
-
-# Islands reachable only by ferry whose polygon nonetheless shares a boundary with a
-# main-island municipality, drawn over water in the boundary layer.
-water_boundary_artifacts <- c("37364")
+# The permanent road links and the water-boundary artifacts are declared in config.R,
+# because build_original_scope_and_adjacency.R carries the same two lists onto each
+# census date's own municipality codes.
 
 message("reading the boundary layer")
 shape <- st_read(boundary_shp, quiet = TRUE, options = "ENCODING=CP932") %>%

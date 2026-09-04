@@ -29,12 +29,9 @@ suppressMessages({
 })
 source("validation/code/config.R")
 
-scope <- read_csv(file.path(data_dir, "municipality_scope.csv"),
-                  col_types = cols(code = col_character()))
-edges <- read_csv(file.path(data_dir, "adjacency_edges.csv"),
-                  col_types = cols(.default = col_character()))
-in_scope <- scope$code[scope$in_scope]
-muni_name <- setNames(scope$muni_name, scope$code)
+# The scope table and the adjacency graph are read per year because under each census
+# date's own municipality codes they differ by year. Under the harmonized codes they are
+# the same two tables every time.
 
 #' Proportional-flow dissimilarity on every municipality a census year reports.
 #'
@@ -60,7 +57,7 @@ full_dissimilarity <- function(flows, year) {
 }
 
 #' Constrained tree for one connected component, or NULL when it holds one municipality.
-component_tree <- function(dissim, units) {
+component_tree <- function(dissim, units, edges) {
   if (length(units) < 2) return(NULL)
   e <- edges %>% filter(code_i %in% units, code_j %in% units)
   tree <- constr.hclust(as.dist(dissim[units, units]), method = "average",
@@ -89,6 +86,10 @@ island_rows <- list()
 
 for (year in census_years) {
   message("full coverage ", year)
+  scope <- read_scope(year)
+  edges <- read_adjacency(year)
+  in_scope <- scope$code[scope$in_scope]
+  muni_name <- setNames(scope$muni_name, scope$code)
   flows <- read_commuting(year)
   built <- full_dissimilarity(flows, year)
   units <- built$units
@@ -98,7 +99,7 @@ for (year in census_years) {
                                  vertices = data.frame(name = units))
   membership <- components(graph)$membership
   trees <- lapply(sort(unique(membership)), function(k) {
-    component_tree(built$dissim, names(membership)[membership == k])
+    component_tree(built$dissim, names(membership)[membership == k], edges)
   })
   names(trees) <- sort(unique(membership))
 

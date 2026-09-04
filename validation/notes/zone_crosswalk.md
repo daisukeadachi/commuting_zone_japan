@@ -4,6 +4,16 @@ A researcher pooling several censuses needs one set of commuting zones held fixe
 
 `validation/code/build_zone_crosswalk.R` builds it.
 
+## The two tables handed to a user
+
+`validation/output/provided/` holds what a user of these zones is given, at the 0.977 cutoff, with its own README. `harmonized.csv` is the crosswalk above reduced to the columns a join needs: the census date, the municipality code in force then, the names, the offshore-island flag and the nine anchor columns. `original.csv` answers the other use. A cross-section of one census year wants the labour markets of that year in the units that year reports, not the 2015 units, so each year is delineated on its own municipality codes and the table carries a single `zone` column.
+
+Those original-code delineations are built by the same three steps as the harmonized ones, with `CZ_CODES` set to `original`. What has to be built first is a boundary layer and an adjacency graph per census date, because the contiguity constraint needs to know which of that year's 3,259 municipalities touch which. `validation/code/fetch_boundaries.py` downloads the layers from Municipality Map Maker and `validation/code/build_original_scope_and_adjacency.R` turns each into a scope table and an edge list under `validation/data/original/`. The permanent road links are declared once in `config.R` on the 2015 codes and carried back onto each date's codes through the crosswalk, taking the end whose polygon lies closest to the other side.
+
+Two checks tie the two sides together. The 2015 boundary layer downloaded from Municipality Map Maker is identical to the one the project already held, code for code and area for area. The 2015 census has the same municipality universe under both code systems, and the two 2015 delineations are the same partition, at both cutoff anchors.
+
+The delineation consolidates over time on the original codes as it does on the harmonized ones, but from much further out, because the units themselves are finer before the mergers of the 2000s: 739 zones over 3,281 municipalities in 1980, 501 over 3,255 in 2000, 346 over 2,242 in 2005, and 275 over 1,744 in 2015 and 2020.
+
 ## What the table holds
 
 `census_year` and `code` are the join key: the municipality code in force on 1 October of that census year. The dates run 1980, 1985, ..., 2020 and 2025, so a user attaching zones to the 2025 census joins on the same table as one attaching them to 1980. `prefecture`, `gun` and `muni_name` are the names as of that date, for checking a join rather than for making one.
@@ -18,7 +28,7 @@ Every delineation is built on commuting matrices already harmonized onto the cod
 
 One municipality genuinely splits rather than merges. Kamikuishiki in Yamanashi, code 19341, was divided in 2006 between Kofu and Fujikawaguchiko. It appears twice for each census date up to 2005, once per successor, with the share of its area in the `weight` column: 0.770 to Fujikawaguchiko and 0.230 to Kofu. `largest_share` marks the larger of the two, so a user who needs one row per municipality filters on it. Every other municipality carries a single row with a weight of one.
 
-A zone is missing where the 2015 unit is absent from that year's commuting matrix. That is Shikotan, Tomari and Rubetsu in the Northern Territories, where no census is taken, in every year, and Futaba under its evacuation order in 2020.
+A zone is missing where the 2015 unit is absent from that year's commuting matrix. That is Shikotan, Tomari and Rubetsu in the Northern Territories, where no census is taken, in every year; Miyake in 2000, evacuated after the eruption of Oyama; Tomioka, Okuma, Futaba, Namie and Iitate in 2015, under the nuclear evacuation orders; and Futaba alone in 2020.
 
 ## The municipality codes after 2015
 

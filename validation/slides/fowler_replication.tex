@@ -90,15 +90,15 @@
 \begin{frame}[label=diagnostics]{Diagnostic statistics}{Table 1 of Fowler (2024)}
   \centering
   \gototwo{appdiagcounts}{Counts, all nine years}{appdiagsize}{Size and shape, all nine years}
-  \input{tables/diagnostics}
+  {\renewcommand{\arraystretch}{0.72}\input{tables/diagnostics}}
   \\[4pt]
-  \footnotesize Compactness is the Polsby--Popper ratio, $4\pi A / P^2$ of the dissolved zone, averaged across zones.
+  \footnotesize Compactness is the Polsby--Popper ratio $4\pi A / P^2$. United States counties score \usCountyCompactness{} and their \usZones{} commuting zones \usZoneCompactness{}.
 \end{frame}
 
 \begin{frame}[label=fit]{Fit statistics}{Table 2 of Fowler (2024)}
   \centering
   \gototwo{appcontainment}{Containment, all nine years}{appcore}{Core measures, all nine years}
-  \input{tables/fit}
+  {\renewcommand{\arraystretch}{0.62}\input{tables/fit}}
 \end{frame}
 
 \begin{frame}[label=lowestcontainment]{The commuting zone with the lowest mean containment}{Figure 3 of Fowler (2024)}
@@ -255,16 +255,17 @@
 
 \begin{frame}[label=appdiagsize]{Zone size and shape, 1980 to 2020}
   \centering
-  {\setlength{\tabcolsep}{4pt}\input{tables/appendix_diagnostics_size}}
+  {\setlength{\tabcolsep}{3pt}\input{tables/appendix_diagnostics_size}}
   \\[4pt]
-  \footnotesize Population is the resident labour force carried in the commuting matrix. Compactness is the Polsby--Popper ratio.
+  \footnotesize Population is the resident labour force carried in the commuting matrix. Compactness is the Polsby--Popper ratio, for the zones and for the municipalities they are built from.
   \backslide{diagnostics}
 \end{frame}
 
 \begin{frame}[label=appcontainment]{Containment, 1980 to 2020}
-  \input{tables/appendix_containment}
+  \centering
+  {\setlength{\tabcolsep}{3pt}\input{tables/appendix_containment}}
   \\[4pt]
-  \footnotesize The minimum and the mean are taken over commuting zones; the share of the labour force is a single national ratio.
+  \footnotesize The minimum, the two percentiles and the mean are taken over commuting zones; the share of the labour force is a single national ratio.
   \backslide{fit}
 \end{frame}
 

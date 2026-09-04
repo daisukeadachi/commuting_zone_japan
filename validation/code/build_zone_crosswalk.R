@@ -25,6 +25,14 @@
 #
 # Writes validation/output/commuting_zone_crosswalk_cut<cutoff>.csv, one file per cutoff,
 # and validation/output/commuting_zone_crosswalk_coverage.csv.
+#
+# The two tables meant to be handed to a user are written alongside them, under
+# validation/output/provided, at the cutoff the paper uses. One carries the zones of every
+# anchor year on the harmonized codes, which is what a panel needs. The other carries each
+# census year's own delineation on the codes in force that year, which is what a
+# cross-section of that year needs; it is built by build_original_scope_and_adjacency.R and
+# the three build steps run with CZ_CODES set to "original". See
+# validation/output/provided/README.md.
 
 suppressMessages({
   library(dplyr)
@@ -57,7 +65,10 @@ read_codelist <- function(path) {
 naming <- function(gun, muni) {
   gun <- coalesce(gun, "")
   muni <- coalesce(muni, "")
-  tibble(gun = ifelse(muni == "", "", gun), muni_name = ifelse(muni == "", gun, muni))
+  stands_alone <- muni == ""
+  county <- ifelse(stands_alone, "", gun)
+  name <- ifelse(stands_alone, gun, muni)
+  tibble(gun = county, muni_name = name)
 }
 
 records <- bind_rows(
@@ -113,6 +124,7 @@ for (cutoff in cutoff_anchors) {
   table <- table %>% select(-delineation_unit)
   write_csv(table, output_path(sprintf("commuting_zone_crosswalk_cut%s.csv", cut_label(cutoff))))
   message("wrote the crosswalk at cutoff ", cut_label(cutoff), ": ", nrow(table), " rows")
+  if (abs(cutoff - baseline_cutoff) < 1e-9) baseline_table <- table
 }
 
 # Coverage, at the baseline cutoff. A municipality has no zone under an anchor year when
@@ -132,3 +144,53 @@ coverage <- read_csv(output_path(sprintf("commuting_zone_crosswalk_cut%s.csv",
             .groups = "drop")
 write_csv(coverage, output_path("commuting_zone_crosswalk_coverage.csv"))
 print(as.data.frame(coverage))
+
+# ---------------------------------------------------------------------------
+# The two tables handed to a user, at the cutoff the paper uses.
+
+provided_dir <- file.path(output_dir, "provided")
+dir.create(provided_dir, showWarnings = FALSE, recursive = TRUE)
+
+# Taken from the table in memory rather than read back from the file it was just written
+# to. A county field is empty for a city, and reading the file returns that empty field as
+# a missing value, which would then be written out as NA.
+panel <- baseline_table %>%
+  select(census_year, code, prefecture, gun, muni_name, offshore_island,
+         all_of(sprintf("zone_%d", census_years)))
+write_csv(panel, file.path(provided_dir, "harmonized.csv"))
+message("wrote provided/harmonized.csv: ", nrow(panel), " rows")
+
+#' Zone assignment of one census year on the municipality codes in force that year.
+#'
+#' The path carries the code universe, so it is read by asking config.R for the path it
+#' would use under the original codes.
+read_original_zones <- function(year, cutoff) {
+  old <- code_universe
+  assign("code_universe", "original", envir = globalenv())
+  path <- full_zone_path(year, cutoff)
+  assign("code_universe", old, envir = globalenv())
+  suppressMessages(read_csv(path, col_types = cols(code = col_character(),
+                                                   zone = col_integer())))
+}
+
+# One row per municipality per census date. A municipality that split between two census
+# dates appears once here, under its own code, because the zone is read on that date's own
+# delineation and nothing has to be carried onto the 2015 units.
+cross_section <- records %>%
+  filter(census_year %in% census_years) %>%
+  distinct(census_year, code, prefecture, gun, muni_name) %>%
+  arrange(census_year, code) %>%
+  mutate(zone = NA_integer_)
+for (anchor in census_years) {
+  zones <- read_original_zones(anchor, baseline_cutoff)
+  lookup <- setNames(zones$zone, zones$code)
+  rows <- cross_section$census_year == anchor
+  cross_section$zone[rows] <- unname(lookup[merge_tokyo_wards(cross_section$code[rows])])
+}
+write_csv(cross_section, file.path(provided_dir, "original.csv"))
+message("wrote provided/original.csv: ", nrow(cross_section), " rows, ",
+        sum(is.na(cross_section$zone)), " without a zone")
+print(as.data.frame(cross_section %>%
+                      group_by(census_year) %>%
+                      summarise(municipalities = n(), zones = n_distinct(zone, na.rm = TRUE),
+                                without_a_zone = sum(is.na(zone)), .groups = "drop")))
