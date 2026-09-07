@@ -240,8 +240,10 @@ macros <- c(
   sprintf("\\newcommand{\\usCountyCompactness}{%s}", ratio(us_county)),
   sprintf("\\newcommand{\\usZoneCompactness}{%s}", ratio(us_zone)),
   sprintf("\\newcommand{\\usZones}{%s}", count(us$units[us$unit == "commuting zone"])),
-  sprintf("\\newcommand{\\constraintSimilarity}{%s}",
-          ratio(min(comparison$mean_similarity))),
+  # Three decimals here: the minimum is 0.988, and two decimals would round it up to
+  # 0.99 and overstate the agreement.
+  sprintf("\\newcommand{\\constraintSimilarity}{%.3f}",
+          min(comparison$mean_similarity)),
   sprintf("\\newcommand{\\constraintDetached}{%s}",
           count(max(comparison$noncontiguous_zones_unconstrained))),
   sprintf("\\newcommand{\\decadeSimilarityLow}{%s}", ratio(min(decades$mean_similarity))),
