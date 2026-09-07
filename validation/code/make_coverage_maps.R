@@ -47,7 +47,11 @@ stopifnot(sample_definition == "WORK_MAIN", denominator == "reported",
 map_year <- 2000L
 map_cutoff <- baseline_cutoff
 
-figure_dir <- figure_path()
+# The figures go where the rest of the paper's figures go. figure_path() would send them
+# to the variant directory of the code universe set above, which is meant to keep a
+# side run from overwriting the baseline; here the universe is a property of this one
+# figure rather than of the run, so the destination is written out.
+figure_dir <- file.path(output_dir, "figures")
 dir.create(figure_dir, showWarnings = FALSE, recursive = TRUE)
 
 zones <- read_csv(full_zone_path(map_year, map_cutoff),
