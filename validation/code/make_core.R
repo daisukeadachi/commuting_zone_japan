@@ -42,9 +42,6 @@ uea_files <- list(
   "2020" = c("MEA2020.csv", "MEA2020C.csv", "MCEA2020.csv", "MCEA2020C.csv")
 )
 
-# Towns incorporated as cities between the 2015 and 2020 censuses, without any boundary
-# change; mapping the 2020 code back gives the 2015 code.
-city_incorporations_2020 <- c("04216" = "04423", "40231" = "40305")
 
 read_cp932 <- function(path) {
   suppressWarnings(read_csv(path, locale = locale(encoding = "CP932"), show_col_types = FALSE,
@@ -61,14 +58,16 @@ crosswalk <- function(year) {
     distinct(from, .keep_all = TRUE)
 }
 
+# The urban area of a census date is read on that date's codes and carried onto the units
+# the delineation uses, which are those in force on 1 October 2020. A date up to 2010 is
+# carried by its crosswalk onto the codes of 2015 and then over the two towns incorporated
+# as cities; 2015 needs only the second step, and 2020 is already there.
 harmonize <- function(codes, year) {
-  if (year == 2020) {
-    return(ifelse(codes %in% names(city_incorporations_2020), city_incorporations_2020[codes], codes))
-  }
+  if (year == 2020) return(codes)
   map <- crosswalk(year)
-  if (is.null(map)) return(codes)
+  if (is.null(map)) return(apply_incorporations(codes))
   out <- map$to[match(codes, map$from)]
-  ifelse(is.na(out), codes, out)
+  apply_incorporations(ifelse(is.na(out), codes, out))
 }
 
 read_uea <- function(year) {

@@ -2,7 +2,7 @@
 
 Two tables, one for each of the two ways a commuting zone gets used. Both are keyed by census year and municipality code, so attaching zones to a dataset is one join.
 
-`harmonized.csv` holds nine delineations at once, each built on the municipalities in force on 1 October 2015. Use it when the analysis pools several censuses. Pick the anchor year closest to the middle of the sample, take that `zone_YYYY` column, and ignore the rest. A zone definition that moves between waves is not a fixed effect, so one column is held across the whole panel rather than one per year.
+`harmonized.csv` holds nine delineations at once, each built on the municipalities in force on 1 October 2020. Use it when the analysis pools several censuses. Pick the anchor year closest to the middle of the sample, take that `zone_YYYY` column, and ignore the rest. A zone definition that moves between waves is not a fixed effect, so one column is held across the whole panel rather than one per year.
 
 `original.csv` holds one delineation per census year, each built on the municipalities in force on that census date. Use it when the analysis is a cross-section of a single year, because it describes the labour markets of that year in the units the year itself reports. The `zone` column is that year's own delineation.
 

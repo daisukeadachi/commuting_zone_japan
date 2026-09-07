@@ -1,16 +1,17 @@
 """Put the district table on harmonized municipality codes.
 
-Harmonized means the boundaries in force on 1 October 2015, the base used
-throughout the project: where several municipalities of an earlier year were
-later consolidated, their figures are added together and attributed to the
-successor. Because the mapping is many-to-one everywhere it matters, adding a
-count is exact rather than an approximation.
+Harmonized means the units in force on 1 October 2020, the base used throughout
+the project: where several municipalities of an earlier year were later
+consolidated, their figures are added together and attributed to the successor.
+Because the mapping is many-to-one everywhere it matters, adding a count is
+exact rather than an approximation.
 
-The 2015 codes need no mapping. The 2020 codes lie beyond the coverage of
-Municipality Map Maker, but nothing merged between the two censuses: the count
-of municipalities stood at 1,718 plus the 23 special wards on both dates, and
-the only changes were two towns incorporated as cities, each without any
-boundary change. Those two are reversed by hand.
+The crosswalks run to the codes of 2015, and nothing merged between the 2015 and
+the 2020 censuses: the count of municipalities stood at 1,718 plus the 23 special
+wards on both dates, and the only changes were two towns incorporated as cities,
+each without any boundary change. A year up to 2010 is therefore carried by its
+crosswalk and then over those two codes, 2015 needs only the second step, and
+2020 is already on the base.
 
 One municipality in the crosswalk splits between two successors, Kamikuishiki
 village in Yamanashi, and it holds no district in any year, so the split never
@@ -32,8 +33,8 @@ XWALK = os.path.join(DATA, "crosswalk")
 MAPPED_YEARS = ["1980", "1985", "1990", "1995", "2000", "2005", "2010"]
 
 # Towns incorporated as cities between the 2015 and 2020 censuses, without any
-# boundary change. Mapping the 2020 code back gives the 2015 code.
-CITY_INCORPORATIONS_2020 = {"04216": "04423", "40231": "40305"}
+# boundary change. Each takes its 2020 code on the base.
+CITY_INCORPORATIONS_2020 = {"04423": "04216", "40305": "40231"}
 
 
 def load_crosswalk(year):
@@ -68,10 +69,11 @@ def main():
             # that holds a district maps one-to-one, so this only ever picks the
             # single available target.
             dst = max(targets, key=lambda t: t[1])[0]
+            dst = CITY_INCORPORATIONS_2020.get(dst, dst)
         elif year == "2020":
-            dst = CITY_INCORPORATIONS_2020.get(code, code)
-        else:
             dst = code
+        else:
+            dst = CITY_INCORPORATIONS_2020.get(code, code)
         k = (year, dst)
         if k not in agg:
             agg[k] = {"year": year, "muni_code": dst, "muni_name": r["muni_name"],

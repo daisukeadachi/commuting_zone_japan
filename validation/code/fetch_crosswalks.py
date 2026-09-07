@@ -1,7 +1,7 @@
 """Fetch municipality code crosswalks from Municipality Map Maker.
 
 Each file maps the municipality codes in force at a census date onto the codes
-in force on 1 October 2015, which is the harmonization base used throughout the
+in force on 1 October 2015, one substitution short of the harmonization base used
 project. Settings match the crosswalks already held for other dates: the wards
 of ordinance-designated cities are collapsed to the city while the special wards
 of Tokyo stay separate, the layout is one pair per row, and the weights are

@@ -49,7 +49,7 @@ Three more came out of the meeting of 4 September 2026. Compactness is now repor
 Committed under `validation/data`:
 
 - `uea/`, all 32 published Urban Employment Area files: metropolitan and micropolitan, suburb lists and central-city lists, for 1980, 1990, 1995, 2000, 2005, 2010, 2015, 2020. There is no 1985 delineation, which affects no comparison pair in scope.
-- `did_municipality.csv` and `did_municipality_harmonized.csv`, district population and area by municipality for 1980 to 2020, on survey-year codes and on 2015 codes respectively.
+- `did_municipality.csv` and `did_municipality_harmonized.csv`, district population and area by municipality for 1980 to 2020, on survey-year codes and on the 2020 codes respectively.
 - `crosswalk/`, one municipality code crosswalk per census year from 1980 to 2010 onto 1 October 2015, and two written by hand from 2015 onto the 2020 and the 2025 codes.
 - `did_municipality_2020_raw.xlsx`, the census table behind the 2020 rows.
 - `MANUAL_DOWNLOADS.md`, provenance and the checks each file passed.

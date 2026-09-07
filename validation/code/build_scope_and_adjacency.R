@@ -3,7 +3,9 @@
 # A municipality is in scope if it sits on one of the four main islands or on the
 # Okinawa main island, or is joined to one of them by a permanent road link. The
 # rule is implemented as the connected components of queen contiguity on the 2015
-# boundary layer, followed by an explicit list of fixed links.
+# boundary layer, followed by an explicit list of fixed links. The layer is read onto
+# the units in force on 1 October 2020, which it reaches by renaming the two towns
+# incorporated as cities in between; no boundary moved with them.
 #
 # Writes validation/data/municipality_scope.csv and validation/data/adjacency_edges.csv.
 # Both are inputs to the Fowler (2024) replication (issue #11) and to the
@@ -25,7 +27,8 @@ sf_use_s2(FALSE)
 message("reading the boundary layer")
 shape <- st_read(boundary_shp, quiet = TRUE, options = "ENCODING=CP932") %>%
   st_make_valid() %>%
-  mutate(code = merge_tokyo_wards(sprintf("%05d", as.integer(as.character(JISCODE)))))
+  mutate(code = merge_tokyo_wards(apply_incorporations(
+    sprintf("%05d", as.integer(as.character(JISCODE))))))
 
 # Dissolve the special wards into the single unit the rest of the pipeline expects.
 shape <- shape %>%

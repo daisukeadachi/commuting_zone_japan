@@ -65,10 +65,13 @@ ward_ranges <- tribble(
 )
 
 #' Municipality code a residence is counted under, on the delineation's universe.
+#'
+#' That universe is the units in force on 1 October 2020, which the tabulation's codes
+#' reach by collapsing the wards and renaming the two towns incorporated as cities.
 delineation_code <- function(code) {
   hit <- match(TRUE, code >= ward_ranges$from & code <= ward_ranges$to)
   city <- if (is.na(hit)) code else ward_ranges$city[hit]
-  merge_tokyo_wards(sprintf("%05d", city))
+  merge_tokyo_wards(apply_incorporations(sprintf("%05d", city)))
 }
 
 build_year <- function(year) {

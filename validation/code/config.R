@@ -50,7 +50,7 @@ sample_definition <- Sys.getenv("CZ_SAMPLE", "WORK_MAIN")
 stopifnot(sample_definition %in% c("WORK_MAIN", "WORK_ALL", "SIDE_WORK"))
 
 # Which municipality codes the delineation is read on. Under the harmonized codes every
-# census year's matrix is carried onto the units in force on 1 October 2015, so one
+# census year's matrix is carried onto the units in force on 1 October 2020, so one
 # delineation can be compared with another and a panel keyed by municipality holds still.
 # Under the original codes each year is read on the units in force on its own census date,
 # which is what a cross-section of that year describes. Set the environment variable
@@ -70,23 +70,34 @@ code_tag <- function(which = code_universe) {
 }
 
 # Towns incorporated as cities between the 2015 and the 2020 census dates. Each took a new
-# code and no boundary moved, so the 2015 boundary layer serves the 2020 census once the
-# two codes are renamed. Municipality Map Maker stops on 1 May 2019 and so cannot supply a
-# 2020 layer; nothing is lost. See build_recent_crosswalks.py.
+# code and no boundary moved. The harmonized universe is the units in force on 1 October
+# 2020, and the two inputs that arrive on the 2015 codes, the boundary layer and the
+# harmonized commuting matrices, reach it by renaming these two. Municipality Map Maker
+# stops on 1 May 2019 and so cannot supply a 2020 layer; nothing is lost, because the 2015
+# layer is the 2020 geography. See build_recent_crosswalks.py.
 incorporations_after_2015 <- c("04423" = "04216", "40305" = "40231")
 
-#' Carry the 2015 codes of the two towns onto the codes a later census date uses.
-#'
-#' A no-op under the harmonized codes, which stay on the 2015 units throughout, and for
-#' any year up to 2015.
-rename_incorporated_towns <- function(codes, year = NULL) {
-  if (code_universe == "harmonized" || is.null(year) || as.integer(year) <= 2015L) return(codes)
+#' Substitute the 2020 code of a town incorporated as a city after 2015.
+apply_incorporations <- function(codes) {
   renamed <- incorporations_after_2015[codes]
   ifelse(is.na(renamed), codes, unname(renamed))
 }
 
+#' Codes of a boundary layer, on the universe the run delineates.
+#'
+#' The harmonized universe is the units of 2020 and is always read off the 2015 layer, so
+#' it always needs the substitution. Under each census date's own codes a layer up to 2015
+#' already carries that date's codes, and only the 2020 layer, itself read off the 2015
+#' one, needs it.
+rename_incorporated_towns <- function(codes, year = NULL) {
+  if (code_universe == "original" && (is.null(year) || as.integer(year) <= 2015L)) return(codes)
+  apply_incorporations(codes)
+}
+
 # Permanent road links between municipalities whose polygons do not touch, on the codes in
-# force on 1 October 2015. Within a block these attach a bridge-connected island to its
+# force on 1 October 2020; no endpoint is one of the two towns whose code changed after
+# 2015, so the same codes name them in 2015. Within a block these attach a
+# bridge-connected island to its
 # main island; across blocks they carry the four crossings over which people commute
 # daily. The Seikan tunnel is absent because it carries rail only.
 # build_original_scope_and_adjacency.R carries each end onto the codes of an earlier
@@ -453,10 +464,13 @@ merge_tokyo_wards <- function(codes) {
 read_commuting <- function(year, code_type = code_universe, which = sample_definition) {
   raw <- suppressMessages(readr::read_csv(commute_path(year, code_type, which),
                                           show_col_types = FALSE))
+  # A harmonized matrix is written on the codes in force in 2015; the universe it is read
+  # into is the units of 2020, which the two incorporated towns reach by substitution.
+  base <- if (identical(code_type, "harmonized")) apply_incorporations else identity
   raw |>
     dplyr::transmute(
-      i = merge_tokyo_wards(sprintf("%05d", as.integer(living_mun))),
-      j = merge_tokyo_wards(sprintf("%05d", as.integer(commute_mun))),
+      i = merge_tokyo_wards(base(sprintf("%05d", as.integer(living_mun)))),
+      j = merge_tokyo_wards(base(sprintf("%05d", as.integer(commute_mun)))),
       pop
     ) |>
     dplyr::group_by(i, j) |>
