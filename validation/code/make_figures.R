@@ -89,9 +89,15 @@ romanized <- c(
 # Basemap tiles for the detail map. The source paper draws a light Mapbox style, which
 # needs an access token; this is the closest equivalent served without one. The
 # label-free version is used because every label in this project is written in English
-# and a tiled basemap of Japan carries Japanese place names. Attribution is required
-# and sits in the caption. Where the tiles cannot be reached the map still draws.
-basemap_credit <- "Basemap: Esri, HERE, Garmin and OpenStreetMap contributors"
+# and a tiled basemap of Japan carries Japanese place names. Where the tiles cannot be
+# reached the map still draws.
+#
+# The tiles require attribution, and nothing here writes it onto the image: no figure in
+# this project carries text of its own beyond what the data label. The document that
+# includes the map carries the line below in the note under it, alongside the credit for
+# the boundary data.
+#
+#   Basemap: Esri, HERE, Garmin and OpenStreetMap contributors
 basemap_provider <- "Esri.WorldGrayCanvas"
 
 fetch_basemap <- function(layer, zoom = 10) {
@@ -376,12 +382,10 @@ draw_year_maps <- function(map_year) {
                                box.padding = 0.3, max.overlaps = Inf, seed = 20260826) +
       scale_fill_manual(name = "Share of residents working\ninside their own commuting zone",
                         values = containment_palette, drop = FALSE) +
-      labs(caption = basemap_credit) +
       coord_sf(xlim = detail_frame[c("xmin", "xmax")], ylim = detail_frame[c("ymin", "ymax")],
                expand = FALSE) +
       theme_void(base_size = 16) +
       theme(legend.position = "right", legend.key.height = unit(0.9, "cm"),
-            plot.caption = element_text(size = 9, colour = "grey35", hjust = 0.98),
             plot.background = element_rect(fill = "white", colour = NA))
     ggsave(file.path(figure_dir, sprintf("lowest_containment_zone_%d_cut%s.png", map_year,
                                          cut_label(map_cutoff))),
