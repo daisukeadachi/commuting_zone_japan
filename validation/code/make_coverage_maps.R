@@ -8,7 +8,16 @@
 #
 # Both panels are drawn on the same municipalities and the same frame, so the grey in the
 # second is exactly what the first covers and the second does not. The year is 2000, the
-# year the coverage of the Urban Employment Area is usually quoted for.
+# year the coverage of the Urban Employment Area is usually quoted for. The delineation is
+# the published one, which covers the offshore islands, so the claim the figure makes is
+# made for the whole country: every municipality the census records belongs to a zone.
+#
+# Three municipalities lie too far out to share a frame with the rest and are left off:
+# Ogasawara, a thousand kilometres south of Tokyo, and the two Daito villages, four hundred
+# kilometres east of Okinawa. The rest of Okinawa prefecture, Sakishima included, is drawn
+# in the inset. The three villages of the Northern Territories take no census and a
+# municipality under an evacuation order has no residents recorded as working, so neither
+# has a zone and neither is drawn.
 #
 # Writes two files under validation/output/figures. Neither carries a title, as with every
 # figure here; the file name identifies it.
@@ -31,14 +40,15 @@ map_cutoff <- baseline_cutoff
 figure_dir <- figure_path()
 dir.create(figure_dir, showWarnings = FALSE, recursive = TRUE)
 
-scope <- read_scope() %>% filter(in_scope)
+zones <- read_csv(full_zone_path(map_year, map_cutoff),
+                  col_types = cols(code = col_character(), zone = col_integer()))
+
+outside_frame <- c("13421", "47357", "47358")
+scope <- read_scope() %>% filter(code %in% zones$code, !code %in% outside_frame)
 geometry <- read_boundaries(scope$code)
-placed <- inset_okinawa(geometry, scope$code[scope$block == "Okinawa main island"])
+placed <- inset_okinawa(geometry, scope$code[substr(scope$code, 1, 2) == "47"])
 geometry <- placed$layer
 okinawa_frame <- placed$frame
-
-zones <- read_csv(zone_path(map_year, map_cutoff, "constrained"),
-                  col_types = cols(code = col_character(), zone = col_integer()))
 
 # The Urban Employment Area membership of the same year, read the way make_core.R reads
 # it: a municipality belongs to at most one area, as a central city or as a suburb.
@@ -129,6 +139,8 @@ uea_outlines <- uea_layer %>%
   st_make_valid()
 draw(uea_layer, uea_outlines, sprintf("coverage_urban_employment_areas_%d.png", map_year))
 
-message(sprintf("%d: %d municipalities, %d commuting zones; %d municipalities in %d urban areas",
-                map_year, nrow(geometry), n_distinct(zones$zone),
-                sum(!is.na(uea_layer$area)), n_distinct(areas$area)))
+message(sprintf(paste("%d: %d municipality units drawn of %d with a zone, in %d of %d commuting zones;",
+                      "%d of the units drawn in %d urban employment areas, %d in none"),
+                map_year, nrow(geometry), nrow(zones), n_distinct(cz_layer$zone),
+                n_distinct(zones$zone), sum(!is.na(uea_layer$area)),
+                n_distinct(uea_layer$area, na.rm = TRUE), sum(is.na(uea_layer$area))))
