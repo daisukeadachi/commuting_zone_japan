@@ -81,9 +81,9 @@ rows <- c(
   sprintf("\\quad Single-municipality zones & %s%s", across(diagnostics, count, "single_municipality_zones"), br),
   sprintf("\\quad Municipality units in the largest zone & %s%s", across(diagnostics, count, "municipalities_in_largest_zone"), br),
   sprintf("\\quad Non-contiguous zones & %s%s[3pt]", across(diagnostics, count, "noncontiguous_zones_paper_test"), br),
-  sprintf("\\quad Smallest zone, resident labour force & %s%s", across(diagnostics, count, "min_population"), br),
-  sprintf("\\quad Average zone, resident labour force & %s%s", across(diagnostics, count, "mean_population"), br),
-  sprintf("\\quad Largest zone, resident labour force & %s%s[3pt]", across(diagnostics, count, "max_population"), br),
+  sprintf("\\quad Smallest zone, resident labor force & %s%s", across(diagnostics, count, "min_population"), br),
+  sprintf("\\quad Average zone, resident labor force & %s%s", across(diagnostics, count, "mean_population"), br),
+  sprintf("\\quad Largest zone, resident labor force & %s%s[3pt]", across(diagnostics, count, "max_population"), br),
   sprintf("\\quad Smallest zone area (sq.\\,km) & %s%s", across(diagnostics, count, "min_area_km2"), br),
   sprintf("\\quad Average zone area (sq.\\,km) & %s%s", across(diagnostics, count, "mean_area_km2"), br),
   sprintf("\\quad Largest zone area (sq.\\,km) & %s%s[3pt]", across(diagnostics, count, "max_area_km2"), br),
@@ -110,7 +110,7 @@ rows <- c(
   sprintf("\\quad Fifth percentile contained & %s%s", across(containment, share, "p5_contained"), br),
   sprintf("\\quad Median contained & %s%s", across(containment, share, "median_contained"), br),
   sprintf("\\quad Mean contained & %s%s", across(containment, share, "mean_contained"), br),
-  sprintf("\\quad Share of the labour force contained & %s%s", across(containment, share, "share_of_labour_force_contained"), br),
+  sprintf("\\quad Share of the labor force contained & %s%s", across(containment, share, "share_of_labour_force_contained"), br),
   sprintf("\\quad Mean work contained & %s%s", across(containment, share, "mean_work_contained"), br))
 write_table(rows, "fit.tex", paste0("l", strrep("r", length(decade_years))),
             paste0("& ", paste(decade_years, collapse = " & "), br))
@@ -137,7 +137,7 @@ rows <- sprintf("%d & %s & %s & %s & %s & %s & %s & %s & %s%s", diagnostics$year
                 count(diagnostics$mean_area_km2), count(diagnostics$max_area_km2),
                 ratio(diagnostics$compactness), ratio(diagnostics$compactness_municipalities), br)
 write_table(rows, "appendix_size.tex", "lrrrrrrrr",
-            paste0("Year & \\multicolumn{3}{c}{Resident labour force} & ",
+            paste0("Year & \\multicolumn{3}{c}{Resident labor force} & ",
                    "\\multicolumn{3}{c}{Area (sq.\\,km)} & \\multicolumn{2}{c}{Compactness}", br,
                    "\\cline{2-4} \\cline{5-7} \\cline{8-9}",
                    "& Smallest & Average & Largest & Smallest & Average & Largest & ",
@@ -152,7 +152,7 @@ rows <- sprintf("%d & %s & %s & %s & %s & %s & %s & %s%s", containment$year,
 write_table(rows, "appendix_containment.tex", "lrrrrrrr",
             paste0("Year & Minimum & Fifth & Median & Mean & Labour-force & Share of the & ",
                    "Mean work", br,
-                   "& & percentile & & & weighted mean & labour force & contained", br))
+                   "& & percentile & & & weighted mean & labor force & contained", br))
 
 district <- core_all %>%
   filter(core_definition == "densely inhabited district population at least 10,000")
