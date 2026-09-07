@@ -6,11 +6,20 @@
 # zone delineation partitions the country. That difference is a fact about the two maps
 # and is shown as one.
 #
-# Both panels are drawn on the same municipalities and the same frame, so the grey in the
-# second is exactly what the first covers and the second does not. The year is 2000, the
-# year the coverage of the Urban Employment Area is usually quoted for. The delineation is
-# the published one, which covers the offshore islands, so the claim the figure makes is
-# made for the whole country: every municipality the census records belongs to a zone.
+# The year is 2000, the year the coverage of the Urban Employment Area is usually quoted
+# for, and both maps are drawn on the municipalities of 2000. The Urban Employment Area of
+# a year is defined on the municipality codes in force that year, so a comparison against
+# it has to be made in those units: carrying the membership forward onto the units of 2015
+# would hand a municipality that belonged to no area the membership of whichever later
+# merger partner had one, and the Heisei mergers joined a great many rural municipalities
+# to cities that did. The commuting zones drawn here are therefore the delineation on each
+# census date's own codes, the one released for cross-sectional work, rather than the
+# harmonized delineation the rest of the paper reports. The code universe is set here
+# rather than left to the caller, because this figure is only correct in one of them.
+#
+# The delineation is the published one, which covers the offshore islands, so the claim
+# the figure makes is made for the whole country: every municipality the census records
+# belongs to a zone.
 #
 # Three municipalities lie too far out to share a frame with the rest and are left off:
 # Ogasawara, a thousand kilometres south of Tokyo, and the two Daito villages, four hundred
@@ -29,11 +38,12 @@ suppressMessages({
   library(readr)
   library(ggplot2)
 })
+Sys.setenv(CZ_CODES = "original")
 source("validation/code/config.R")
 sf_use_s2(FALSE)
 
 stopifnot(sample_definition == "WORK_MAIN", denominator == "reported",
-          code_universe == "harmonized")
+          code_universe == "original")
 map_year <- 2000L
 map_cutoff <- baseline_cutoff
 
@@ -44,14 +54,15 @@ zones <- read_csv(full_zone_path(map_year, map_cutoff),
                   col_types = cols(code = col_character(), zone = col_integer()))
 
 outside_frame <- c("13421", "47357", "47358")
-scope <- read_scope() %>% filter(code %in% zones$code, !code %in% outside_frame)
-geometry <- read_boundaries(scope$code)
+scope <- read_scope(map_year) %>% filter(code %in% zones$code, !code %in% outside_frame)
+geometry <- read_boundaries(scope$code, map_year)
 placed <- inset_okinawa(geometry, scope$code[substr(scope$code, 1, 2) == "47"])
 geometry <- placed$layer
 okinawa_frame <- placed$frame
 
 # The Urban Employment Area membership of the same year, read the way make_core.R reads
-# it: a municipality belongs to at most one area, as a central city or as a suburb.
+# it: a municipality belongs to at most one area, as a central city or as a suburb. The
+# codes are the ones the files carry, which are the codes of the year.
 uea_dir <- file.path(data_dir, "uea")
 uea_files <- c("MEA2000_Rev07.csv", "MEA2000C_Rev07.csv",
                "McEA2000_Rev07.csv", "McEA2000C_Rev07.csv")
@@ -60,14 +71,6 @@ read_cp932 <- function(path) {
                             name_repair = "unique"))
 }
 pad <- function(x) sprintf("%05d", as.integer(x))
-crosswalk <- read_cp932(file.path(data_dir, "crosswalk",
-                                  sprintf("codelist_%d1001and20151001.csv", map_year))) %>%
-  transmute(from = pad(JISCODE1), to = pad(JISCODE2)) %>%
-  distinct(from, .keep_all = TRUE)
-harmonize <- function(codes) {
-  out <- crosswalk$to[match(codes, crosswalk$from)]
-  merge_tokyo_wards(ifelse(is.na(out), codes, out))
-}
 
 suburbs <- bind_rows(lapply(uea_files[c(1, 3)], function(f) {
   raw <- read_cp932(file.path(uea_dir, f)) %>% distinct()
@@ -86,7 +89,7 @@ centres <- bind_rows(lapply(uea_files[c(2, 4)], function(f) {
     transmute(area = pad(area), code = pad(code))
 }))
 areas <- bind_rows(centres, suburbs) %>%
-  transmute(area = harmonize(area), code = harmonize(code)) %>%
+  transmute(area = merge_tokyo_wards(area), code = merge_tokyo_wards(code)) %>%
   distinct(code, .keep_all = TRUE)
 
 # Adjacent units are given different shades by colouring on the label modulo the palette
