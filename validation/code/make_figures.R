@@ -355,7 +355,7 @@ draw_year_maps <- function(map_year) {
     zone_outlines <- detail %>% group_by(zone) %>% summarise(.groups = "drop") %>% st_make_valid()
     zone_labels <- suppressWarnings(st_point_on_surface(zone_outlines))
     # One municipality is named, the least contained of the zone, as the source paper names
-    # the single county its text argues about. Naming all five crowds a cluster this small.
+    # the single county its text argues about. Naming every member crowds a cluster this small.
     named <- detail %>%
       filter(zone == worst$zone) %>%
       slice_min(contained, n = 1) %>%
