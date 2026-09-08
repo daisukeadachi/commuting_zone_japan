@@ -1,39 +1,27 @@
-# Commuting Zones in Japan
+# Commuting zones for Japan, 1980 to 2020
 
-- Initial version: 29 Apr, 2019. Last updated: 19 Sep, 2022.
-- This repository contains the CZ delineation, source codes and raw data based on [Adachi, Fukai, Kawaguchi, and Saito (2020)](https://daisukeadachi.github.io/assets/papers/commuting_zones_rietidp.pdf).
+This repository releases a delineation of commuting zones for Japan and the code that produces it. A commuting zone is a group of municipalities within which most residents work and out of which few commute. The zones are built from the commuting flows recorded in every Population Census from 1980 to 2020 by hierarchical cluster analysis on the proportional-flow dissimilarity of Tolbert and Sizer (1996), with merges restricted to municipalities that adjoin on the ground. They are mutually exclusive and exhaustive of the national territory.
 
-# `output` folder
+The delineation and this code accompany the data descriptor Adachi, Fukai, Kawaguchi and Saito, *Commuting zones in Japan*.
 
-- This folder contains the files of CZ delineations.
+## What to read first
 
+`delineation/` holds the released tables and a README that describes every column. That folder is what most users need. `harmonized.csv` carries one delineation per census year, all built on the municipality units in force on 1 October 2020, and suits a panel. `original.csv` carries one delineation per census year on the units in force at that census date, and suits a cross-section of a single year.
 
+## Layout
 
-- Each file is an output of hierarchical agglomerative clustering (HAC) algorithm with an input of aggregated Population Census data in a year `(yyyy)` with municipality codes `(mcodes)`, either `original` or `harmonized`. 
-  - Thus, they follow a naming convention `(yyyy)_(mcodes).csv`.
+| Folder | What is in it |
+| --- | --- |
+| `delineation/` | The released concordances, the wide crosswalk behind them, and their documentation |
+| `code/` | Every step from the commuting matrices to the delineation, and to the paper's figures and tables |
+| `data/` | The inputs the repository can carry, and a README naming the inputs it cannot and where to obtain them |
+| `paper/` | The figures, table fragments and statistics the paper reports |
+| `legacy/` | The 2020 discussion-paper version: its delineations and the code that produced them |
 
+## Reproducing the delineation
 
+The census commuting matrices and the municipality boundary layer are not in this repository. `data/README.md` says what they are and where each comes from. Point `CZ_SHARED_ROOT` at the folder holding them, then run the scripts in `code/` in the order `code/README.md` gives. Everything runs in R, apart from four Python scripts that fetch and reshape external tables.
 
-- Details in municipality codes `(mcodes)`:
-  -  `original` means that the raw municipality codes in current census years are used to perform clustering. If you have data at the level of current-year municipality codes, delineation with `original` codes is relevant.
-  - `harmonized`  means that the municipality codes are harmonized across census years and then cluster municipalities according to current commuting flows each year. The harmonized codes are based on 2015 municipality codes. This procedure controls the [changes of administrative municipalities](https://en.wikipedia.org/wiki/Municipal_mergers_and_dissolutions_in_Japan) and focuses on the actual evolution of commuting patterns over the years. If your focus is to analyze such patterns, delineation with `harmonized` codes is relevant.
+## Citing
 
-
-
-- In `replication_by_tree_heights` sub-folder, results of other configurations of "tree heights" (see the paper for the detail) are stored. One can replicate them using the shared code in the `codes` folder.
-  - Our preferred choice of tree height is 0.98, following [Tolbert and Sizer (1996)](https://ageconsearch.umn.edu/record/278812/). One can replicate with this tree height.
-  - However, CZ delineations users can replicate are different from ones in our paper published in this `output` folder. See "important note" below for detail.
-
-# `codes` folder
-
-- This folder contains R source code, `MASTER.R`. After reading raw data, it creates distance matrices, performs HAC algorithm and, generates files of CZ delineation.
-- To replicate, one should first create `data` folder and put commuting matrix in that folder. Then
-  1. Open the `commuting_zone_japan.Rproj` in the mother folder.
-  2. Run `MASTER.R`
-- The output is in the `output/replicate_by_tree_heights` folder (replace the existing files).
-
-# `data` folder
-
-- This folder contains data needed to run the codes above. 
-  - CSV files are aggregated and annonymized commuting flow matrices that are produced and published by KAKENHI project [15H05692](https://kaken.nii.ac.jp/en/grant/KAKENHI-PROJECT-15H05692/).
-  - In sub-folder `mmm` are the municipality concordance files produced in [Municipality Map Maker](http://www.tkirimura.com/mmm/).
+Please cite the data descriptor when you use the delineation. If you use the discussion-paper version under `legacy/`, cite the discussion paper instead, and note that the two delineations are built on different municipality units and are not interchangeable.

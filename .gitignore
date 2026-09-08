@@ -2,34 +2,31 @@
 .Rhistory
 .RData
 .Ruserdata
-Ikuta_RA/data/*
-Ikuta_RA/cover/*
-Ikuta_RA/mapdata/*
-Ikuta_RA/output/*
-Ikuta_RA/out/*
-!Ikuta_RA/output/map_image
-
-# Bulk source archives re-downloadable by validation/code/build_did_table.py
-validation/data/a16_cache/
-
-# Derived objects rebuilt by validation/code (dissimilarity matrices, trees, cuts)
-validation/derived/
+.DS_Store
 Rplots.pdf
 
-# LaTeX build artefacts of the slide deck
-validation/slides/*.aux
-validation/slides/*.log
-validation/slides/*.nav
-validation/slides/*.out
-validation/slides/*.snm
-validation/slides/*.toc
-validation/slides/*.fls
-validation/slides/*.fdb_latexmk
-validation/slides/*.synctex.gz
-validation/slides/build/
+# Derived objects rebuilt by code/ (dissimilarity matrices, trees, cuts)
+derived/
 
-# Boundary layers fetched by validation/code/fetch_boundaries.py
-validation/data/boundaries/
+# Inputs the repository does not carry; see data/README.md
+data/a16_cache/
+data/boundaries/
+data/us/
 
-# United States county layer fetched by validation/code/build_us_compactness.R
-validation/data/us/
+# make_figures.R draws every census pair and both cutoff anchors. Only the figures the
+# paper prints are committed.
+paper/figures/*
+!paper/figures/coverage_commuting_zones_2000_cut0977.png
+!paper/figures/coverage_urban_employment_areas_2000.png
+!paper/figures/zone_count_vs_cutoff_2000.png
+!paper/figures/similarity_map_decades_cut0977.png
+!paper/figures/similarity_vs_cutoff_decades_anchor0977.png
+!paper/figures/lowest_containment_zone_2000_cut0977.png
+!paper/figures/split_urban_areas_2000_cut0977.png
+
+# Variant runs of the pipeline write their own names beside the baseline
+paper/figures_unconstrained/
+paper/statistics/*_unconstrained.csv
+
+# Python bytecode
+__pycache__/
