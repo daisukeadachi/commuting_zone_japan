@@ -277,7 +277,7 @@ for (map_cutoff in cutoff_anchors) {
     theme(legend.position = "right", legend.key.height = unit(0.9, "cm"),
           strip.text = element_text(size = 16, margin = margin(4, 0, 6, 0)),
           plot.background = element_rect(fill = "white", colour = NA))
-  ggsave(file.path(figure_dir, sprintf("similarity_map_decades_cut%s.png", cut_label(map_cutoff))),
+  ggsave(file.path(figure_dir, sprintf("similarity_map_decades_cut%s.png", cut_tag(map_cutoff))),
          width = 9.5, height = 10.5, dpi = 300, bg = "white")
 }
 
