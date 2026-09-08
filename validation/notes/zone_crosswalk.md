@@ -6,7 +6,7 @@ A researcher pooling several censuses needs one set of commuting zones held fixe
 
 ## The two tables handed to a user
 
-`validation/output/provided/` holds what a user of these zones is given, at the 0.977 cutoff, with its own README. `harmonized.csv` is the crosswalk above reduced to the columns a join needs: the census date, the municipality code in force then, the names, the offshore-island flag and the nine anchor columns. `original.csv` answers the other use. A cross-section of one census year wants the labour markets of that year in the units that year reports, not the 2015 units, so each year is delineated on its own municipality codes and the table carries a single `zone` column.
+`validation/output/provided/` holds what a user of these zones is given, at the 0.977 cutoff, with its own README. `harmonized.csv` is the crosswalk above reduced to the columns a join needs: the census date, the municipality code in force then, the names, the offshore-island flag and the nine anchor columns. `original.csv` answers the other use. A cross-section of one census year wants the labour markets of that year in the units that year reports, not the units of 2020, so each year is delineated on its own municipality codes and the table carries a single `zone` column.
 
 Those original-code delineations are built by the same three steps as the harmonized ones, with `CZ_CODES` set to `original`. What has to be built first is a boundary layer and an adjacency graph per census date, because the contiguity constraint needs to know which of that year's 3,259 municipalities touch which. `validation/code/fetch_boundaries.py` downloads the layers from Municipality Map Maker and `validation/code/build_original_scope_and_adjacency.R` turns each into a scope table and an edge list under `validation/data/original/`. The permanent road links are declared once in `config.R` on the 2015 codes and carried back onto each date's codes through the crosswalk, taking the end whose polygon lies closest to the other side.
 
@@ -20,15 +20,15 @@ The delineation consolidates over time on the original codes as it does on the h
 
 `zone_1980` through `zone_2020` are the commuting zone the municipality belongs to under each census year's delineation. A user who wants the zones of their sample's first year takes that column and ignores the rest. The columns are all built from the full-coverage delineation, so the offshore islands are carried and the table reaches the whole census population.
 
-`code_2015` is the municipality on 1 October 2015 that the row's municipality falls into, which is the unit the delineation is built on. `offshore_island` marks the rows whose 2015 unit lies outside the main-island scope the diagnostics report.
+`code_2020` is the municipality on 1 October 2020 that the row's municipality falls into, which is the unit the delineation is built on. `offshore_island` marks the rows whose unit lies outside the main-island scope the diagnostics report.
 
 ## Why the join is exact
 
-Every delineation is built on commuting matrices already harmonized onto the codes in force on 1 October 2015. Each census date's code therefore maps forward onto exactly one 2015 unit, and so onto exactly one zone of any year's delineation. A municipality formed by a merger cannot straddle two zones of an earlier year's delineation, because the harmonization happens before the clustering rather than after it. This is what makes a fixed-anchor table well defined at all: the alternative, delineating each year on its own codes and then reconciling, would leave merged municipalities sitting in two zones at once.
+Every delineation is built on commuting matrices already harmonized onto the units in force on 1 October 2020. Each census date's code therefore maps forward onto exactly one such unit, and so onto exactly one zone of any year's delineation. A municipality formed by a merger cannot straddle two zones of an earlier year's delineation, because the harmonization happens before the clustering rather than after it. This is what makes a fixed-anchor table well defined at all: the alternative, delineating each year on its own codes and then reconciling, would leave merged municipalities sitting in two zones at once.
 
 One municipality genuinely splits rather than merges. Kamikuishiki in Yamanashi, code 19341, was divided in 2006 between Kofu and Fujikawaguchiko. It appears twice for each census date up to 2005, once per successor, with the share of its area in the `weight` column: 0.770 to Fujikawaguchiko and 0.230 to Kofu. `largest_share` marks the larger of the two, so a user who needs one row per municipality filters on it. Every other municipality carries a single row with a weight of one.
 
-A zone is missing where the 2015 unit is absent from that year's commuting matrix. That is Shikotan, Tomari and Rubetsu in the Northern Territories, where no census is taken, in every year; Miyake in 2000, evacuated after the eruption of Oyama; Tomioka, Okuma, Futaba, Namie and Iitate in 2015, under the nuclear evacuation orders; and Futaba alone in 2020.
+A zone is missing where the unit is absent from that year's commuting matrix. That is Shikotan, Tomari and Rubetsu in the Northern Territories, where no census is taken, in every year; Miyake in 2000, evacuated after the eruption of Oyama; Tomioka, Okuma, Futaba, Namie and Iitate in 2015, under the nuclear evacuation orders; and Futaba alone in 2020.
 
 ## The municipality codes after 2015
 

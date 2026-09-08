@@ -267,6 +267,7 @@ code,muni_name,prefecture,land_component,in_scope,block,exclusion_reason,area_km
 04213,栗原市,宮城県,8,TRUE,Honshu,NA,808.128,8
 04214,東松島市,宮城県,8,TRUE,Honshu,NA,101.486,8
 04215,大崎市,宮城県,8,TRUE,Honshu,NA,793.754,8
+04216,黒川郡富谷町,宮城県,8,TRUE,Honshu,NA,49.102,8
 04301,刈田郡蔵王町,宮城県,8,TRUE,Honshu,NA,155.313,8
 04302,刈田郡七ヶ宿町,宮城県,8,TRUE,Honshu,NA,262.975,8
 04321,柴田郡大河原町,宮城県,8,TRUE,Honshu,NA,24.886,8
@@ -281,7 +282,6 @@ code,muni_name,prefecture,land_component,in_scope,block,exclusion_reason,area_km
 04406,宮城郡利府町,宮城県,8,TRUE,Honshu,NA,45.111,8
 04421,黒川郡大和町,宮城県,8,TRUE,Honshu,NA,225.609,8
 04422,黒川郡大郷町,宮城県,8,TRUE,Honshu,NA,82.132,8
-04423,黒川郡富谷町,宮城県,8,TRUE,Honshu,NA,49.102,8
 04424,黒川郡大衡村,宮城県,8,TRUE,Honshu,NA,60.034,8
 04444,加美郡色麻町,宮城県,8,TRUE,Honshu,NA,109.401,8
 04445,加美郡加美町,宮城県,8,TRUE,Honshu,NA,460.664,8
@@ -1475,7 +1475,7 @@ code,muni_name,prefecture,land_component,in_scope,block,exclusion_reason,area_km
 40228,朝倉市,福岡県,32,TRUE,Kyushu,NA,246.58,8
 40229,みやま市,福岡県,32,TRUE,Kyushu,NA,105.196,8
 40230,糸島市,福岡県,32,TRUE,Kyushu,NA,215.605,8
-40305,筑紫郡那珂川町,福岡県,32,TRUE,Kyushu,NA,74.943,8
+40231,筑紫郡那珂川町,福岡県,32,TRUE,Kyushu,NA,74.943,8
 40341,糟屋郡宇美町,福岡県,32,TRUE,Kyushu,NA,30.151,8
 40342,糟屋郡篠栗町,福岡県,32,TRUE,Kyushu,NA,38.954,8
 40343,糟屋郡志免町,福岡県,32,TRUE,Kyushu,NA,8.695,8

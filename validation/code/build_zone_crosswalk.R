@@ -8,8 +8,8 @@
 # the zone that municipality falls into under each year's delineation.
 #
 # The join is exact rather than approximate. Every delineation is built on commuting
-# matrices already harmonized onto the codes in force on 1 October 2015, so each census
-# date's code maps forward onto one 2015 unit and therefore onto one zone of any
+# matrices already harmonized onto the units in force on 1 October 2020, so each census
+# date's code maps forward onto one such unit and therefore onto one zone of any
 # delineation. A municipality formed by a merger cannot straddle two zones of an earlier
 # year's delineation, because the harmonization happens before the clustering rather
 # than after it.
@@ -78,14 +78,14 @@ records <- bind_rows(
     bind_cols(
       tibble(census_year = year, code = x$JISCODE1, prefecture = x$PNAME1),
       naming(x$GNAME1, x$CNAME1),
-      tibble(weight = as.numeric(x$WEIGHT), code_2015 = x$JISCODE2))
+      tibble(weight = as.numeric(x$WEIGHT), code_2020 = apply_incorporations(x$JISCODE2)))
   }),
   local({
     x <- read_codelist(file.path(crosswalk_dir, "codelist_20151001and20201001.csv"))
     bind_cols(
       tibble(census_year = 2015L, code = x$JISCODE1, prefecture = x$PNAME1),
       naming(x$GNAME1, x$CNAME1),
-      tibble(weight = 1, code_2015 = x$JISCODE1))
+      tibble(weight = 1, code_2020 = apply_incorporations(x$JISCODE1)))
   }),
   lapply(years_after_base, function(year) {
     x <- read_codelist(file.path(crosswalk_dir,
@@ -93,7 +93,7 @@ records <- bind_rows(
     bind_cols(
       tibble(census_year = year, code = x$JISCODE2, prefecture = x$PNAME2),
       naming(x$GNAME2, x$CNAME2),
-      tibble(weight = 1, code_2015 = x$JISCODE1))
+      tibble(weight = 1, code_2020 = apply_incorporations(x$JISCODE1)))
   })
 ) %>%
   group_by(census_year, code) %>%
@@ -110,7 +110,7 @@ in_scope <- scope$code[scope$in_scope]
 # zone can be looked up. The ward keeps its own code in the census-date column, which is
 # the column a user joins on.
 records <- records %>%
-  mutate(delineation_unit = merge_tokyo_wards(code_2015),
+  mutate(delineation_unit = merge_tokyo_wards(code_2020),
          offshore_island = !delineation_unit %in% in_scope)
 
 for (cutoff in cutoff_anchors) {
@@ -128,13 +128,13 @@ for (cutoff in cutoff_anchors) {
 }
 
 # Coverage, at the baseline cutoff. A municipality has no zone under an anchor year when
-# the 2015 unit it falls into is absent from that year's commuting matrix, which happens
+# the unit it falls into is absent from that year's commuting matrix, which happens
 # for the Northern Territories, where no census is taken, and for the municipalities
 # under evacuation orders.
 coverage <- read_csv(output_path(sprintf("commuting_zone_crosswalk_cut%s.csv",
                                          cut_label(baseline_cutoff))),
                      col_types = cols(.default = col_guess(), code = col_character(),
-                                      code_2015 = col_character())) %>%
+                                      code_2020 = col_character())) %>%
   group_by(census_year) %>%
   summarise(rows = n(),
             municipalities = n_distinct(code),
@@ -175,7 +175,7 @@ read_original_zones <- function(year, cutoff) {
 
 # One row per municipality per census date. A municipality that split between two census
 # dates appears once here, under its own code, because the zone is read on that date's own
-# delineation and nothing has to be carried onto the 2015 units.
+# delineation and nothing has to be carried onto the 2020 units.
 cross_section <- records %>%
   filter(census_year %in% census_years) %>%
   distinct(census_year, code, prefecture, gun, muni_name) %>%

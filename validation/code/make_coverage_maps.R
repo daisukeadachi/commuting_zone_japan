@@ -1,0 +1,153 @@
+# Commuting zones and Urban Employment Areas over the whole country, one map each.
+#
+# The argument for delineating commuting zones rather than using the existing Japanese
+# alternative is coverage: the Urban Employment Area starts from urban centres and merges
+# outwards, so a municipality far from any centre belongs to nothing, while a commuting
+# zone delineation partitions the country. That difference is a fact about the two maps
+# and is shown as one.
+#
+# The year is 2000, the year the coverage of the Urban Employment Area is usually quoted
+# for, and both maps are drawn on the municipalities of 2000. The Urban Employment Area of
+# a year is defined on the municipality codes in force that year, so a comparison against
+# it has to be made in those units: carrying the membership forward onto the units of 2015
+# would hand a municipality that belonged to no area the membership of whichever later
+# merger partner had one, and the Heisei mergers joined a great many rural municipalities
+# to cities that did. The commuting zones drawn here are therefore the delineation on each
+# census date's own codes, the one released for cross-sectional work, rather than the
+# harmonized delineation the rest of the paper reports. The code universe is set here
+# rather than left to the caller, because this figure is only correct in one of them.
+#
+# The delineation is the published one, which covers the offshore islands, so the claim
+# the figure makes is made for the whole country: every municipality the census records
+# belongs to a zone.
+#
+# Three municipalities lie too far out to share a frame with the rest and are left off:
+# Ogasawara, a thousand kilometres south of Tokyo, and the two Daito villages, four hundred
+# kilometres east of Okinawa. The rest of Okinawa prefecture, Sakishima included, is drawn
+# in the inset. The three villages of the Northern Territories take no census and a
+# municipality under an evacuation order has no residents recorded as working, so neither
+# has a zone and neither is drawn.
+#
+# Writes two files under validation/output/figures. Neither carries a title, as with every
+# figure here; the file name identifies it.
+
+suppressMessages({
+  library(sf)
+  library(dplyr)
+  library(tidyr)
+  library(readr)
+  library(ggplot2)
+})
+Sys.setenv(CZ_CODES = "original")
+source("validation/code/config.R")
+sf_use_s2(FALSE)
+
+stopifnot(sample_definition == "WORK_MAIN", denominator == "reported",
+          code_universe == "original")
+map_year <- 2000L
+map_cutoff <- baseline_cutoff
+
+# The figures go where the rest of the paper's figures go. figure_path() would send them
+# to the variant directory of the code universe set above, which is meant to keep a
+# side run from overwriting the baseline; here the universe is a property of this one
+# figure rather than of the run, so the destination is written out.
+figure_dir <- file.path(output_dir, "figures")
+dir.create(figure_dir, showWarnings = FALSE, recursive = TRUE)
+
+zones <- read_csv(full_zone_path(map_year, map_cutoff),
+                  col_types = cols(code = col_character(), zone = col_integer()))
+
+outside_frame <- c("13421", "47357", "47358")
+scope <- read_scope(map_year) %>% filter(code %in% zones$code, !code %in% outside_frame)
+geometry <- read_boundaries(scope$code, map_year)
+placed <- inset_okinawa(geometry, scope$code[substr(scope$code, 1, 2) == "47"])
+geometry <- placed$layer
+okinawa_frame <- placed$frame
+
+# The Urban Employment Area membership of the same year, read the way make_core.R reads
+# it: a municipality belongs to at most one area, as a central city or as a suburb. The
+# codes are the ones the files carry, which are the codes of the year.
+uea_dir <- file.path(data_dir, "uea")
+uea_files <- c("MEA2000_Rev07.csv", "MEA2000C_Rev07.csv",
+               "McEA2000_Rev07.csv", "McEA2000C_Rev07.csv")
+read_cp932 <- function(path) {
+  suppressWarnings(read_csv(path, locale = locale(encoding = "CP932"), show_col_types = FALSE,
+                            name_repair = "unique"))
+}
+pad <- function(x) sprintf("%05d", as.integer(x))
+
+suburbs <- bind_rows(lapply(uea_files[c(1, 3)], function(f) {
+  raw <- read_cp932(file.path(uea_dir, f)) %>% distinct()
+  columns <- names(raw)[grepl("^suburb[0-9]*$", names(raw), ignore.case = TRUE)]
+  raw %>%
+    select(area = 1, all_of(columns)) %>%
+    mutate(across(all_of(columns), as.character)) %>%
+    pivot_longer(all_of(columns), values_to = "code") %>%
+    filter(!is.na(code), suppressWarnings(!is.na(as.integer(code)))) %>%
+    transmute(area = pad(area), code = pad(code))
+}))
+centres <- bind_rows(lapply(uea_files[c(2, 4)], function(f) {
+  read_cp932(file.path(uea_dir, f)) %>%
+    distinct() %>%
+    select(area = 1, code = 4) %>%
+    transmute(area = pad(area), code = pad(code))
+}))
+areas <- bind_rows(centres, suburbs) %>%
+  transmute(area = merge_tokyo_wards(area), code = merge_tokyo_wards(code)) %>%
+  distinct(code, .keep_all = TRUE)
+
+# Adjacent units are given different shades by colouring on the label modulo the palette
+# length; the shades themselves mean nothing, and no legend is drawn. The palette's own
+# grey is dropped, so that grey means one thing on these maps: outside every urban area.
+palette <- RColorBrewer::brewer.pal(8, "Set2")[1:7]
+outside <- "grey82"
+
+# The device is given the aspect ratio of the ground it draws, so that the map fills it
+# rather than sitting in a band of white.
+frame <- st_bbox(geometry)
+map_width <- 6.0
+map_height <- map_width * as.numeric((frame["ymax"] - frame["ymin"]) /
+                                     (frame["xmax"] - frame["xmin"]))
+
+draw <- function(layer, outlines, name) {
+  ggplot() +
+    geom_sf(data = layer, aes(fill = shade), colour = "grey70", linewidth = 0.05) +
+    geom_sf(data = outlines, fill = NA, colour = "grey15", linewidth = 0.25) +
+    geom_sf(data = okinawa_frame, fill = NA, colour = "grey55", linewidth = 0.2) +
+    scale_fill_manual(values = c(setNames(palette, as.character(seq_along(palette) - 1)),
+                                 "outside" = outside),
+                      guide = "none", na.value = outside) +
+    theme_void(base_size = 11) +
+    theme(plot.background = element_rect(fill = "white", colour = NA),
+          plot.margin = margin(2, 2, 2, 2))
+  ggsave(file.path(figure_dir, name), width = map_width, height = map_height,
+         dpi = 300, bg = "white")
+}
+
+cz_layer <- geometry %>%
+  left_join(zones, by = "code") %>%
+  mutate(shade = as.character(zone %% length(palette)))
+cz_outlines <- cz_layer %>%
+  filter(!is.na(zone)) %>%
+  group_by(zone) %>%
+  summarise(.groups = "drop") %>%
+  st_make_valid()
+draw(cz_layer, cz_outlines, sprintf("coverage_commuting_zones_%d_cut%s.png", map_year,
+                                    cut_label(map_cutoff)))
+
+uea_layer <- geometry %>%
+  left_join(areas, by = "code") %>%
+  mutate(shade = ifelse(is.na(area), "outside",
+                        as.character(as.integer(factor(area)) %% length(palette))))
+uea_outlines <- uea_layer %>%
+  filter(!is.na(area)) %>%
+  group_by(area) %>%
+  summarise(.groups = "drop") %>%
+  st_make_valid()
+draw(uea_layer, uea_outlines, sprintf("coverage_urban_employment_areas_%d.png", map_year))
+
+message(sprintf(paste("%d: %d municipality units drawn of %d with a zone, in %d of %d commuting zones;",
+                      "%d of the units drawn in %d urban employment areas, %d in none"),
+                map_year, nrow(geometry), nrow(zones), n_distinct(cz_layer$zone),
+                n_distinct(zones$zone), sum(!is.na(uea_layer$area)),
+                n_distinct(uea_layer$area, na.rm = TRUE), sum(is.na(uea_layer$area))))
