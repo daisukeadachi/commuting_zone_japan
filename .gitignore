@@ -27,3 +27,6 @@ paper/figures/*
 # Variant runs of the pipeline write their own names beside the baseline
 paper/figures_unconstrained/
 paper/statistics/*_unconstrained.csv
+
+# Python bytecode
+__pycache__/
