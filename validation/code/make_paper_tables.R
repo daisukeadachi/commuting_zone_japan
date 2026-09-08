@@ -57,9 +57,10 @@ us <- read_csv(file.path(output_dir, "us_compactness.csv"), show_col_types = FAL
 
 # ---------------------------------------------------------------------------
 # Diagnostic statistics at a decade's spacing, the counterpart of Table 1 of the source
-# paper, with the coverage of the published delineation above them, the compactness of
-# the units the zones are built from beside the compactness of the zones, and the United
-# States figures below.
+# paper, with the coverage of the published delineation above them and the compactness of
+# the units the zones are built from beside the compactness of the zones. The United States
+# compactness goes into the note of the table rather than into a row of it, through the
+# macros written to numbers.tex below.
 
 across <- function(data, f, column) {
   paste(vapply(decade_years, function(y) f(pick(data, y)[[column]]), character(1)),
@@ -67,7 +68,6 @@ across <- function(data, f, column) {
 }
 us_county <- us$compactness[us$unit == "county"]
 us_zone <- us$compactness[us$unit == "commuting zone"]
-spanning <- sprintf("\\multicolumn{%d}{c}", length(decade_years))
 # A block header spans the label column as well as the years.
 block_header <- sprintf("\\multicolumn{%d}{l}", length(decade_years) + 1)
 rows <- c(
@@ -88,9 +88,7 @@ rows <- c(
   sprintf("\\quad Average zone area (sq.\\,km) & %s%s", across(diagnostics, count, "mean_area_km2"), br),
   sprintf("\\quad Largest zone area (sq.\\,km) & %s%s[3pt]", across(diagnostics, count, "max_area_km2"), br),
   sprintf("\\quad Compactness of zones & %s%s", across(diagnostics, ratio, "compactness"), br),
-  sprintf("\\quad Compactness of municipalities & %s%s[3pt]", across(diagnostics, ratio, "compactness_municipalities"), br),
-  sprintf("United States, compactness of commuting zones & %s{%s}%s", spanning, ratio(us_zone), br),
-  sprintf("United States, compactness of counties & %s{%s}%s", spanning, ratio(us_county), br))
+  sprintf("\\quad Compactness of municipalities & %s%s", across(diagnostics, ratio, "compactness_municipalities"), br))
 write_table(rows, "diagnostics.tex", paste0("l", strrep("r", length(decade_years))),
             paste0("& ", paste(decade_years, collapse = " & "), br))
 
