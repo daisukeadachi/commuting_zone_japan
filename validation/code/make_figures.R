@@ -118,15 +118,15 @@ fetch_basemap <- function(layer, zoom = 10) {
 
 # Colour scales follow the source paper. The similarity map bins the score at its breaks
 # and shades the classes with a five-class BuPu ramp. The containment detail map uses the
-# same ramp over its own classes. The Japanese data reaches below the floor of the classes
-# of the source paper, and the municipality the detail map names sits in the middle
-# thirties, so the range below 0.4 is split at 0.3 rather than left as one open class. That
-# leaves eight classes, and the ramp is taken at eight steps rather than six. The two ramps
-# share their middle colours and differ slightly at the two ends.
+# same ramp over its own classes. The lowest municipality any of these maps draws sits in
+# the middle thirties, so the classes start at 0.3 rather than at the floor of 0.4 the
+# source paper uses, which keeps the named municipality out of an open bottom class. That
+# leaves seven classes, and the ramp is taken at seven steps rather than six. The two ramps
+# differ in one middle step and agree elsewhere.
 similarity_breaks <- c(0, 0.03, 0.25, 0.5, 0.75, 1)
 similarity_labels <- c("0", "0.03 to 0.25", "0.25 to 0.5", "0.5 to 0.75", "0.75 to 1")
-containment_breaks <- c(0, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1)
-containment_labels <- c("below 0.3", "0.3 to 0.4", "0.4 to 0.5", "0.5 to 0.6", "0.6 to 0.7",
+containment_breaks <- c(0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1)
+containment_labels <- c("0.3 to 0.4", "0.4 to 0.5", "0.5 to 0.6", "0.6 to 0.7",
                         "0.7 to 0.8", "0.8 to 0.9", "0.9 to 1.0")
 containment_palette <- RColorBrewer::brewer.pal(length(containment_labels), "BuPu")
 names(containment_palette) <- containment_labels
@@ -355,6 +355,9 @@ draw_year_maps <- function(map_year) {
                   select(code, contained), by = "code") %>%
       mutate(containment_class = cut(contained, breaks = containment_breaks,
                                      labels = containment_labels, include.lowest = TRUE))
+    # The classes start above zero, so a municipality below the floor would fall out of the
+    # scale and be drawn as missing. None does; this says so rather than leaving it to the eye.
+    stopifnot(!any(is.na(detail$containment_class) & !is.na(detail$contained)))
     zone_outlines <- detail %>% group_by(zone) %>% summarise(.groups = "drop") %>% st_make_valid()
     zone_labels <- suppressWarnings(st_point_on_surface(zone_outlines))
     # One municipality is named, the least contained of the zone, as the source paper names
